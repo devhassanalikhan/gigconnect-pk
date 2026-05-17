@@ -1,0 +1,19 @@
+# Python
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/venv/
+
+# Node
+mobile/node_modules/
+mobile/.expo/
+mobile/dist/
+
+# Environment
+.env
+.env.local
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
