@@ -49,11 +49,11 @@ graph TD
     E -->|5. FollowUpAgent| F[SMS Dispatch with Police Clearance Tasdeeq]
 ```
 
-1.  **LinguisticAgent**: Parses Roman Urdu and normalizes service categories.
-2.  **GeoMatcherAgent**: Scans a 2km radius in G-13 Islamabad to match police-verified, highly-rated local workers.
-3.  **BiddingAgent**: Computes overlapping Zone of Possible Agreement (ZOPA) metrics and negotiates compromise pricing automatically.
-4.  **EscrowAgent**: Secures milestone payments inside digital vaults prior to dispatch to prevent non-payment disputes.
-5.  **FollowUpAgent**: Dispatches simulated police-clearance and NADRA credentials via SMS for safety.
+1.  **LinguisticAgent (Resilient Parser)**: Parses Roman Urdu, Urdu, and English to extract service categories, timeframes, and target budgets. *Resiliency Fallback*: Auto-triggers localized heuristic keyword/regex extraction if LLM request limits or API quota outages occur.
+2.  **GeoMatcherAgent (Self-Healing Locator)**: Scans a strict 2.0 km radius in G-13 Islamabad to match police-verified, highly-rated local workers. *Resiliency Fallback*: Self-heals by dynamically expanding the scanning boundaries to a 10.0 km radius if local supply matches are empty.
+3.  **BiddingAgent (ZOPA Bargainer)**: Graphically simulates dynamic reverse-reverse price negotiations on overlapping ZOPA ranges. *Resiliency Fallback*: Falls back to the client's offered baseline price directly if numeric calculation limits fail.
+4.  **EscrowAgent (Milestone Vault)**: Locks secure milestone payouts inside secure vaults prior to dispatch to prevent transaction disputes. *Resiliency Fallback*: Persists locked transaction metadata safely inside SQLite in case of client network disconnect.
+5.  **FollowUpAgent (Dispatch Dispatcher)**: Generates SMS templates and police-clearance Tasdeeq confirmation cards. *Resiliency Fallback*: Logs background SMS reporting failures but proceeds with booking confirmations to prevent critical interface blockages.
 
 ---
 
