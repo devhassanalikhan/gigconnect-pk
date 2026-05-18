@@ -102,6 +102,7 @@ def geo_agent(
     db: Session,
     user_lat: float = DEFAULT_USER_LAT,
     user_lng: float = DEFAULT_USER_LNG,
+    radius: float = GEO_RADIUS_KM,
 ) -> list[dict]:
     candidates = (
         db.query(Provider)
@@ -112,7 +113,7 @@ def geo_agent(
     enriched: list[dict] = []
     for p in candidates:
         dist = _haversine(user_lat, user_lng, p.lat, p.lng)
-        if dist > GEO_RADIUS_KM:
+        if dist > radius:
             continue  # outside radius
         score = round((1 / max(dist, 0.1)) * 0.5 + (p.rating / 5) * 0.5, 4)
         enriched.append({
@@ -329,16 +330,27 @@ def geo_node(state: AgentState, db: Session) -> AgentState:
         message="LangGraph: Activating State Graph Node: [GeoAgentNode]",
     ))
     try:
-        providers = geo_agent(state["parsed"]["serviceType"], db)
+        providers = geo_agent(state["parsed"]["serviceType"], db, radius=GEO_RADIUS_KM)
+        
+        # Self-healing fallback: Dynamically expand scan radius to 10.0km if 0 local workers matched
         if not providers:
-            raise ValueError(f"No available {state['parsed']['serviceType']} providers within {GEO_RADIUS_KM}km")
+            state["agent_trace"].append(_trace_entry(
+                agent="GeoAgent",
+                status="warning",
+                message=f"[Self-Healing] No workers found inside G-13 radius ({GEO_RADIUS_KM}km). Dynamically expanding scanning search to 10.0km..."
+            ))
+            providers = geo_agent(state["parsed"]["serviceType"], db, radius=10.0)
+            
+        if not providers:
+            raise ValueError(f"No available {state['parsed']['serviceType']} providers within expanded 10km radius.")
+            
         state["providers"] = providers
         state["top_provider"] = providers[0]
         state["agent_trace"].append(_trace_entry(
             agent="GeoAgent",
             status="success",
             output={"providers_found": len(providers), "top": state["top_provider"]["name"]},
-            message=f"Found {len(providers)} provider(s) within {GEO_RADIUS_KM}km. Top match: {state['top_provider']['name']} ({state['top_provider']['distance_km']}km, ⭐{state['top_provider']['rating']})"
+            message=f"Found {len(providers)} provider(s). Top match: {state['top_provider']['name']} ({state['top_provider']['distance_km']}km, ⭐{state['top_provider']['rating']})"
         ))
     except Exception as exc:
         state["pipeline_status"] = "partial"
