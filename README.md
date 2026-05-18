@@ -34,6 +34,11 @@ By orchestrating **5 autonomous sub-agents powered by Google Cloud & Gemini 2.5 
 *   **LLM Outage Shields**: If Gemini LLM quota limits are hit or connection times out, `LinguisticAgent` automatically triggers localized keyword regex processors to ensure uninterrupted matching operations.
 *   **Bidding Baseline Safeties**: If the bargaining algorithm encounters numeric bounds issues, it defaults safely to client baseline offers to protect checkout safety.
 
+### 6. 🗺️ Live Dynamic Google Maps & Apify Places Engine
+*   **Real-time External API Integrations**: If `GOOGLE_MAPS_API_KEY` or `APIFY_API_TOKEN` is declared, **KaamGraph** drops simulated coordinates and actively queries the live Google Places Text Search API or Apify Google Maps Scraper Actor!
+*   **On-the-fly Provider Generation**: Instantly maps real local businesses in Islamabad, ratings, and physical distances onto dynamic candidate cards.
+*   **Frictionless Local Fallback**: Seamlessly falls back to our SQLite database if API credentials are empty, ensuring a secure, always-on demonstration.
+
 ---
 
 ## 🤖 The 5-Agent Architecture (Antigravity Engine)

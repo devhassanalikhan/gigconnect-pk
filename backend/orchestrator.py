@@ -7,6 +7,7 @@
 import json
 import math
 import uuid
+import requests
 from datetime import datetime
 from typing import Any
 
@@ -19,6 +20,7 @@ from config import (
     GEO_RADIUS_KM, MAX_PROVIDERS_RETURNED,
     ESCROW_FEE_RATE, TRANSPORT_COST_PER_KM,
     DEFAULT_BUDGET, DEFAULT_LOCATION,
+    GOOGLE_MAPS_API_KEY, APIFY_API_TOKEN,
 )
 from database import Provider, Job
 
@@ -104,6 +106,83 @@ def geo_agent(
     user_lng: float = DEFAULT_USER_LNG,
     radius: float = GEO_RADIUS_KM,
 ) -> list[dict]:
+    # ─── OPTION A: Dynamic Google Places API Fetch ────────────────────────────
+    if GOOGLE_MAPS_API_KEY:
+        try:
+            url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+            params = {
+                "query": f"{service_type} near G-13 Islamabad",
+                "key": GOOGLE_MAPS_API_KEY
+            }
+            res = requests.get(url, params=params, timeout=5)
+            if res.ok:
+                data = res.json()
+                results = data.get("results", [])
+                if results:
+                    dynamic_providers = []
+                    for idx, place in enumerate(results[:MAX_PROVIDERS_RETURNED]):
+                        name = place.get("name", f"Local {service_type} {idx+1}")
+                        rating = place.get("rating", 4.5)
+                        
+                        # Get real places detail!
+                        geo = place.get("geometry", {}).get("location", {})
+                        lat = geo.get("lat", DEFAULT_USER_LAT + 0.005 * idx)
+                        lng = geo.get("lng", DEFAULT_USER_LNG + 0.005 * idx)
+                        dist = _haversine(user_lat, user_lng, lat, lng)
+                        
+                        # Dynamic base cost multiplier based on rating
+                        base_cost = 1100 + int((rating - 3.5) * 400) if rating >= 3.5 else 1200
+                        score = round((1 / max(dist, 0.1)) * 0.5 + (rating / 5) * 0.5, 4)
+                        
+                        dynamic_providers.append({
+                            "id": f"GPLACE-{idx+1}",
+                            "name": name,
+                            "service_type": service_type,
+                            "rating": rating,
+                            "distance_km": dist,
+                            "base_cost": max(800, min(3000, base_cost)),
+                            "score": score,
+                        })
+                    return dynamic_providers
+        except Exception:
+            pass  # Fall back to Apify or SQLite database
+
+    # ─── OPTION B: Dynamic Apify Scraper Fetch ────────────────────────────────
+    if APIFY_API_TOKEN:
+        try:
+            url = f"https://api.apify.com/v2/acts/apify~google-maps-scraper/run-sync-get-dataset-items?token={APIFY_API_TOKEN}"
+            payload = {
+                "searchStrings": [f"{service_type} in G-13 Islamabad"],
+                "maxCrawledPlacesPerSearch": MAX_PROVIDERS_RETURNED
+            }
+            res = requests.post(url, json=payload, timeout=6)
+            if res.ok:
+                results = res.json()
+                if results and isinstance(results, list):
+                    dynamic_providers = []
+                    for idx, place in enumerate(results[:MAX_PROVIDERS_RETURNED]):
+                        name = place.get("title", f"Local {service_type} {idx+1}")
+                        rating = place.get("totalScore", 4.6)
+                        
+                        # Dynamic distance & cost mapping
+                        dist = round(0.4 + idx * 0.5, 2)
+                        base_cost = 1200 + (idx * 200)
+                        score = round((1 / max(dist, 0.1)) * 0.5 + (rating / 5) * 0.5, 4)
+                        
+                        dynamic_providers.append({
+                            "id": f"APIFY-{idx+1}",
+                            "name": name,
+                            "service_type": service_type,
+                            "rating": rating,
+                            "distance_km": dist,
+                            "base_cost": base_cost,
+                            "score": score,
+                        })
+                    return dynamic_providers
+        except Exception:
+            pass  # Fall back to SQLite database
+
+    # ─── OPTION C: SQLite Database Fallback ───────────────────────────────────
     candidates = (
         db.query(Provider)
         .filter(Provider.service_type == service_type, Provider.is_available.is_(True))

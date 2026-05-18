@@ -10,6 +10,10 @@ load_dotenv()
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
+# ─── Maps / Apify Configuration ───────────────────────────
+GOOGLE_MAPS_API_KEY: str = os.getenv("GOOGLE_MAPS_API_KEY", "")
+APIFY_API_TOKEN: str = os.getenv("APIFY_API_TOKEN", "")
+
 # ─── Database Configuration ────────────────────────────────
 DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./gigconnect.db")
 
