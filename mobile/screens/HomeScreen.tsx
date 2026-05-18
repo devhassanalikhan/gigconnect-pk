@@ -123,45 +123,35 @@ export default function HomeScreen() {
             <View style={styles.stepNumberWrapper}>
               <Text style={styles.stepNumber}>1</Text>
             </View>
-            <Text style={styles.stepText}>
-              <Text style={styles.boldText}>Linguistic Agent</Text> parses your intent in Roman Urdu/English.
-            </Text>
+            <Text style={styles.stepText}><Text style={styles.boldText}>Linguistic Agent</Text> parses your intent in Roman Urdu/English.</Text>
           </View>
 
           <View style={styles.stepRow}>
             <View style={styles.stepNumberWrapper}>
               <Text style={styles.stepNumber}>2</Text>
             </View>
-            <Text style={styles.stepText}>
-              <Text style={styles.boldText}>Geo Agent</Text> ranks nearby workers by distance & ratings.
-            </Text>
+            <Text style={styles.stepText}><Text style={styles.boldText}>Geo Agent</Text> ranks nearby workers by distance & ratings.</Text>
           </View>
 
           <View style={styles.stepRow}>
             <View style={styles.stepNumberWrapper}>
               <Text style={styles.stepNumber}>3</Text>
             </View>
-            <Text style={styles.stepText}>
-              <Text style={styles.boldText}>Bidding Agent</Text> negotiates optimal prices automatically.
-            </Text>
+            <Text style={styles.stepText}><Text style={styles.boldText}>Bidding Agent</Text> negotiates optimal prices automatically.</Text>
           </View>
 
           <View style={styles.stepRow}>
             <View style={styles.stepNumberWrapper}>
               <Text style={styles.stepNumber}>4</Text>
             </View>
-            <Text style={styles.stepText}>
-              <Text style={styles.boldText}>Escrow Agent</Text> secures the funds in a locked milestone.
-            </Text>
+            <Text style={styles.stepText}><Text style={styles.boldText}>Escrow Agent</Text> secures the funds in a locked milestone.</Text>
           </View>
 
           <View style={styles.stepRow}>
             <View style={styles.stepNumberWrapper}>
               <Text style={styles.stepNumber}>5</Text>
             </View>
-            <Text style={styles.stepText}>
-              <Text style={styles.boldText}>Follow-Up Agent</Text> dispatches automated SMS confirmations.
-            </Text>
+            <Text style={styles.stepText}><Text style={styles.boldText}>Follow-Up Agent</Text> dispatches automated SMS confirmations.</Text>
           </View>
         </View>
 
