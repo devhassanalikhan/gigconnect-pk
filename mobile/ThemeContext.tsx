@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
 export type ThemeType = 'light' | 'dark';
+export type UserRole = 'client' | 'provider';
 
 export interface ThemeColors {
   background: string;
@@ -68,6 +69,8 @@ interface ThemeContextProps {
   isDark: boolean;
   colors: ThemeColors;
   toggleTheme: () => void;
+  userRole: UserRole;
+  toggleUserRole: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
@@ -75,6 +78,7 @@ const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const systemScheme = useColorScheme();
   const [theme, setTheme] = useState<ThemeType>('dark'); // Default to dark premium for wow factor
+  const [userRole, setUserRole] = useState<UserRole>('client'); // Default to client persona
 
   useEffect(() => {
     if (systemScheme) {
@@ -86,11 +90,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  const toggleUserRole = () => {
+    setUserRole((prev) => (prev === 'client' ? 'provider' : 'client'));
+  };
+
   const isDark = theme === 'dark';
   const colors = isDark ? darkColors : lightColors;
 
   return (
-    <ThemeContext.Provider value={{ theme, isDark, colors, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, isDark, colors, toggleTheme, userRole, toggleUserRole }}>
       {children}
     </ThemeContext.Provider>
   );

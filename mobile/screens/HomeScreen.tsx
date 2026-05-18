@@ -40,7 +40,7 @@ const COLUMN_WIDTH = (width - 44) / 2;
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { colors, theme, toggleTheme } = useTheme();
+  const { colors, theme, toggleTheme, userRole } = useTheme();
 
   const handleCategoryPress = (category: string) => {
     // Route to Search Screen with the pre-selected category
@@ -57,8 +57,12 @@ export default function HomeScreen() {
       {/* Header section with brand and history trigger */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={styles.headerBranding}>
-          <Text style={[styles.headerSubtitle, { color: colors.primary }]}>Pakistan's 1st Agentic Economy</Text>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>KaamGraph</Text>
+          <Text style={[styles.headerSubtitle, { color: userRole === 'client' ? colors.primary : colors.success }]}>
+            {userRole === 'client' ? "Pakistan's 1st Agentic Economy" : "KaamGraph Provider Portal"}
+          </Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            {userRole === 'client' ? "KaamGraph" : "Arsalan's Panel"}
+          </Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity 
@@ -69,7 +73,7 @@ export default function HomeScreen() {
             <Ionicons 
               name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'} 
               size={20} 
-              color={colors.primary} 
+              color={userRole === 'client' ? colors.primary : colors.success} 
             />
           </TouchableOpacity>
           <TouchableOpacity 
@@ -77,102 +81,187 @@ export default function HomeScreen() {
             onPress={() => navigation.navigate('History')}
             activeOpacity={0.7}
           >
-            <Ionicons name="time-outline" size={20} color={colors.primary} />
+            <Ionicons name="time-outline" size={20} color={userRole === 'client' ? colors.primary : colors.success} />
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        {/* Sleek Tagline & Hero Card */}
-        <View style={[styles.heroCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-          <View style={styles.heroTextContent}>
-            <Text style={[styles.heroBadge, { backgroundColor: colors.primaryLight, color: colors.primary }]}>HACKATHON EDITION</Text>
-            <Text style={[styles.heroTitle, { color: colors.text }]}>Trusted pricing, locked with AI Escrow.</Text>
-            <Text style={[styles.heroDescription, { color: colors.textMuted }]}>
-              Describe your task in Roman Urdu or English and let our 5-Agent pipeline handle matching, bidding & payments.
-            </Text>
-          </View>
-          <View style={styles.heroGlow} />
-        </View>
-
-        {/* Interactive Matchmaking Search Prompt Trigger */}
-        <TouchableOpacity 
-          style={[styles.searchBarTrigger, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-          onPress={() => navigation.navigate('Search')}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="sparkles-outline" size={18} color={colors.primary} style={styles.searchIcon} />
-          <Text style={[styles.searchPlaceholder, { color: colors.textMuted }]}>Type what you need (e.g. "Plumber chahye G-13")</Text>
-          <View style={[styles.arrowIconWrapper, { backgroundColor: colors.primary }]}>
-            <Ionicons name="arrow-forward" size={16} color="#ffffff" />
-          </View>
-        </TouchableOpacity>
-
-        {/* Section Heading */}
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Select a Category</Text>
-          <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>Tap to auto-populate request intents</Text>
-        </View>
-
-        {/* Beautiful Category Grid inspired by InDrive + Uber Dark UI */}
-        <View style={styles.categoryGrid}>
-          {CATEGORIES.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-              onPress={() => handleCategoryPress(item.id)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.iconWrapper, { backgroundColor: item.color + '15' }]}>
-                <Ionicons name={item.icon as any} size={28} color={item.color} />
+        {userRole === 'client' ? (
+          <>
+            {/* Sleek Tagline & Hero Card */}
+            <View style={[styles.heroCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <View style={styles.heroTextContent}>
+                <Text style={[styles.heroBadge, { backgroundColor: colors.primaryLight, color: colors.primary }]}>HACKATHON EDITION</Text>
+                <Text style={[styles.heroTitle, { color: colors.text }]}>Trusted pricing, locked with AI Escrow.</Text>
+                <Text style={[styles.heroDescription, { color: colors.textMuted }]}>
+                  Describe your task in Roman Urdu or English and let our 5-Agent pipeline handle matching, bidding & payments.
+                </Text>
               </View>
-              <Text style={[styles.categoryName, { color: colors.text }]}>{item.name}</Text>
-              <Text style={[styles.categoryDesc, { color: colors.textMuted }]}>{item.description}</Text>
+              <View style={styles.heroGlow} />
+            </View>
+
+            {/* Interactive Matchmaking Search Prompt Trigger */}
+            <TouchableOpacity 
+              style={[styles.searchBarTrigger, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+              onPress={() => navigation.navigate('Search')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="sparkles-outline" size={18} color={colors.primary} style={styles.searchIcon} />
+              <Text style={[styles.searchPlaceholder, { color: colors.textMuted }]}>Type what you need (e.g. "Plumber chahye G-13")</Text>
+              <View style={[styles.arrowIconWrapper, { backgroundColor: colors.primary }]}>
+                <Ionicons name="arrow-forward" size={16} color="#ffffff" />
+              </View>
             </TouchableOpacity>
-          ))}
-        </View>
 
-        {/* Trust & Pipeline Explanation Card */}
-        <View style={[styles.pipelineExplanationCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-          <Text style={[styles.pipelineTitle, { color: colors.text }]}>🤖 Powered by Google Antigravity</Text>
-          <Text style={[styles.pipelineSubtitle, { color: colors.primary }]}>How our 5 sub-agents secure your job:</Text>
-          
-          <View style={styles.stepRow}>
-            <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
-              <Text style={[styles.stepNumber, { color: colors.success }]}>1</Text>
+            {/* Section Heading */}
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Select a Category</Text>
+              <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>Tap to auto-populate request intents</Text>
             </View>
-            <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Linguistic Agent</Text> parses your intent in Roman Urdu/English.</Text>
-          </View>
 
-          <View style={styles.stepRow}>
-            <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
-              <Text style={[styles.stepNumber, { color: colors.success }]}>2</Text>
+            {/* Beautiful Category Grid inspired by InDrive + Uber Dark UI */}
+            <View style={styles.categoryGrid}>
+              {CATEGORIES.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+                  onPress={() => handleCategoryPress(item.id)}
+                  activeOpacity={0.7}
+                >
+                  <View style={[styles.iconWrapper, { backgroundColor: item.color + '15' }]}>
+                    <Ionicons name={item.icon as any} size={28} color={item.color} />
+                  </View>
+                  <Text style={[styles.categoryName, { color: colors.text }]}>{item.name}</Text>
+                  <Text style={[styles.categoryDesc, { color: colors.textMuted }]}>{item.description}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
-            <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Geo Agent</Text> ranks nearby workers by distance & ratings.</Text>
-          </View>
 
-          <View style={styles.stepRow}>
-            <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
-              <Text style={[styles.stepNumber, { color: colors.success }]}>3</Text>
-            </View>
-            <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Bidding Agent</Text> negotiates optimal prices automatically.</Text>
-          </View>
+            {/* Trust & Pipeline Explanation Card */}
+            <View style={[styles.pipelineExplanationCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <Text style={[styles.pipelineTitle, { color: colors.text }]}>🤖 Powered by Google Antigravity</Text>
+              <Text style={[styles.pipelineSubtitle, { color: colors.primary }]}>How our 5 sub-agents secure your job:</Text>
+              
+              <View style={styles.stepRow}>
+                <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
+                  <Text style={[styles.stepNumber, { color: colors.success }]}>1</Text>
+                </View>
+                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Linguistic Agent</Text> parses your intent in Roman Urdu/English.</Text>
+              </View>
 
-          <View style={styles.stepRow}>
-            <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
-              <Text style={[styles.stepNumber, { color: colors.success }]}>4</Text>
-            </View>
-            <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Escrow Agent</Text> secures the funds in a locked milestone.</Text>
-          </View>
+              <View style={styles.stepRow}>
+                <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
+                  <Text style={[styles.stepNumber, { color: colors.success }]}>2</Text>
+                </View>
+                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Geo Agent</Text> ranks nearby workers by distance & ratings.</Text>
+              </View>
 
-          <View style={styles.stepRow}>
-            <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
-              <Text style={[styles.stepNumber, { color: colors.success }]}>5</Text>
+              <View style={styles.stepRow}>
+                <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
+                  <Text style={[styles.stepNumber, { color: colors.success }]}>3</Text>
+                </View>
+                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Bidding Agent</Text> negotiates optimal prices automatically.</Text>
+              </View>
+
+              <View style={styles.stepRow}>
+                <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
+                  <Text style={[styles.stepNumber, { color: colors.success }]}>4</Text>
+                </View>
+                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Escrow Agent</Text> secures the funds in a locked milestone.</Text>
+              </View>
+
+              <View style={styles.stepRow}>
+                <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
+                  <Text style={[styles.stepNumber, { color: colors.success }]}>5</Text>
+                </View>
+                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Follow-Up Agent</Text> dispatches automated SMS confirmations.</Text>
+              </View>
             </View>
-            <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Follow-Up Agent</Text> dispatches automated SMS confirmations.</Text>
-          </View>
-        </View>
+          </>
+        ) : (
+          <>
+            {/* WORKER DASHBOARD PERSPECTIVE */}
+            <View style={[styles.heroCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <View style={styles.heroTextContent}>
+                <Text style={[styles.heroBadge, { backgroundColor: colors.successLight, color: colors.success }]}>PROVIDER PORTAL ACTIVE</Text>
+                <Text style={[styles.heroTitle, { color: colors.text }]}>Secure Leads, Automatically Negotiated.</Text>
+                <Text style={[styles.heroDescription, { color: colors.textMuted }]}>
+                  Our Antigravity Bidding Agent represents your minimum threshold targets in all price agreements.
+                </Text>
+              </View>
+              <View style={[styles.heroGlow, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]} />
+            </View>
+
+            {/* Active Leads List */}
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Incoming Local Leads (Sector G-13)</Text>
+              <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>Real-time matching near your active coordinates</Text>
+            </View>
+
+            <View style={[styles.pipelineExplanationCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginBottom: 16 }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name="sparkles" size={18} color={colors.success} style={{ marginRight: 6 }} />
+                  <Text style={{ fontWeight: 'bold', color: colors.text }}>AC Installation Lead</Text>
+                </View>
+                <Text style={{ fontSize: 12, fontWeight: 'bold', color: colors.success }}>2,500 PKR</Text>
+              </View>
+              <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 10 }}>
+                "Mujhe kal subah G-13 me urgent AC lagwana hai koi technician bhejo."
+              </Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 11, color: colors.textMuted }}>Client: Hassan A. (1.4 km away)</Text>
+                <View style={{ backgroundColor: colors.successLight, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: colors.success }}>98% Match Rating</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={[styles.pipelineExplanationCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginBottom: 16 }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Ionicons name="sparkles" size={18} color={colors.success} style={{ marginRight: 6 }} />
+                  <Text style={{ fontWeight: 'bold', color: colors.text }}>Electric Switchboard Repair</Text>
+                </View>
+                <Text style={{ fontSize: 12, fontWeight: 'bold', color: colors.success }}>1,800 PKR</Text>
+              </View>
+              <Text style={{ fontSize: 13, color: colors.textMuted, marginBottom: 10 }}>
+                "Main board me short circuit ho rha hai urgently electrician chahye G-13."
+              </Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 11, color: colors.textMuted }}>Client: Zainab M. (0.8 km away)</Text>
+                <View style={{ backgroundColor: colors.successLight, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: colors.success }}>95% Match Rating</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Active Bidding ZOPA Negotiations Section */}
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Active Bargaining Traces</Text>
+              <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>AI-to-AI ZOPA negotiations currently in progress</Text>
+            </View>
+
+            <View style={[styles.pipelineExplanationCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderLeftWidth: 4, borderLeftColor: colors.warning }]}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <Text style={{ fontWeight: 'bold', color: colors.text }}>Job #GIG-2918 (AC Servicing)</Text>
+                <View style={{ backgroundColor: colors.warningLight, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: colors.warning }}>Agent Bargaining</Text>
+                </View>
+              </View>
+              <Text style={{ fontSize: 12, color: colors.textMuted, fontStyle: 'italic', marginBottom: 8 }}>
+                "Client budget was 1,500 PKR. Provider Arsalan target min is 2,000 PKR. Bidding agent negotiated a compromise agreement at 1,800 PKR."
+              </Text>
+              <View style={{ height: 1, backgroundColor: colors.border, marginVertical: 8 }} />
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ fontSize: 11, color: colors.textMuted }}>Target: 2,000 PKR</Text>
+                <Text style={{ fontSize: 11, fontWeight: 'bold', color: colors.warning }}>Settled: 1,800 PKR</Text>
+              </View>
+            </View>
+          </>
+        )}
 
       </ScrollView>
     </SafeAreaView>
