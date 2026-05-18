@@ -35,6 +35,8 @@ def on_startup():
 # ─── Request Models ────────────────────────────────────────
 class MatchRequest(BaseModel):
     text: str
+    user_lat: float = None
+    user_lng: float = None
 
 
 class BidRequest(BaseModel):
@@ -74,7 +76,12 @@ async def match_providers(req: MatchRequest, db: Session = Depends(get_db)):
     Runs LinguisticAgent → GeoAgent → BiddingAgent → EscrowAgent → FollowUpAgent.
     Returns complete agent_trace and booking result.
     """
-    return await run_pipeline(req.text, db)
+    return await run_pipeline(
+        text=req.text,
+        db=db,
+        user_lat=req.user_lat,
+        user_lng=req.user_lng
+    )
 
 
 # ══════════════════════════════════════════════════════════

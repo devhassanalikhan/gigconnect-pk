@@ -6,12 +6,12 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
   Alert,
   StatusBar,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -29,15 +29,26 @@ interface AgentLog {
   message: string;
 }
 
+const ISLAMABAD_SECTORS = [
+  { name: 'G-13 Sector', lat: 33.6411, lng: 72.9723, urdu: 'جی-13 سیکٹر', icon: 'navigate-circle-outline' },
+  { name: 'G-11 Markaz', lat: 33.6655, lng: 72.9922, urdu: 'جی-11 مرکز', icon: 'locate-outline' },
+  { name: 'F-11 Sector', lat: 33.6841, lng: 72.9863, urdu: 'ایف-11 سیکٹر', icon: 'pin-outline' },
+  { name: 'E-11 Heights', lat: 33.6995, lng: 72.9754, urdu: 'ای-11 ہائٹس', icon: 'business-outline' },
+  { name: 'I-8 Sector', lat: 33.6702, lng: 73.0722, urdu: 'آئی-8 سیکٹر', icon: 'home-outline' },
+  { name: 'Blue Area', lat: 33.7112, lng: 73.0583, urdu: 'بلیو ایریا', icon: 'compass-outline' },
+  { name: 'Saddar RWP', lat: 33.5934, lng: 73.0531, urdu: 'صدر راولپنڈی', icon: 'trail-sign-outline' },
+];
+
 export default function SearchScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<SearchRouteProp>();
-  const { colors, theme } = useTheme();
+  const { colors, theme, language } = useTheme();
   
   const [requestText, setRequestText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeStep, setActiveStep] = useState<number>(-1);
   const [consoleLogs, setConsoleLogs] = useState<AgentLog[]>([]);
+  const [selectedLocationIndex, setSelectedLocationIndex] = useState(0);
 
   // ─── Pre-populate text if arriving from category selection ─────────────────────────
   useEffect(() => {
@@ -69,12 +80,17 @@ export default function SearchScreen() {
       ]);
       setActiveStep(1);
 
+      const activeLoc = ISLAMABAD_SECTORS[selectedLocationIndex];
       const response = await fetch(`${API_BASE_URL}/api/match`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text: requestText }),
+        body: JSON.stringify({ 
+          text: requestText,
+          user_lat: activeLoc.lat,
+          user_lng: activeLoc.lng
+        }),
       });
 
       if (!response.ok) {
@@ -200,6 +216,92 @@ export default function SearchScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Dynamic Location Selection Card */}
+        <View style={[styles.card, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+          <View style={styles.cardHeader}>
+            <Ionicons name="map-outline" size={18} color={colors.primary} />
+            <Text style={[styles.cardTitle, { color: colors.text }]}>
+              {language === 'ur' ? 'کام کی جگہ منتخب کریں' : 'Select Service Location'}
+            </Text>
+          </View>
+          <Text style={[styles.cardSubtitle, { color: colors.textMuted }]}>
+            {language === 'ur' 
+              ? 'اسلام آباد میں ورکرز کو تلاش کرنے کے لیے ایک سیکٹر منتخب کریں۔' 
+              : 'Choose a specific sector to query nearby providers dynamically.'}
+          </Text>
+
+          {/* Sectors Horizontal Pill Selector */}
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={styles.sectorsScroll}
+            style={{ marginVertical: 12 }}
+          >
+            {ISLAMABAD_SECTORS.map((sector, idx) => {
+              const isActive = selectedLocationIndex === idx;
+              return (
+                <TouchableOpacity
+                  key={idx}
+                  style={[
+                    styles.sectorPill,
+                    { borderColor: colors.border, backgroundColor: colors.inputBackground },
+                    isActive && { backgroundColor: colors.primary, borderColor: colors.primary }
+                  ]}
+                  onPress={() => setSelectedLocationIndex(idx)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons 
+                    name={sector.icon as any} 
+                    size={14} 
+                    color={isActive ? '#ffffff' : colors.textMuted} 
+                    style={{ marginRight: 6 }} 
+                  />
+                  <Text style={[styles.sectorPillText, { color: isActive ? '#ffffff' : colors.text, fontWeight: 'bold' }]}>
+                    {language === 'ur' ? sector.urdu : sector.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+
+          {/* Interactive Simulated Google Map Radar Screen */}
+          <View style={[styles.mapContainer, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
+            <View style={styles.mapHeader}>
+              <View style={styles.gpsPulseOuter}>
+                <View style={[styles.gpsPulseInner, { backgroundColor: colors.primary }]} />
+              </View>
+              <Text style={[styles.mapGpsText, { color: colors.text }]}>
+                {language === 'ur' ? 'لائیو GPS سگنل - اسلام آباد' : 'LIVE GPS MATCH SIGNAL - ISLAMABAD'}
+              </Text>
+            </View>
+            
+            {/* Visual Coordinate Board */}
+            <View style={styles.coordsBoard}>
+              <View style={styles.coordCol}>
+                <Text style={styles.coordLabel}>LATITUDE</Text>
+                <Text style={[styles.coordValue, { color: colors.primary }]}>
+                  {ISLAMABAD_SECTORS[selectedLocationIndex].lat.toFixed(4)}° N
+                </Text>
+              </View>
+              <View style={styles.coordDivider} />
+              <View style={styles.coordCol}>
+                <Text style={styles.coordLabel}>LONGITUDE</Text>
+                <Text style={[styles.coordValue, { color: colors.primary }]}>
+                  {ISLAMABAD_SECTORS[selectedLocationIndex].lng.toFixed(4)}° E
+                </Text>
+              </View>
+            </View>
+
+            {/* Radar Animation Rings */}
+            <View style={styles.radarRingWrapper}>
+              <View style={[styles.radarMapRing, { width: 140, height: 140, borderRadius: 70, borderColor: colors.border }]} />
+              <View style={[styles.radarMapRing, { width: 100, height: 100, borderRadius: 50, borderColor: colors.primaryLight }]} />
+              <View style={[styles.radarMapRing, { width: 60, height: 60, borderRadius: 30, borderColor: colors.primary }]} />
+              <Ionicons name="pin" size={24} color="#ef4444" style={styles.mapPinIcon} />
+            </View>
+          </View>
+        </View>
+
         {/* Dynamic Pulsing AI Agent Radar Widget */}
         {isProcessing && (
           <View style={[styles.radarWrapper, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
@@ -257,7 +359,12 @@ export default function SearchScreen() {
             <ScrollView style={styles.terminalContent} nestedScrollEnabled>
               {consoleLogs.map((log, index) => (
                 <View key={index} style={styles.logLine}>
-                  <Text style={styles.logTimestamp}>[{new Date().toLocaleTimeString()}] </Text><Text style={[styles.logAgent, { color: getAgentColor(log.agent) }]}>{log.agent}: </Text><Text style={[styles.logText, { color: getLogTextColor(log.status) }]}>{log.message}</Text>{log.status === 'running' ? <Text style={styles.cursor}>_</Text> : null}
+                  <Text style={styles.logLineText}>
+                    <Text style={styles.logTimestamp}>[{new Date().toLocaleTimeString()}] </Text>
+                    <Text style={[styles.logAgent, { color: getAgentColor(log.agent) }]}>{log.agent}: </Text>
+                    <Text style={[styles.logText, { color: getLogTextColor(log.status) }]}>{log.message}</Text>
+                    {log.status === 'running' && <Text style={styles.cursor}>_</Text>}
+                  </Text>
                 </View>
               ))}
             </ScrollView>
@@ -416,9 +523,10 @@ const styles = StyleSheet.create({
     maxHeight: 250,
   },
   logLine: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     marginBottom: 8,
+  },
+  logLineText: {
+    color: '#9ca3af',
   },
   logTimestamp: {
     color: '#555555',
@@ -504,5 +612,102 @@ const styles = StyleSheet.create({
   satelliteText: {
     fontSize: 10,
     marginLeft: 6,
+  },
+  // Location Selector Styles
+  sectorsScroll: {
+    paddingRight: 20,
+  },
+  sectorPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginRight: 8,
+  },
+  sectorPillText: {
+    fontSize: 12,
+  },
+  mapContainer: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 16,
+    marginTop: 10,
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  mapHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    width: '100%',
+  },
+  gpsPulseOuter: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: 'rgba(16, 185, 129, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  gpsPulseInner: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  mapGpsText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  coordsBoard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    width: '100%',
+    paddingVertical: 10,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: 8,
+    marginBottom: 20,
+    zIndex: 10,
+  },
+  coordCol: {
+    alignItems: 'center',
+  },
+  coordLabel: {
+    fontSize: 9,
+    color: '#888',
+    marginBottom: 4,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
+  coordValue: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    fontFamily: 'monospace',
+  },
+  coordDivider: {
+    width: 1,
+    height: '100%',
+    backgroundColor: '#333',
+  },
+  radarRingWrapper: {
+    position: 'relative',
+    height: 140,
+    width: 140,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  radarMapRing: {
+    position: 'absolute',
+    borderWidth: 1,
+    borderStyle: 'dashed',
+  },
+  mapPinIcon: {
+    position: 'absolute',
+    top: 45,
   },
 });

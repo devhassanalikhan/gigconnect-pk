@@ -412,16 +412,30 @@ def geo_node(state: AgentState, db: Session) -> AgentState:
         message="LangGraph: Activating State Graph Node: [GeoAgentNode]",
     ))
     try:
-        providers = geo_agent(state["parsed"]["serviceType"], db, radius=GEO_RADIUS_KM)
+        lat = state["parsed"].get("lat", DEFAULT_USER_LAT)
+        lng = state["parsed"].get("lng", DEFAULT_USER_LNG)
+        providers = geo_agent(
+            service_type=state["parsed"]["serviceType"],
+            db=db,
+            user_lat=lat,
+            user_lng=lng,
+            radius=GEO_RADIUS_KM
+        )
         
         # Self-healing fallback: Dynamically expand scan radius to 10.0km if 0 local workers matched
         if not providers:
             state["agent_trace"].append(_trace_entry(
                 agent="GeoAgent",
                 status="warning",
-                message=f"[Self-Healing] No workers found inside G-13 radius ({GEO_RADIUS_KM}km). Dynamically expanding scanning search to 10.0km..."
+                message=f"[Self-Healing] No workers found inside target radius ({GEO_RADIUS_KM}km). Dynamically expanding scanning search to 10.0km..."
             ))
-            providers = geo_agent(state["parsed"]["serviceType"], db, radius=10.0)
+            providers = geo_agent(
+                service_type=state["parsed"]["serviceType"],
+                db=db,
+                user_lat=lat,
+                user_lng=lng,
+                radius=10.0
+            )
             
         if not providers:
             raise ValueError(f"No available {state['parsed']['serviceType']} providers within expanded 10km radius.")
@@ -554,7 +568,12 @@ def followup_node(state: AgentState) -> AgentState:
 
 # ─── ORCHESTRATOR — main entry point (Graph Compilation) ──────────────────────
 
-async def run_pipeline(text: str, db: Session) -> dict:
+async def run_pipeline(
+    text: str,
+    db: Session,
+    user_lat: float = None,
+    user_lng: float = None,
+) -> dict:
     # ── Initialize Shared Graph State ──────────────────────
     state: AgentState = {
         "text": text,
@@ -577,6 +596,17 @@ async def run_pipeline(text: str, db: Session) -> dict:
 
     # ── Graph Execution Loop ────────────────────────────────
     state = await linguistic_node(state)
+    
+    # Override parsed coordinates if custom client values are explicitly provided
+    if user_lat is not None and user_lng is not None:
+        state["parsed"]["lat"] = user_lat
+        state["parsed"]["lng"] = user_lng
+        state["agent_trace"].append(_trace_entry(
+            agent="System",
+            status="success",
+            message=f"Location Selector: Coordinates overridden by Client: lat={user_lat}, lng={user_lng}",
+        ))
+
     state = geo_node(state, db)
     state = bidding_node(state)
     state = escrow_node(state)
