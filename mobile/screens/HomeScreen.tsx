@@ -81,13 +81,6 @@ export default function HomeScreen() {
               color={userRole === 'client' ? colors.primary : colors.success} 
             />
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.historyBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginLeft: 8 }]}
-            onPress={() => navigation.navigate('History')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="time-outline" size={20} color={userRole === 'client' ? colors.primary : colors.success} />
-          </TouchableOpacity>
         </View>
       </View>
 

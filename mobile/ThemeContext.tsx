@@ -114,6 +114,12 @@ export interface TranslationSet {
   verifiedBadgeWorker: string;
   premiumClient: string;
   topRatedProvider: string;
+
+  // Tabs
+  tabHome: string;
+  tabSearch: string;
+  tabHistory: string;
+  tabProfile: string;
 }
 
 const englishTranslations: TranslationSet = {
@@ -161,6 +167,10 @@ const englishTranslations: TranslationSet = {
   verifiedBadgeWorker: "NADRA & Police Clearance Approved",
   premiumClient: "Premium Client • Islamabad",
   topRatedProvider: "Top Rated Provider • Sector G-13",
+  tabHome: "Home",
+  tabSearch: "AI Match",
+  tabHistory: "Escrows",
+  tabProfile: "Profile",
 };
 
 const urduTranslations: TranslationSet = {
@@ -208,6 +218,10 @@ const urduTranslations: TranslationSet = {
   verifiedBadgeWorker: "نادرا اور پولیس تصدیق منظور شدہ",
   premiumClient: "پریمیم کلائنٹ • اسلام آباد",
   topRatedProvider: "ٹاپ ریٹیڈ فراہم کنندہ • سیکٹر G-13",
+  tabHome: "ہوم",
+  tabSearch: "میچنگ",
+  tabHistory: "ایسکرو",
+  tabProfile: "پروفائل",
 };
 
 interface ThemeContextProps {

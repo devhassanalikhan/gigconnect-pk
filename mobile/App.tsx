@@ -62,7 +62,7 @@ const Tab = createBottomTabNavigator();
 
 // ─── Bottom Tab Navigator Setup ─────────────────────────────────────────────────────
 function TabNavigator() {
-  const { colors } = useTheme();
+  const { colors, t } = useTheme();
   
   return (
     <Tab.Navigator
@@ -97,10 +97,10 @@ function TabNavigator() {
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: 'Home' }} />
-      <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarLabel: 'AI Match' }} />
-      <Tab.Screen name="History" component={HistoryScreen} options={{ tabBarLabel: 'Escrows' }} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: 'Profile' }} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t.tabHome }} />
+      <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarLabel: t.tabSearch }} />
+      <Tab.Screen name="History" component={HistoryScreen} options={{ tabBarLabel: t.tabHistory }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: t.tabProfile }} />
     </Tab.Navigator>
   );
 }
