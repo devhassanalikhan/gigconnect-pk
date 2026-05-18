@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
+import { useTheme } from '../ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -39,6 +40,7 @@ const COLUMN_WIDTH = (width - 44) / 2;
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const { colors, theme, toggleTheme } = useTheme();
 
   const handleCategoryPress = (category: string) => {
     // Route to Search Screen with the pre-selected category
@@ -46,31 +48,48 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar 
+        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} 
+        backgroundColor={colors.background} 
+      />
 
       {/* Header section with brand and history trigger */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={styles.headerBranding}>
-          <Text style={styles.headerSubtitle}>Pakistan's 1st Agentic Economy</Text>
-          <Text style={styles.headerTitle}>KaamGraph</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.primary }]}>Pakistan's 1st Agentic Economy</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>KaamGraph</Text>
         </View>
-        <TouchableOpacity 
-          style={styles.historyBtn}
-          onPress={() => navigation.navigate('History')}
-        >
-          <Ionicons name="time-outline" size={22} color="#4f46e5" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity 
+            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+            onPress={toggleTheme}
+            activeOpacity={0.7}
+          >
+            <Ionicons 
+              name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'} 
+              size={20} 
+              color={colors.primary} 
+            />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.historyBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginLeft: 8 }]}
+            onPress={() => navigation.navigate('History')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="time-outline" size={20} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
         {/* Sleek Tagline & Hero Card */}
-        <View style={styles.heroCard}>
+        <View style={[styles.heroCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
           <View style={styles.heroTextContent}>
-            <Text style={styles.heroBadge}>HACKATHON EDITION</Text>
-            <Text style={styles.heroTitle}>Trusted pricing, locked with AI Escrow.</Text>
-            <Text style={styles.heroDescription}>
+            <Text style={[styles.heroBadge, { backgroundColor: colors.primaryLight, color: colors.primary }]}>HACKATHON EDITION</Text>
+            <Text style={[styles.heroTitle, { color: colors.text }]}>Trusted pricing, locked with AI Escrow.</Text>
+            <Text style={[styles.heroDescription, { color: colors.textMuted }]}>
               Describe your task in Roman Urdu or English and let our 5-Agent pipeline handle matching, bidding & payments.
             </Text>
           </View>
@@ -79,21 +98,21 @@ export default function HomeScreen() {
 
         {/* Interactive Matchmaking Search Prompt Trigger */}
         <TouchableOpacity 
-          style={styles.searchBarTrigger}
+          style={[styles.searchBarTrigger, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
           onPress={() => navigation.navigate('Search')}
           activeOpacity={0.8}
         >
-          <Ionicons name="sparkles-outline" size={18} color="#4f46e5" style={styles.searchIcon} />
-          <Text style={styles.searchPlaceholder}>Type what you need (e.g. "Plumber chahye G-13")</Text>
-          <View style={styles.arrowIconWrapper}>
+          <Ionicons name="sparkles-outline" size={18} color={colors.primary} style={styles.searchIcon} />
+          <Text style={[styles.searchPlaceholder, { color: colors.textMuted }]}>Type what you need (e.g. "Plumber chahye G-13")</Text>
+          <View style={[styles.arrowIconWrapper, { backgroundColor: colors.primary }]}>
             <Ionicons name="arrow-forward" size={16} color="#ffffff" />
           </View>
         </TouchableOpacity>
 
         {/* Section Heading */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Select a Category</Text>
-          <Text style={styles.sectionSubtitle}>Tap to auto-populate request intents</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Select a Category</Text>
+          <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>Tap to auto-populate request intents</Text>
         </View>
 
         {/* Beautiful Category Grid inspired by InDrive + Uber Dark UI */}
@@ -101,57 +120,57 @@ export default function HomeScreen() {
           {CATEGORIES.map((item) => (
             <TouchableOpacity
               key={item.id}
-              style={styles.categoryCard}
+              style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
               onPress={() => handleCategoryPress(item.id)}
               activeOpacity={0.7}
             >
               <View style={[styles.iconWrapper, { backgroundColor: item.color + '15' }]}>
                 <Ionicons name={item.icon as any} size={28} color={item.color} />
               </View>
-              <Text style={styles.categoryName}>{item.name}</Text>
-              <Text style={styles.categoryDesc}>{item.description}</Text>
+              <Text style={[styles.categoryName, { color: colors.text }]}>{item.name}</Text>
+              <Text style={[styles.categoryDesc, { color: colors.textMuted }]}>{item.description}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Trust & Pipeline Explanation Card */}
-        <View style={styles.pipelineExplanationCard}>
-          <Text style={styles.pipelineTitle}>🤖 Powered by Google Antigravity</Text>
-          <Text style={styles.pipelineSubtitle}>How our 5 sub-agents secure your job:</Text>
+        <View style={[styles.pipelineExplanationCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+          <Text style={[styles.pipelineTitle, { color: colors.text }]}>🤖 Powered by Google Antigravity</Text>
+          <Text style={[styles.pipelineSubtitle, { color: colors.primary }]}>How our 5 sub-agents secure your job:</Text>
           
           <View style={styles.stepRow}>
-            <View style={styles.stepNumberWrapper}>
-              <Text style={styles.stepNumber}>1</Text>
+            <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
+              <Text style={[styles.stepNumber, { color: colors.success }]}>1</Text>
             </View>
-            <Text style={styles.stepText}><Text style={styles.boldText}>Linguistic Agent</Text> parses your intent in Roman Urdu/English.</Text>
+            <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Linguistic Agent</Text> parses your intent in Roman Urdu/English.</Text>
           </View>
 
           <View style={styles.stepRow}>
-            <View style={styles.stepNumberWrapper}>
-              <Text style={styles.stepNumber}>2</Text>
+            <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
+              <Text style={[styles.stepNumber, { color: colors.success }]}>2</Text>
             </View>
-            <Text style={styles.stepText}><Text style={styles.boldText}>Geo Agent</Text> ranks nearby workers by distance & ratings.</Text>
+            <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Geo Agent</Text> ranks nearby workers by distance & ratings.</Text>
           </View>
 
           <View style={styles.stepRow}>
-            <View style={styles.stepNumberWrapper}>
-              <Text style={styles.stepNumber}>3</Text>
+            <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
+              <Text style={[styles.stepNumber, { color: colors.success }]}>3</Text>
             </View>
-            <Text style={styles.stepText}><Text style={styles.boldText}>Bidding Agent</Text> negotiates optimal prices automatically.</Text>
+            <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Bidding Agent</Text> negotiates optimal prices automatically.</Text>
           </View>
 
           <View style={styles.stepRow}>
-            <View style={styles.stepNumberWrapper}>
-              <Text style={styles.stepNumber}>4</Text>
+            <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
+              <Text style={[styles.stepNumber, { color: colors.success }]}>4</Text>
             </View>
-            <Text style={styles.stepText}><Text style={styles.boldText}>Escrow Agent</Text> secures the funds in a locked milestone.</Text>
+            <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Escrow Agent</Text> secures the funds in a locked milestone.</Text>
           </View>
 
           <View style={styles.stepRow}>
-            <View style={styles.stepNumberWrapper}>
-              <Text style={styles.stepNumber}>5</Text>
+            <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
+              <Text style={[styles.stepNumber, { color: colors.success }]}>5</Text>
             </View>
-            <Text style={styles.stepText}><Text style={styles.boldText}>Follow-Up Agent</Text> dispatches automated SMS confirmations.</Text>
+            <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Follow-Up Agent</Text> dispatches automated SMS confirmations.</Text>
           </View>
         </View>
 
@@ -191,12 +210,15 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '900',
   },
-  historyBtn: {
+  themeBtn: {
     padding: 10,
-    backgroundColor: '#1a1a1a',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#333333',
+  },
+  historyBtn: {
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
   },
   scrollContent: {
     padding: 16,

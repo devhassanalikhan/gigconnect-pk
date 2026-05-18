@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ThemeProvider, useTheme } from './ThemeContext';
 
 // ─── Import Screens ─────────────────────────────────────────────────────────────────
 import HomeScreen from './screens/HomeScreen';
@@ -61,20 +62,22 @@ const Tab = createBottomTabNavigator();
 
 // ─── Bottom Tab Navigator Setup ─────────────────────────────────────────────────────
 function TabNavigator() {
+  const { colors } = useTheme();
+  
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#121214',
-          borderTopColor: '#262629',
+          backgroundColor: colors.cardBackground,
+          borderTopColor: colors.border,
           borderTopWidth: 1,
           paddingBottom: 8,
           paddingTop: 8,
           height: 60,
         },
-        tabBarActiveTintColor: '#6366f1', // Indigo active accent
-        tabBarInactiveTintColor: '#94a3b8',
+        tabBarActiveTintColor: colors.primary, // Theme dynamic active accent
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '600',
@@ -102,28 +105,46 @@ function TabNavigator() {
   );
 }
 
-export default function App() {
+function AppContent() {
+  const { colors, theme } = useTheme();
+  
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
+      <StatusBar 
+        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} 
+        backgroundColor={colors.background} 
+      />
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName="Main"
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: '#0f0f0f' },
+            contentStyle: { backgroundColor: colors.background },
           }}
         >
+          {/* Tab Navigation houses core dashboards */}
           <Stack.Screen name="Main" component={TabNavigator} />
+          
+          {/* Fallback routes for direct nested targeting */}
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Search" component={SearchScreen} />
           <Stack.Screen name="History" component={HistoryScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
+          
+          {/* Detail screens are pushed on top for transaction flows */}
           <Stack.Screen name="Providers" component={ProvidersScreen} />
           <Stack.Screen name="Bid" component={BidScreen} />
           <Stack.Screen name="Confirm" component={ConfirmScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }

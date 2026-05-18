@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
+import { useTheme } from '../ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'History'>;
 
@@ -51,6 +52,7 @@ interface JobRecord {
 
 export default function HistoryScreen() {
   const navigation = useNavigation<NavigationProp>();
+  const { colors, theme } = useTheme();
 
   const [jobs, setJobs] = useState<JobRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -114,23 +116,30 @@ export default function HistoryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar 
+        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} 
+        backgroundColor={colors.background} 
+      />
 
       {/* Screen Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity 
+          style={[styles.backBtn, { backgroundColor: colors.cardBackground }]} 
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={20} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Booking History</Text>
-        <View style={{ width: 40 }} />
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Booking History</Text>
+        <View style={{ width: 36 }} />
       </View>
 
       {/* Fetch Loading Indicator */}
       {isLoading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#4f46e5" />
-          <Text style={styles.loaderText}>Loading secure history directory...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loaderText, { color: colors.primary }]}>Loading secure history directory...</Text>
         </View>
       ) : (
         <ScrollView
@@ -149,21 +158,21 @@ export default function HistoryScreen() {
             const totalCost = item.escrow?.total || item.bid?.agreed_price || item.parsed?.budget || 0;
 
             return (
-              <View key={item.id} style={styles.jobCard}>
+              <View key={item.id} style={[styles.jobCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
                 <View style={styles.cardHeader}>
                   <View style={styles.categoryRow}>
-                    <View style={styles.iconWrapper}>
+                    <View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight }]}>
                       <Ionicons
                         name={getCategoryIcon(item.parsed?.serviceType) as any}
                         size={18}
-                        color="#4f46e5"
+                        color={colors.primary}
                       />
                     </View>
                     <View style={styles.serviceInfo}>
-                      <Text style={styles.serviceName}>
+                      <Text style={[styles.serviceName, { color: colors.text }]}>
                         {item.parsed?.serviceType || 'Informal Job'}
                       </Text>
-                      <Text style={styles.dateStamp}>
+                      <Text style={[styles.dateStamp, { color: colors.textMuted }]}>
                         {item.created_at ? new Date(item.created_at).toLocaleDateString(undefined, {
                           month: 'short',
                           day: 'numeric',
@@ -182,18 +191,18 @@ export default function HistoryScreen() {
                 </View>
 
                 {/* Meta Row */}
-                <View style={styles.metaRow}>
+                <View style={[styles.metaRow, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
                   <View style={styles.metaCol}>
-                    <Text style={styles.metaLabel}>LOCATION</Text>
-                    <Text style={styles.metaValue}>{item.parsed?.location || 'Islamabad'}</Text>
+                    <Text style={[styles.metaLabel, { color: colors.textMuted }]}>LOCATION</Text>
+                    <Text style={[styles.metaValue, { color: colors.text }]}>{item.parsed?.location || 'Islamabad'}</Text>
                   </View>
                   <View style={styles.metaCol}>
-                    <Text style={styles.metaLabel}>TIME ZONE</Text>
-                    <Text style={styles.metaValue}>{item.parsed?.time || 'Flexible'}</Text>
+                    <Text style={[styles.metaLabel, { color: colors.textMuted }]}>TIME ZONE</Text>
+                    <Text style={[styles.metaValue, { color: colors.text }]}>{item.parsed?.time || 'Flexible'}</Text>
                   </View>
                   <View style={styles.metaCol}>
-                    <Text style={styles.metaLabel}>LOCKED VAL</Text>
-                    <Text style={[styles.metaValue, { color: '#34d399', fontWeight: 'bold' }]}>
+                    <Text style={[styles.metaLabel, { color: colors.textMuted }]}>LOCKED VAL</Text>
+                    <Text style={[styles.metaValue, { color: colors.success, fontWeight: 'bold' }]}>
                       {totalCost} PKR
                     </Text>
                   </View>
@@ -201,14 +210,14 @@ export default function HistoryScreen() {
 
                 {/* Monospace IDs Panel for milestone tracking */}
                 {item.status === 'MilestoneLocked' && item.escrow && (
-                  <View style={styles.receiptBox}>
+                  <View style={[styles.receiptBox, { borderTopColor: colors.border }]}>
                     <View style={styles.receiptDetailRow}>
-                      <Text style={styles.receiptDetailLabel}>Booking ID</Text>
-                      <Text style={styles.receiptDetailValue}>{item.escrow.booking_id}</Text>
+                      <Text style={[styles.receiptDetailLabel, { color: colors.textMuted }]}>Booking ID</Text>
+                      <Text style={[styles.receiptDetailValue, { color: colors.text }]}>{item.escrow.booking_id}</Text>
                     </View>
                     <View style={styles.receiptDetailRow}>
-                      <Text style={styles.receiptDetailLabel}>Escrow Lock ID</Text>
-                      <Text style={styles.receiptDetailValue}>{item.escrow.escrow_id}</Text>
+                      <Text style={[styles.receiptDetailLabel, { color: colors.textMuted }]}>Escrow Lock ID</Text>
+                      <Text style={[styles.receiptDetailValue, { color: colors.text }]}>{item.escrow.escrow_id}</Text>
                     </View>
                   </View>
                 )}

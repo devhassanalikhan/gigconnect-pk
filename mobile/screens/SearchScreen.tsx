@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
+import { useTheme } from '../ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Search'>;
 type SearchRouteProp = RouteProp<RootStackParamList, 'Search'>;
@@ -31,6 +32,7 @@ interface AgentLog {
 export default function SearchScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<SearchRouteProp>();
+  const { colors, theme } = useTheme();
   
   const [requestText, setRequestText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -140,33 +142,40 @@ export default function SearchScreen() {
   const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar 
+        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} 
+        backgroundColor={colors.background} 
+      />
 
       {/* Screen Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <TouchableOpacity 
+          style={[styles.backBtn, { backgroundColor: colors.cardBackground }]} 
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={20} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>AI Agent Matcher</Text>
-        <View style={{ width: 40 }} /> {/* Spacer */}
+        <Text style={[styles.headerTitle, { color: colors.text }]}>AI Agent Matcher</Text>
+        <View style={{ width: 36 }} /> {/* Spacer */}
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         
         {/* Natural Language Prompt Card */}
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
           <View style={styles.cardHeader}>
-            <Ionicons name="sparkles" size={18} color="#4f46e5" />
-            <Text style={styles.cardTitle}>Describe what you need</Text>
+            <Ionicons name="sparkles" size={18} color={colors.primary} />
+            <Text style={[styles.cardTitle, { color: colors.text }]}>Describe what you need</Text>
           </View>
-          <Text style={styles.cardSubtitle}>Our agents support Roman Urdu, Urdu, and English.</Text>
+          <Text style={[styles.cardSubtitle, { color: colors.textMuted }]}>Our agents support Roman Urdu, Urdu, and English.</Text>
 
-          <View style={styles.inputWrapper}>
+          <View style={[styles.inputWrapper, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder="e.g. Bijli wala chahye urgent board lagane k liye..."
-              placeholderTextColor="#555"
+              placeholderTextColor={colors.textMuted}
               value={requestText}
               onChangeText={setRequestText}
               multiline
