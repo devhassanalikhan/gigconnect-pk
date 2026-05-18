@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../ThemeContext';
 
 export default function ProfileScreen() {
-  const { colors, theme, toggleTheme, userRole, toggleUserRole } = useTheme();
+  const { colors, theme, toggleTheme, userRole, toggleUserRole, language, toggleLanguage, t } = useTheme();
 
   return (
     <ScrollView 
@@ -32,22 +32,22 @@ export default function ProfileScreen() {
           </View>
         </View>
         <Text style={[styles.userName, { color: colors.text }]}>{userRole === 'client' ? 'Hassan Ali Khan' : 'Arsalan AC & Electrician'}</Text>
-        <Text style={[styles.userRole, { color: colors.textMuted }]}>{userRole === 'client' ? 'Premium Client • Islamabad' : 'Top Rated Provider • Sector G-13'}</Text>
+        <Text style={[styles.userRole, { color: colors.textMuted }]}>{userRole === 'client' ? t.premiumClient : t.topRatedProvider}</Text>
         
         {/* CNIC Verification Status */}
         <View style={[styles.cnicStatus, { backgroundColor: colors.warningLight, borderColor: colors.warning }]}>
           <Ionicons name="shield-checkmark" size={14} color={colors.warning} />
-          <Text style={[styles.cnicText, { color: colors.warning }]}>{userRole === 'client' ? 'NADRA CNIC Verified (Tasdeeq AI)' : 'NADRA & Police Clearance Approved'}</Text>
+          <Text style={[styles.cnicText, { color: colors.warning }]}>{userRole === 'client' ? t.verifiedBadgeClient : t.verifiedBadgeWorker}</Text>
         </View>
       </View>
 
       {/* Dynamic Role Switcher Card */}
-      <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Account Mode Selector</Text>
+      <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>{t.accountModeSelector}</Text>
       <View style={[styles.roleSwitchCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
         <View style={styles.roleSwitchRow}>
           <View style={{ flex: 1, paddingRight: 12 }}>
-            <Text style={[styles.roleSwitchTitle, { color: colors.text }]}>{userRole === 'client' ? 'Client Shell Active' : 'Worker Shell Active'}</Text>
-            <Text style={[styles.roleSwitchDesc, { color: colors.textMuted }]}>{userRole === 'client' ? 'Hire nearby providers, auto-negotiate, and lock secure escrows.' : 'Receive job leads, auto-bid in Roman Urdu, and track earnings wallet.'}</Text>
+            <Text style={[styles.roleSwitchTitle, { color: colors.text }]}>{userRole === 'client' ? t.clientShellActive : t.workerShellActive}</Text>
+            <Text style={[styles.roleSwitchDesc, { color: colors.textMuted }]}>{userRole === 'client' ? t.clientShellDesc : t.workerShellDesc}</Text>
           </View>
           <TouchableOpacity 
             style={[
@@ -57,7 +57,7 @@ export default function ProfileScreen() {
             onPress={toggleUserRole}
             activeOpacity={0.8}
           >
-            <Text style={styles.switchActionText}>{userRole === 'client' ? 'To Worker' : 'To Client'}</Text>
+            <Text style={styles.switchActionText}>{userRole === 'client' ? t.toWorker : t.toClient}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -66,20 +66,20 @@ export default function ProfileScreen() {
       <View style={styles.statsRow}>
         <View style={[styles.statCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
           <Text style={[styles.statVal, { color: userRole === 'client' ? colors.primary : colors.success }]}>{userRole === 'client' ? '12,500' : '48,600'}</Text>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>{userRole === 'client' ? 'PKR In Escrow' : 'PKR Earned (Month)'}</Text>
+          <Text style={[styles.statLabel, { color: colors.textMuted }]}>{userRole === 'client' ? t.escrowVal : t.earningsVal}</Text>
         </View>
         <View style={[styles.statCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
           <Text style={[styles.statVal, { color: userRole === 'client' ? colors.primary : colors.success }]}>{userRole === 'client' ? '24' : '68'}</Text>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>{userRole === 'client' ? 'Completed Gigs' : 'Completed Gigs'}</Text>
+          <Text style={[styles.statLabel, { color: colors.textMuted }]}>{t.completedGigs}</Text>
         </View>
         <View style={[styles.statCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
           <Text style={[styles.statVal, { color: userRole === 'client' ? colors.primary : colors.success }]}>{userRole === 'client' ? '4.9' : '4.95'}</Text>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>{userRole === 'client' ? 'Rating (⭐)' : 'Rating (⭐)'}</Text>
+          <Text style={[styles.statLabel, { color: colors.textMuted }]}>{t.ratingLabel}</Text>
         </View>
       </View>
 
       {/* Theme Settings Switching option */}
-      <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Appearance Mode</Text>
+      <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>{t.appearanceMode}</Text>
       <View style={[styles.menuContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
         <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]} onPress={toggleTheme} activeOpacity={0.7}>
           <View style={styles.menuLeft}>
@@ -88,7 +88,7 @@ export default function ProfileScreen() {
               size={20} 
               color={colors.primary} 
             />
-            <Text style={[styles.menuText, { color: colors.text }]}>{theme === 'dark' ? 'Dark Mode Active' : 'Light Mode Active'}</Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>{theme === 'dark' ? t.darkActive : t.lightActive}</Text>
           </View>
           <View style={{
             width: 44,
@@ -110,12 +110,12 @@ export default function ProfileScreen() {
       </View>
 
       {/* Settings Options Group */}
-      <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Account Options</Text>
+      <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>{t.accountOptions}</Text>
       <View style={[styles.menuContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
         <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.border }]}>
           <View style={styles.menuLeft}>
             <Ionicons name="card-outline" size={20} color={colors.primary} />
-            <Text style={[styles.menuText, { color: colors.text }]}>{userRole === 'client' ? 'Payment Methods & Wallet' : 'Payout Methods & Bank Details'}</Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>{userRole === 'client' ? t.paymentMethods : t.payoutMethods}</Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </TouchableOpacity>
@@ -123,7 +123,7 @@ export default function ProfileScreen() {
         <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.border }]}>
           <View style={styles.menuLeft}>
             <Ionicons name="shield-outline" size={20} color={colors.warning} />
-            <Text style={[styles.menuText, { color: colors.text }]}>CNIC & Police Verification</Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>{t.cnicVerification}</Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </TouchableOpacity>
@@ -131,27 +131,27 @@ export default function ProfileScreen() {
         <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.border }]}>
           <View style={styles.menuLeft}>
             <Ionicons name="notifications-outline" size={20} color={colors.success} />
-            <Text style={[styles.menuText, { color: colors.text }]}>Notification Settings</Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>{t.notifications}</Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]}>
+        <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]} onPress={toggleLanguage} activeOpacity={0.7}>
           <View style={styles.menuLeft}>
             <Ionicons name="language-outline" size={20} color="#a855f7" />
-            <Text style={[styles.menuText, { color: colors.text }]}>Language Preferences (Urdu/Eng)</Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>{t.languagePref}</Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </TouchableOpacity>
       </View>
 
       {/* Support Section */}
-      <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Support & Legal</Text>
+      <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>{t.supportHeader}</Text>
       <View style={[styles.menuContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
         <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.border }]}>
           <View style={styles.menuLeft}>
             <Ionicons name="chatbubble-ellipses-outline" size={20} color="#06b6d4" />
-            <Text style={[styles.menuText, { color: colors.text }]}>24/7 Live Support Helpline</Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>{t.supportHelpline}</Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </TouchableOpacity>
@@ -159,14 +159,14 @@ export default function ProfileScreen() {
         <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]}>
           <View style={styles.menuLeft}>
             <Ionicons name="document-text-outline" size={20} color={colors.danger} />
-            <Text style={[styles.menuText, { color: colors.text }]}>Terms of Service & Escrow Rules</Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>{t.termsRules}</Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.dangerLight, borderColor: colors.danger }]}>
-        <Text style={[styles.logoutText, { color: colors.danger }]}>Log Out Account</Text>
+        <Text style={[styles.logoutText, { color: colors.danger }]}>{t.logOut}</Text>
       </TouchableOpacity>
     </ScrollView>
   );

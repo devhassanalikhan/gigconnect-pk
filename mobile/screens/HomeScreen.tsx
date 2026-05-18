@@ -40,7 +40,7 @@ const COLUMN_WIDTH = (width - 44) / 2;
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { colors, theme, toggleTheme, userRole } = useTheme();
+  const { colors, theme, toggleTheme, userRole, language, toggleLanguage, t } = useTheme();
 
   const handleCategoryPress = (category: string) => {
     // Route to Search Screen with the pre-selected category
@@ -57,12 +57,21 @@ export default function HomeScreen() {
       {/* Header section with brand and history trigger */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={styles.headerBranding}>
-          <Text style={[styles.headerSubtitle, { color: userRole === 'client' ? colors.primary : colors.success }]}>{userRole === 'client' ? "Pakistan's 1st Agentic Economy" : "KaamGraph Provider Portal"}</Text>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>{userRole === 'client' ? "KaamGraph" : "Arsalan's Panel"}</Text>
+          <Text style={[styles.headerSubtitle, { color: userRole === 'client' ? colors.primary : colors.success }]}>{userRole === 'client' ? t.homeSubtitleClient : t.homeSubtitleWorker}</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{userRole === 'client' ? t.homeTitleClient : t.homeTitleWorker}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity 
             style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+            onPress={toggleLanguage}
+            activeOpacity={0.7}
+          >
+            <Text style={{ fontSize: 11, fontWeight: 'bold', color: userRole === 'client' ? colors.primary : colors.success }}>
+              {language === 'en' ? 'اردو' : 'EN'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginLeft: 8 }]}
             onPress={toggleTheme}
             activeOpacity={0.7}
           >
@@ -89,11 +98,9 @@ export default function HomeScreen() {
             {/* Sleek Tagline & Hero Card */}
             <View style={[styles.heroCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
               <View style={styles.heroTextContent}>
-                <Text style={[styles.heroBadge, { backgroundColor: colors.primaryLight, color: colors.primary }]}>HACKATHON EDITION</Text>
-                <Text style={[styles.heroTitle, { color: colors.text }]}>Trusted pricing, locked with AI Escrow.</Text>
-                <Text style={[styles.heroDescription, { color: colors.textMuted }]}>
-                  Describe your task in Roman Urdu or English and let our 5-Agent pipeline handle matching, bidding & payments.
-                </Text>
+                <Text style={[styles.heroBadge, { backgroundColor: colors.primaryLight, color: colors.primary }]}>{t.heroBadge}</Text>
+                <Text style={[styles.heroTitle, { color: colors.text }]}>{t.heroTitle}</Text>
+                <Text style={[styles.heroDescription, { color: colors.textMuted }]}>{t.heroDescription}</Text>
               </View>
               <View style={styles.heroGlow} />
             </View>
@@ -105,7 +112,7 @@ export default function HomeScreen() {
               activeOpacity={0.8}
             >
               <Ionicons name="sparkles-outline" size={18} color={colors.primary} style={styles.searchIcon} />
-              <Text style={[styles.searchPlaceholder, { color: colors.textMuted }]}>Type what you need (e.g. "Plumber chahye G-13")</Text>
+              <Text style={[styles.searchPlaceholder, { color: colors.textMuted }]}>{t.searchPlaceholder}</Text>
               <View style={[styles.arrowIconWrapper, { backgroundColor: colors.primary }]}>
                 <Ionicons name="arrow-forward" size={16} color="#ffffff" />
               </View>
@@ -113,8 +120,8 @@ export default function HomeScreen() {
 
             {/* Section Heading */}
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Select a Category</Text>
-              <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>Tap to auto-populate request intents</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.selectCategory}</Text>
+              <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>{t.selectCategorySub}</Text>
             </View>
 
             {/* Beautiful Category Grid inspired by InDrive + Uber Dark UI */}
@@ -137,42 +144,42 @@ export default function HomeScreen() {
 
             {/* Trust & Pipeline Explanation Card */}
             <View style={[styles.pipelineExplanationCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-              <Text style={[styles.pipelineTitle, { color: colors.text }]}>🤖 Powered by Google Antigravity</Text>
-              <Text style={[styles.pipelineSubtitle, { color: colors.primary }]}>How our 5 sub-agents secure your job:</Text>
+              <Text style={[styles.pipelineTitle, { color: colors.text }]}>🤖 {t.poweredBy}</Text>
+              <Text style={[styles.pipelineSubtitle, { color: colors.primary }]}>{t.howSubagentsSecure}</Text>
               
               <View style={styles.stepRow}>
                 <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
                   <Text style={[styles.stepNumber, { color: colors.success }]}>1</Text>
                 </View>
-                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Linguistic Agent</Text> parses your intent in Roman Urdu/English.</Text>
+                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Linguistic Agent</Text> {language === 'en' ? 'parses your intent in Roman Urdu/English.' : 'رومن اردو یا انگریزی میں آپ کی ضرورت کو سمجھتا ہے۔'}</Text>
               </View>
 
               <View style={styles.stepRow}>
                 <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
                   <Text style={[styles.stepNumber, { color: colors.success }]}>2</Text>
                 </View>
-                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Geo Agent</Text> ranks nearby workers by distance & ratings.</Text>
+                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Geo Agent</Text> {language === 'en' ? 'ranks nearby workers by distance & ratings.' : 'فاصلے اور ریٹنگ کے حساب سے قریبی ورکرز کی درجہ بندی کرتا ہے۔'}</Text>
               </View>
 
               <View style={styles.stepRow}>
                 <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
                   <Text style={[styles.stepNumber, { color: colors.success }]}>3</Text>
                 </View>
-                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Bidding Agent</Text> negotiates optimal prices automatically.</Text>
+                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Bidding Agent</Text> {language === 'en' ? 'negotiates optimal prices automatically.' : 'خود بخود مناسب ترین قیمتوں پر بات چیت کرتا ہے۔'}</Text>
               </View>
 
               <View style={styles.stepRow}>
                 <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
                   <Text style={[styles.stepNumber, { color: colors.success }]}>4</Text>
                 </View>
-                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Escrow Agent</Text> secures the funds in a locked milestone.</Text>
+                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Escrow Agent</Text> {language === 'en' ? 'secures the funds in a locked milestone.' : 'رقم کو محفوظ ایسکرو لاک میں جمع کرتا ہے۔'}</Text>
               </View>
 
               <View style={styles.stepRow}>
                 <View style={[styles.stepNumberWrapper, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
                   <Text style={[styles.stepNumber, { color: colors.success }]}>5</Text>
                 </View>
-                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Follow-Up Agent</Text> dispatches automated SMS confirmations.</Text>
+                <Text style={[styles.stepText, { color: colors.textMuted }]}><Text style={[styles.boldText, { color: colors.text }]}>Follow-Up Agent</Text> {language === 'en' ? 'dispatches automated SMS confirmations.' : 'موبائل فون پر خودکار تصدیقی ایس ایم ایس بھیجتا ہے۔'}</Text>
               </View>
             </View>
           </>
@@ -181,10 +188,10 @@ export default function HomeScreen() {
             {/* WORKER DASHBOARD PERSPECTIVE */}
             <View style={[styles.heroCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
               <View style={styles.heroTextContent}>
-                <Text style={[styles.heroBadge, { backgroundColor: colors.successLight, color: colors.success }]}>PROVIDER PORTAL ACTIVE</Text>
-                <Text style={[styles.heroTitle, { color: colors.text }]}>Secure Leads, Automatically Negotiated.</Text>
+                <Text style={[styles.heroBadge, { backgroundColor: colors.successLight, color: colors.success }]}>{language === 'en' ? 'PROVIDER PORTAL ACTIVE' : 'فراہم کنندہ پورٹل فعال ہے'}</Text>
+                <Text style={[styles.heroTitle, { color: colors.text }]}>{language === 'en' ? 'Secure Leads, Automatically Negotiated.' : 'محفوظ کام کے مواقع، خودکار بولی کے ساتھ'}</Text>
                 <Text style={[styles.heroDescription, { color: colors.textMuted }]}>
-                  Our Antigravity Bidding Agent represents your minimum threshold targets in all price agreements.
+                  {language === 'en' ? 'Our Antigravity Bidding Agent represents your minimum threshold targets in all price agreements.' : 'ہمارا اینٹی گریویٹی بولی ایجنٹ تمام معاہدوں میں آپ کی طے شدہ کم سے کم قیمت کی نمائندگی کرتا ہے۔'}
                 </Text>
               </View>
               <View style={[styles.heroGlow, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]} />
@@ -192,15 +199,15 @@ export default function HomeScreen() {
 
             {/* Active Leads List */}
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Incoming Local Leads (Sector G-13)</Text>
-              <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>Real-time matching near your active coordinates</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.leadHeader}</Text>
+              <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>{t.leadSub}</Text>
             </View>
 
             <View style={[styles.pipelineExplanationCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginBottom: 16 }]}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <Ionicons name="sparkles" size={18} color={colors.success} style={{ marginRight: 6 }} />
-                  <Text style={{ fontWeight: 'bold', color: colors.text }}>AC Installation Lead</Text>
+                  <Text style={{ fontWeight: 'bold', color: colors.text }}>{language === 'en' ? 'AC Installation Lead' : 'اے سی انسٹالیشن جاب'}</Text>
                 </View>
                 <Text style={{ fontSize: 12, fontWeight: 'bold', color: colors.success }}>2,500 PKR</Text>
               </View>
@@ -208,9 +215,9 @@ export default function HomeScreen() {
                 "Mujhe kal subah G-13 me urgent AC lagwana hai koi technician bhejo."
               </Text>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ fontSize: 11, color: colors.textMuted }}>Client: Hassan A. (1.4 km away)</Text>
+                <Text style={{ fontSize: 11, color: colors.textMuted }}>{language === 'en' ? 'Client: Hassan A. (1.4 km away)' : 'کلائنٹ: حسن اے (۱.۴ کلومیٹر دور)'}</Text>
                 <View style={{ backgroundColor: colors.successLight, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
-                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: colors.success }}>98% Match Rating</Text>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: colors.success }}>{language === 'en' ? '98% Match Rating' : '۹۸٪ میچ ریٹنگ'}</Text>
                 </View>
               </View>
             </View>
@@ -219,7 +226,7 @@ export default function HomeScreen() {
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <Ionicons name="sparkles" size={18} color={colors.success} style={{ marginRight: 6 }} />
-                  <Text style={{ fontWeight: 'bold', color: colors.text }}>Electric Switchboard Repair</Text>
+                  <Text style={{ fontWeight: 'bold', color: colors.text }}>{language === 'en' ? 'Electric Switchboard Repair' : 'بجلی کے بورڈ کی مرمت'}</Text>
                 </View>
                 <Text style={{ fontSize: 12, fontWeight: 'bold', color: colors.success }}>1,800 PKR</Text>
               </View>
@@ -227,24 +234,24 @@ export default function HomeScreen() {
                 "Main board me short circuit ho rha hai urgently electrician chahye G-13."
               </Text>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Text style={{ fontSize: 11, color: colors.textMuted }}>Client: Zainab M. (0.8 km away)</Text>
+                <Text style={{ fontSize: 11, color: colors.textMuted }}>{language === 'en' ? 'Client: Zainab M. (0.8 km away)' : 'کلائنٹ: زینب ایم (۰.۸ کلومیٹر دور)'}</Text>
                 <View style={{ backgroundColor: colors.successLight, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
-                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: colors.success }}>95% Match Rating</Text>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: colors.success }}>{language === 'en' ? '95% Match Rating' : '۹۵٪ میچ ریٹنگ'}</Text>
                 </View>
               </View>
             </View>
 
             {/* Active Bidding ZOPA Negotiations Section */}
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Active Bargaining Traces</Text>
-              <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>AI-to-AI ZOPA negotiations currently in progress</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.activeNegotiationHeader}</Text>
+              <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>{t.activeNegotiationSub}</Text>
             </View>
 
             <View style={[styles.pipelineExplanationCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderLeftWidth: 4, borderLeftColor: colors.warning }]}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <Text style={{ fontWeight: 'bold', color: colors.text }}>Job #GIG-2918 (AC Servicing)</Text>
                 <View style={{ backgroundColor: colors.warningLight, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
-                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: colors.warning }}>Agent Bargaining</Text>
+                  <Text style={{ fontSize: 10, fontWeight: 'bold', color: colors.warning }}>{language === 'en' ? 'Agent Bargaining' : 'ایجنٹ مذاکرات'}</Text>
                 </View>
               </View>
               <Text style={{ fontSize: 12, color: colors.textMuted, fontStyle: 'italic', marginBottom: 8 }}>
@@ -252,12 +259,13 @@ export default function HomeScreen() {
               </Text>
               <View style={{ height: 1, backgroundColor: colors.border, marginVertical: 8 }} />
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Text style={{ fontSize: 11, color: colors.textMuted }}>Target: 2,000 PKR</Text>
-                <Text style={{ fontSize: 11, fontWeight: 'bold', color: colors.warning }}>Settled: 1,800 PKR</Text>
+                <Text style={{ fontSize: 11, color: colors.textMuted }}>{language === 'en' ? 'Target: 2,000 PKR' : 'ٹارگٹ: 2,000 روپے'}</Text>
+                <Text style={{ fontSize: 11, fontWeight: 'bold', color: colors.warning }}>{language === 'en' ? 'Settled: 1,800 PKR' : 'طے شدہ: 1,800 روپے'}</Text>
               </View>
             </View>
           </>
-        )}
+        )
+}
 
       </ScrollView>
     </SafeAreaView>
