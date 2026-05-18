@@ -31,19 +31,13 @@ export default function ProfileScreen() {
             <Ionicons name="checkmark-circle" size={16} color={colors.success} />
           </View>
         </View>
-        <Text style={[styles.userName, { color: colors.text }]}>
-          {userRole === 'client' ? 'Hassan Ali Khan' : 'Arsalan AC & Electrician'}
-        </Text>
-        <Text style={[styles.userRole, { color: colors.textMuted }]}>
-          {userRole === 'client' ? 'Premium Client • Islamabad' : 'Top Rated Provider • Sector G-13'}
-        </Text>
+        <Text style={[styles.userName, { color: colors.text }]}>{userRole === 'client' ? 'Hassan Ali Khan' : 'Arsalan AC & Electrician'}</Text>
+        <Text style={[styles.userRole, { color: colors.textMuted }]}>{userRole === 'client' ? 'Premium Client • Islamabad' : 'Top Rated Provider • Sector G-13'}</Text>
         
         {/* CNIC Verification Status */}
         <View style={[styles.cnicStatus, { backgroundColor: colors.warningLight, borderColor: colors.warning }]}>
           <Ionicons name="shield-checkmark" size={14} color={colors.warning} />
-          <Text style={[styles.cnicText, { color: colors.warning }]}>
-            {userRole === 'client' ? 'NADRA CNIC Verified (Tasdeeq AI)' : 'NADRA & Police Clearance Approved'}
-          </Text>
+          <Text style={[styles.cnicText, { color: colors.warning }]}>{userRole === 'client' ? 'NADRA CNIC Verified (Tasdeeq AI)' : 'NADRA & Police Clearance Approved'}</Text>
         </View>
       </View>
 
@@ -52,14 +46,8 @@ export default function ProfileScreen() {
       <View style={[styles.roleSwitchCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
         <View style={styles.roleSwitchRow}>
           <View style={{ flex: 1, paddingRight: 12 }}>
-            <Text style={[styles.roleSwitchTitle, { color: colors.text }]}>
-              {userRole === 'client' ? 'Client Shell Active' : 'Worker Shell Active'}
-            </Text>
-            <Text style={[styles.roleSwitchDesc, { color: colors.textMuted }]}>
-              {userRole === 'client' 
-                ? 'Hire nearby providers, auto-negotiate, and lock secure escrows.' 
-                : 'Receive job leads, auto-bid in Roman Urdu, and track earnings wallet.'}
-            </Text>
+            <Text style={[styles.roleSwitchTitle, { color: colors.text }]}>{userRole === 'client' ? 'Client Shell Active' : 'Worker Shell Active'}</Text>
+            <Text style={[styles.roleSwitchDesc, { color: colors.textMuted }]}>{userRole === 'client' ? 'Hire nearby providers, auto-negotiate, and lock secure escrows.' : 'Receive job leads, auto-bid in Roman Urdu, and track earnings wallet.'}</Text>
           </View>
           <TouchableOpacity 
             style={[
@@ -69,9 +57,7 @@ export default function ProfileScreen() {
             onPress={toggleUserRole}
             activeOpacity={0.8}
           >
-            <Text style={styles.switchActionText}>
-              {userRole === 'client' ? 'To Worker' : 'To Client'}
-            </Text>
+            <Text style={styles.switchActionText}>{userRole === 'client' ? 'To Worker' : 'To Client'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -79,28 +65,16 @@ export default function ProfileScreen() {
       {/* KPI Stats Grid - Adapts Dynamically */}
       <View style={styles.statsRow}>
         <View style={[styles.statCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-          <Text style={[styles.statVal, { color: userRole === 'client' ? colors.primary : colors.success }]}>
-            {userRole === 'client' ? '12,500' : '48,600'}
-          </Text>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>
-            {userRole === 'client' ? 'PKR In Escrow' : 'PKR Earned (Month)'}
-          </Text>
+          <Text style={[styles.statVal, { color: userRole === 'client' ? colors.primary : colors.success }]}>{userRole === 'client' ? '12,500' : '48,600'}</Text>
+          <Text style={[styles.statLabel, { color: colors.textMuted }]}>{userRole === 'client' ? 'PKR In Escrow' : 'PKR Earned (Month)'}</Text>
         </View>
         <View style={[styles.statCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-          <Text style={[styles.statVal, { color: userRole === 'client' ? colors.primary : colors.success }]}>
-            {userRole === 'client' ? '24' : '68'}
-          </Text>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>
-            {userRole === 'client' ? 'Completed Gigs' : 'Completed Gigs'}
-          </Text>
+          <Text style={[styles.statVal, { color: userRole === 'client' ? colors.primary : colors.success }]}>{userRole === 'client' ? '24' : '68'}</Text>
+          <Text style={[styles.statLabel, { color: colors.textMuted }]}>{userRole === 'client' ? 'Completed Gigs' : 'Completed Gigs'}</Text>
         </View>
         <View style={[styles.statCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-          <Text style={[styles.statVal, { color: userRole === 'client' ? colors.primary : colors.success }]}>
-            {userRole === 'client' ? '4.9' : '4.95'}
-          </Text>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>
-            {userRole === 'client' ? 'Rating (⭐)' : 'Rating (⭐)'}
-          </Text>
+          <Text style={[styles.statVal, { color: userRole === 'client' ? colors.primary : colors.success }]}>{userRole === 'client' ? '4.9' : '4.95'}</Text>
+          <Text style={[styles.statLabel, { color: colors.textMuted }]}>{userRole === 'client' ? 'Rating (⭐)' : 'Rating (⭐)'}</Text>
         </View>
       </View>
 
@@ -114,9 +88,7 @@ export default function ProfileScreen() {
               size={20} 
               color={colors.primary} 
             />
-            <Text style={[styles.menuText, { color: colors.text }]}>
-              {theme === 'dark' ? 'Dark Mode Active' : 'Light Mode Active'}
-            </Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>{theme === 'dark' ? 'Dark Mode Active' : 'Light Mode Active'}</Text>
           </View>
           <View style={{
             width: 44,
@@ -143,9 +115,7 @@ export default function ProfileScreen() {
         <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.border }]}>
           <View style={styles.menuLeft}>
             <Ionicons name="card-outline" size={20} color={colors.primary} />
-            <Text style={[styles.menuText, { color: colors.text }]}>
-              {userRole === 'client' ? 'Payment Methods & Wallet' : 'Payout Methods & Bank Details'}
-            </Text>
+            <Text style={[styles.menuText, { color: colors.text }]}>{userRole === 'client' ? 'Payment Methods & Wallet' : 'Payout Methods & Bank Details'}</Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </TouchableOpacity>

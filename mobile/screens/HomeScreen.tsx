@@ -57,12 +57,8 @@ export default function HomeScreen() {
       {/* Header section with brand and history trigger */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={styles.headerBranding}>
-          <Text style={[styles.headerSubtitle, { color: userRole === 'client' ? colors.primary : colors.success }]}>
-            {userRole === 'client' ? "Pakistan's 1st Agentic Economy" : "KaamGraph Provider Portal"}
-          </Text>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            {userRole === 'client' ? "KaamGraph" : "Arsalan's Panel"}
-          </Text>
+          <Text style={[styles.headerSubtitle, { color: userRole === 'client' ? colors.primary : colors.success }]}>{userRole === 'client' ? "Pakistan's 1st Agentic Economy" : "KaamGraph Provider Portal"}</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{userRole === 'client' ? "KaamGraph" : "Arsalan's Panel"}</Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity 
