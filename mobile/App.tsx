@@ -114,10 +114,11 @@ export default function App() {
             contentStyle: { backgroundColor: '#0f0f0f' },
           }}
         >
-          {/* Tab Navigation houses core dashboards */}
           <Stack.Screen name="Main" component={TabNavigator} />
-          
-          {/* Detail screens are pushed on top for transaction flows */}
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Search" component={SearchScreen} />
+          <Stack.Screen name="History" component={HistoryScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="Providers" component={ProvidersScreen} />
           <Stack.Screen name="Bid" component={BidScreen} />
           <Stack.Screen name="Confirm" component={ConfirmScreen} />
