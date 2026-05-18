@@ -221,9 +221,7 @@ export default function BidScreen() {
               <View style={styles.priceRow}>
                 <View style={styles.priceColumn}>
                   <Text style={styles.priceLabel}>Agreed / Proposed</Text>
-                  <Text style={[styles.priceValue, { color: currentAction === 'REJECT' ? '#f87171' : '#34d399' }]}>
-                    {currentAgreedPrice} PKR
-                  </Text>
+                  <Text style={[styles.priceValue, { color: currentAction === 'REJECT' ? '#f87171' : '#34d399' }]}>{currentAgreedPrice} PKR</Text>
                 </View>
                 <View style={styles.verticalDivider} />
                 <View style={styles.priceColumn}>
@@ -312,9 +310,7 @@ export default function BidScreen() {
                 }}
               >
                 <Ionicons name="close" size={18} color="#ffffff" />
-                <Text style={styles.rejectActionText}>
-                  {currentAction === 'REJECT' ? 'Close & Find Another Worker' : 'Reject & Go Back'}
-                </Text>
+                <Text style={styles.rejectActionText}>{currentAction === 'REJECT' ? 'Close & Find Another Worker' : 'Reject & Go Back'}</Text>
               </TouchableOpacity>
             </View>
           </>

@@ -152,9 +152,7 @@ export default function ConfirmScreen() {
           ) : (
             <View style={styles.ratingSuccessBox}>
               <Ionicons name="ribbon-sharp" size={24} color="#eab308" />
-              <Text style={styles.ratingSuccessText}>
-                Rating: {rating} / 5 Stars registered!
-              </Text>
+              <Text style={styles.ratingSuccessText}>Rating: {rating} / 5 Stars registered!</Text>
             </View>
           )}
         </View>

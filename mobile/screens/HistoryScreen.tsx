@@ -172,14 +172,7 @@ export default function HistoryScreen() {
                       <Text style={[styles.serviceName, { color: colors.text }]}>
                         {item.parsed?.serviceType || 'Informal Job'}
                       </Text>
-                      <Text style={[styles.dateStamp, { color: colors.textMuted }]}>
-                        {item.created_at ? new Date(item.created_at).toLocaleDateString(undefined, {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        }) : ''}
-                      </Text>
+                      <Text style={[styles.dateStamp, { color: colors.textMuted }]}>{item.created_at ? new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}</Text>
                     </View>
                   </View>
 
@@ -202,9 +195,7 @@ export default function HistoryScreen() {
                   </View>
                   <View style={styles.metaCol}>
                     <Text style={[styles.metaLabel, { color: colors.textMuted }]}>LOCKED VAL</Text>
-                    <Text style={[styles.metaValue, { color: colors.success, fontWeight: 'bold' }]}>
-                      {totalCost} PKR
-                    </Text>
+                    <Text style={[styles.metaValue, { color: colors.success, fontWeight: 'bold' }]}>{totalCost} PKR</Text>
                   </View>
                 </View>
 
