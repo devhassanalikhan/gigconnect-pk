@@ -159,3 +159,22 @@ def get_job(job_id: str, db: Session = Depends(get_db)):
 @app.get("/api/providers")
 def get_providers(db: Session = Depends(get_db)):
     return {"providers": [_provider_to_dict(p) for p in db.query(Provider).all()]}
+
+
+@app.get("/api/jobs")
+def list_jobs(db: Session = Depends(get_db)):
+    jobs = db.query(Job).order_by(Job.created_at.desc()).all()
+    return {
+        "jobs": [
+            {
+                "id": j.id,
+                "parsed": j.parsed,
+                "providers": j.providers,
+                "bid": j.bid,
+                "escrow": j.escrow,
+                "status": j.status,
+                "created_at": j.created_at.isoformat() if j.created_at else None,
+            }
+            for j in jobs
+        ]
+    }
