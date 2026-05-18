@@ -29,6 +29,11 @@ By orchestrating **5 autonomous sub-agents powered by Google Cloud & Gemini 2.5 
     *   `🟡 Amber`: Medium Probability (Client representative will counter-pitch).
     *   `🔴 Red`: Low Probability (Below worker's minimum accepted target).
 
+### 5. 🛡️ Self-Healing Cognitive Resiliencies (Fault-Tolerant Engine)
+*   **Dynamic Geo-Scanning Fallbacks**: If the matching pipeline detects 0 local workers registered within G-13's strict 2km radius, it dynamically self-heals by expanding search boundaries to a 10km radius rather than throwing an exception.
+*   **LLM Outage Shields**: If Gemini LLM quota limits are hit or connection times out, `LinguisticAgent` automatically triggers localized keyword regex processors to ensure uninterrupted matching operations.
+*   **Bidding Baseline Safeties**: If the bargaining algorithm encounters numeric bounds issues, it defaults safely to client baseline offers to protect checkout safety.
+
 ---
 
 ## 🤖 The 5-Agent Architecture (Antigravity Engine)
