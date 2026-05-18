@@ -150,7 +150,10 @@ def geo_agent(
     # ─── OPTION B: Dynamic Apify Scraper Fetch ────────────────────────────────
     if APIFY_API_TOKEN:
         try:
-            url = f"https://api.apify.com/v2/acts/apify~google-maps-scraper/run-sync-get-dataset-items?token={APIFY_API_TOKEN}"
+            token = APIFY_API_TOKEN.strip()
+            if "token=" in token:
+                token = token.split("token=")[1].split("&")[0]
+            url = f"https://api.apify.com/v2/acts/apify~google-maps-scraper/run-sync-get-dataset-items?token={token}"
             payload = {
                 "searchStrings": [f"{service_type} in G-13 Islamabad"],
                 "maxCrawledPlacesPerSearch": MAX_PROVIDERS_RETURNED
