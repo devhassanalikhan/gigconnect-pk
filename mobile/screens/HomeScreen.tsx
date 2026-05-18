@@ -486,21 +486,7 @@ export default function HomeScreen() {
               ))
             )}
 
-            {/* Bargain Trace explanation for transparency */}
-            <View style={[styles.pipelineExplanationCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginTop: 16 }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                <Ionicons name="shield-checkmark" size={16} color={colors.primary} style={{ marginRight: 6 }} />
-                <Text style={{ fontWeight: 'bold', color: colors.text }}>
-                  {language === 'en' ? 'InDrive AI Escrow' : 'ان ڈرائیو AI ایسکرو'}
-                </Text>
-              </View>
-              <Text style={{ fontSize: 12, color: colors.textMuted, lineHeight: 16 }}>
-                {language === 'en'
-                  ? 'All settled bids are automatically finalized with Google Antigravity Escrow Agent. Money is secured inside digital vaults prior to service dispatch!'
-                  : 'تمام طے شدہ قیمتیں ایجنٹ کے ذریعے محفوظ ڈیجیٹل والٹ میں منتقل کر دی جاتی ہیں۔ کام شروع ہونے سے پہلے رقم کی حفاظت سو فیصد یقینی بنائی جاتی ہے۔'
-                }
-              </Text>
-            </View>
+
           </>
         )}
 
