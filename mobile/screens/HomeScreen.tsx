@@ -52,7 +52,7 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View style={styles.headerBranding}>
           <Text style={styles.headerSubtitle}>Pakistan's 1st Agentic Economy</Text>
-          <Text style={styles.headerTitle}>GigConnect PK</Text>
+          <Text style={styles.headerTitle}>KaamGraph</Text>
         </View>
         <TouchableOpacity 
           style={styles.historyBtn}

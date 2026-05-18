@@ -14,7 +14,7 @@ GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./gigconnect.db")
 
 # ─── App Configuration ─────────────────────────────────────
-APP_TITLE: str = "GigConnect PK API"
+APP_TITLE: str = "KaamGraph API"
 APP_VERSION: str = "1.1.0"
 CORS_ORIGINS: list[str] = os.getenv("CORS_ORIGINS", "*").split(",")
 
