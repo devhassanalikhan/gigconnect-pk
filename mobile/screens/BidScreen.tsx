@@ -151,6 +151,37 @@ export default function BidScreen() {
     }
   };
 
+  // Dynamic ZOPA Probability and Track Width calculations
+  const parsedPrice = Number(counterValue) || Number(currentAgreedPrice);
+  const providerMin = Number(currentProviderMin);
+  const clientBudget = Number(initialBudget); // The initial job budget
+
+  let zopaStatus = 'HIGH';
+  let zopaLabel = '🟢 HIGH PROBABILITY (Inside ZOPA range)';
+  let zopaColor = '#10b981';
+  let sliderPercentage = 50;
+
+  if (parsedPrice < providerMin) {
+    zopaStatus = 'LOW';
+    zopaLabel = '🔴 POOR PROBABILITY (Below worker minimum target)';
+    zopaColor = '#f43f5e';
+    sliderPercentage = Math.max(10, Math.min(40, (parsedPrice / providerMin) * 35));
+  } else if (parsedPrice > clientBudget) {
+    zopaStatus = 'MEDIUM';
+    zopaLabel = '🟡 MEDIUM PROBABILITY (Client representative will counter-negotiate)';
+    zopaColor = '#f59e0b';
+    sliderPercentage = Math.max(60, Math.min(95, 50 + ((parsedPrice - clientBudget) / clientBudget) * 45));
+  } else {
+    // Settle perfectly inside ZOPA
+    zopaStatus = 'HIGH';
+    zopaLabel = '🟢 HIGH PROBABILITY (Overlap inside active ZOPA zone)';
+    zopaColor = '#10b981';
+    
+    // Settle standard percentage
+    const zopaSpan = clientBudget - providerMin || 1;
+    sliderPercentage = 40 + ((parsedPrice - providerMin) / zopaSpan) * 20;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
@@ -233,14 +264,18 @@ export default function BidScreen() {
               {/* InDrive Interactive Price Progress Slider Mockup */}
               <View style={styles.sliderContainer}>
                 <View style={styles.track} />
-                <View style={[styles.activeTrack, { width: currentAction === 'ACCEPT' ? '100%' : '50%' }]} />
-                <View style={[styles.thumb, { left: currentAction === 'ACCEPT' ? '95%' : '48%' }]} />
+                <View style={[styles.activeTrack, { width: `${sliderPercentage}%`, backgroundColor: zopaColor }]} />
+                <View style={[styles.thumb, { left: `${sliderPercentage - 3}%` }]} />
                 <View style={styles.scaleLabels}>
                   <Text style={styles.scaleText}>Low Cost Limit</Text>
-                  <Text style={styles.scaleText}>ZOPA Zone</Text>
+                  <Text style={[styles.scaleText, { color: zopaColor, fontWeight: 'bold' }]}>ZOPA Zone</Text>
                   <Text style={styles.scaleText}>Client Budget</Text>
                 </View>
               </View>
+
+              <Text style={{ fontSize: 10, fontWeight: 'bold', color: zopaColor, textAlign: 'center', marginTop: 12 }}>
+                {zopaLabel}
+              </Text>
             </View>
 
             {/* Interactive Custom Counter Input */}

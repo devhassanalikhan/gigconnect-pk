@@ -200,6 +200,47 @@ export default function SearchScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Dynamic Pulsing AI Agent Radar Widget */}
+        {isProcessing && (
+          <View style={[styles.radarWrapper, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            <View style={styles.radarHeader}>
+              <Ionicons name="compass-outline" size={14} color={colors.primary} style={{ marginRight: 6 }} />
+              <Text style={[styles.radarTitle, { color: colors.text }]}>SCANNING ACTIVE G-13 RADIUS (2.0 KM)</Text>
+            </View>
+            <View style={styles.radarGraphicRow}>
+              <View style={[styles.radarCircleOuter, { borderColor: colors.primaryLight }]}>
+                <View style={[styles.radarCircleInner, { borderColor: colors.primary }]}>
+                  <View style={[styles.radarCoreDot, { backgroundColor: colors.primary }]}>
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  </View>
+                </View>
+              </View>
+              <View style={styles.satelliteList}>
+                <View style={[styles.satelliteItem, activeStep >= 1 && { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
+                  <Ionicons name="chatbubbles-outline" size={12} color={activeStep >= 1 ? colors.primary : colors.textMuted} />
+                  <Text style={[styles.satelliteText, { color: activeStep >= 1 ? colors.text : colors.textMuted, fontWeight: activeStep >= 1 ? 'bold' : 'normal' }]}>1. LinguisticAgent (Parsed)</Text>
+                </View>
+                <View style={[styles.satelliteItem, activeStep >= 2 && { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
+                  <Ionicons name="locate-outline" size={12} color={activeStep >= 2 ? colors.primary : colors.textMuted} />
+                  <Text style={[styles.satelliteText, { color: activeStep >= 2 ? colors.text : colors.textMuted, fontWeight: activeStep >= 2 ? 'bold' : 'normal' }]}>2. GeoMatcher (Scanned)</Text>
+                </View>
+                <View style={[styles.satelliteItem, activeStep >= 3 && { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
+                  <Ionicons name="git-compare-outline" size={12} color={activeStep >= 3 ? colors.primary : colors.textMuted} />
+                  <Text style={[styles.satelliteText, { color: activeStep >= 3 ? colors.text : colors.textMuted, fontWeight: activeStep >= 3 ? 'bold' : 'normal' }]}>3. BiddingAgent (Bargaining)</Text>
+                </View>
+                <View style={[styles.satelliteItem, activeStep >= 4 && { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
+                  <Ionicons name="lock-closed-outline" size={12} color={activeStep >= 4 ? colors.primary : colors.textMuted} />
+                  <Text style={[styles.satelliteText, { color: activeStep >= 4 ? colors.text : colors.textMuted, fontWeight: activeStep >= 4 ? 'bold' : 'normal' }]}>4. EscrowAgent (Locked)</Text>
+                </View>
+                <View style={[styles.satelliteItem, activeStep >= 5 && { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
+                  <Ionicons name="mail-outline" size={12} color={activeStep >= 5 ? colors.primary : colors.textMuted} />
+                  <Text style={[styles.satelliteText, { color: activeStep >= 5 ? colors.text : colors.textMuted, fontWeight: activeStep >= 5 ? 'bold' : 'normal' }]}>5. FollowUpAgent (Cleared)</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
+
         {/* Live Monospace Terminal Logs */}
         {(isProcessing || consoleLogs.length > 0) && (
           <View style={styles.terminalCard}>
@@ -400,5 +441,68 @@ const styles = StyleSheet.create({
   cursor: {
     color: '#10b981',
     fontWeight: 'bold',
+  },
+  radarWrapper: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16,
+    marginBottom: 20,
+  },
+  radarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  radarTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  radarGraphicRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  radarCircleOuter: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radarCircleInner: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    borderWidth: 1.5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radarCoreDot: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  satelliteList: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  satelliteItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 6,
+    borderWidth: 0.5,
+    borderColor: 'transparent',
+    marginBottom: 4,
+  },
+  satelliteText: {
+    fontSize: 10,
+    marginLeft: 6,
   },
 });
