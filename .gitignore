@@ -20,15 +20,8 @@ Thumbs.db
 
 .gitignore
 
- .expo
-
- .next
-
- .vercel
-
- node_modules
- .expo
- .next
- .vercel
-
- .claude
+.expo
+.next
+.vercel
+node_modules
+.claude
