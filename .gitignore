@@ -17,3 +17,16 @@ mobile/dist/
 # OS
 .DS_Store
 Thumbs.db
+
+.gitignore
+
+ .expo
+
+ .next
+
+ .vercel
+
+ node_modules
+ .expo
+ .next
+ .vercel
