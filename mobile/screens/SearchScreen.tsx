@@ -164,7 +164,6 @@ export default function SearchScreen() {
         backgroundColor={colors.background} 
       />
 
-      {/* Screen Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <TouchableOpacity 
           style={[styles.backBtn, { backgroundColor: colors.cardBackground }]} 
@@ -174,12 +173,10 @@ export default function SearchScreen() {
           <Ionicons name="arrow-back" size={20} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>AI Agent Matcher</Text>
-        <View style={{ width: 36 }} /> {/* Spacer */}
+        <View style={{ width: 36 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        
-        {/* Natural Language Prompt Card */}
         <View style={[styles.card, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
           <View style={styles.cardHeader}>
             <Ionicons name="sparkles" size={18} color={colors.primary} />
@@ -216,7 +213,6 @@ export default function SearchScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Dynamic Location Selection Card */}
         <View style={[styles.card, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
           <View style={styles.cardHeader}>
             <Ionicons name="map-outline" size={18} color={colors.primary} />
@@ -230,7 +226,6 @@ export default function SearchScreen() {
               : 'Choose a specific sector to query nearby providers dynamically.'}
           </Text>
 
-          {/* Sectors Horizontal Pill Selector */}
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false} 
@@ -264,7 +259,6 @@ export default function SearchScreen() {
             })}
           </ScrollView>
 
-          {/* Interactive Simulated Google Map Radar Screen */}
           <View style={[styles.mapContainer, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
             <View style={styles.mapHeader}>
               <View style={styles.gpsPulseOuter}>
@@ -275,7 +269,6 @@ export default function SearchScreen() {
               </Text>
             </View>
             
-            {/* Visual Coordinate Board */}
             <View style={styles.coordsBoard}>
               <View style={styles.coordCol}>
                 <Text style={styles.coordLabel}>LATITUDE</Text>
@@ -292,7 +285,6 @@ export default function SearchScreen() {
               </View>
             </View>
 
-            {/* Radar Animation Rings */}
             <View style={styles.radarRingWrapper}>
               <View style={[styles.radarMapRing, { width: 140, height: 140, borderRadius: 70, borderColor: colors.border }]} />
               <View style={[styles.radarMapRing, { width: 100, height: 100, borderRadius: 50, borderColor: colors.primaryLight }]} />
@@ -302,7 +294,6 @@ export default function SearchScreen() {
           </View>
         </View>
 
-        {/* Dynamic Pulsing AI Agent Radar Widget */}
         {isProcessing && (
           <View style={[styles.radarWrapper, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
             <View style={styles.radarHeader}>
@@ -343,7 +334,6 @@ export default function SearchScreen() {
           </View>
         )}
 
-        {/* Live Monospace Terminal Logs */}
         {(isProcessing || consoleLogs.length > 0) && (
           <View style={styles.terminalCard}>
             <View style={styles.terminalHeader}>
@@ -371,7 +361,6 @@ export default function SearchScreen() {
           </View>
         )}
 
-        {/* Confidence Indicator — shows when LinguisticAgent confidence < 70% */}
         {result?.parsed_request?.confidence !== undefined ? (
           <View style={[
             styles.confidenceBar,

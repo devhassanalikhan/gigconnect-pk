@@ -179,7 +179,6 @@ export default function ConfirmScreen() {
           )}
         </View>
 
-        {/* Dispute Resolution Actions */}
         <View style={styles.disputeCard}>
           <Text style={styles.sectionHeader}>REPORT AN ISSUE (DISPUTE AGENT)</Text>
           <Text style={styles.disputeSubtitle}>Escrow is locked. If something goes wrong, you can open a dispute.</Text>

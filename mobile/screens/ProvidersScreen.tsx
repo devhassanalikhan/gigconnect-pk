@@ -164,7 +164,6 @@ export default function ProvidersScreen() {
               </View>
             </View>
 
-            {/* 6-Factor matching display */}
             <View style={styles.sixFactorRow}>
               <View style={styles.factorBadge}>
                 <Ionicons name="star" size={10} color="#eab308" />

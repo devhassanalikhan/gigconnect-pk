@@ -280,7 +280,6 @@ export default function BidScreen() {
               </Text>
             </View>
 
-            {/* Dynamic Price Breakdown Card */}
             {route.params.priceBreakdown ? (
               <View style={styles.breakdownCard}>
                 <Text style={styles.breakdownTitle}>PRICE BREAKDOWN</Text>
