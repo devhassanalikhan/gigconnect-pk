@@ -125,7 +125,7 @@ Return ONLY raw JSON, NO markdown, NO explanation:
 }}
 
 Rules:
-- confidence: float 0.0-1.0. Set < 0.70 if input is ambiguous, misspelled, or mixed
+- confidence: float 0.0-1.0. Set < 0.70 only if the request is truly ambiguous, missing a clear service category, or completely unparseable. Do NOT penalize confidence for code-switching, Roman Urdu, or Urdu text if the service type is clear.
 - confirmation_needed: true if confidence < 0.70
 - confirmation_question: write a clarifying question in same language as input if needed
 - urgency: "high" if urgent/jaldi/fori, else "normal"
@@ -438,7 +438,11 @@ def _local_heuristic_parse(text: str) -> dict:
         "serviceType": service_type,
         "location": location,
         "budget": budget,
-        "time": time_pref
+        "time": time_pref,
+        "confidence": 1.0,
+        "confirmation_needed": False,
+        "confirmation_question": None,
+        "detected_language": "heuristic_fallback"
     }
 
 
@@ -799,11 +803,18 @@ async def run_pipeline(
             message=f"Location Selector: Coordinates overridden by Client: lat={user_lat}, lng={user_lng}",
         ))
 
-    state = geo_node(state, db)
-    state = scheduling_node(state, db)
-    state = bidding_node(state)
-    state = escrow_node(state)
-    state = followup_node(state)
+    if not state["parsed"].get("confirmation_needed"):
+        state = geo_node(state, db)
+        state = scheduling_node(state, db)
+        state = bidding_node(state)
+        state = escrow_node(state)
+        state = followup_node(state)
+    else:
+        state["agent_trace"].append(_trace_entry(
+            agent="System",
+            status="warning",
+            message="Downstream agent nodes skipped because linguistic confidence is low and clarification is required.",
+        ))
 
     # ── Persist job to DB ──────────────────────────────────
     try:
@@ -813,7 +824,7 @@ async def run_pipeline(
             providers=state["providers"],
             bid=state["bid"] or None,
             escrow=state["escrow"] or None,
-            status=state["escrow"].get("status", state["bid"].get("action", "Searching")),
+            status="Pending Clarification" if state["parsed"].get("confirmation_needed") else state["escrow"].get("status", state["bid"].get("action", "Searching")),
             provider_id_assigned=state["top_provider"]["id"] if state["top_provider"] else None,
             scheduled_time=state["parsed"].get("time", "flexible"),
             job_complexity=state["parsed"].get("job_complexity", "basic"),
