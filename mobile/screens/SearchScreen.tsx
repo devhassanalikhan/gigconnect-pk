@@ -185,44 +185,12 @@ export default function SearchScreen() {
           );
         })}
 
-        {/* Agentic Radar Step Tracker — shows while processing */}
-        {isProcessing && activeAgentStep >= 0 && (
-          <View style={[styles.agentRadarCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-            <Text style={[styles.agentRadarTitle, { color: colors.text }]}>
-              {language === 'en' ? '⚡ KaamGraph AI Pipeline Running...' : '⚡ KaamGraph AI پائپ لائن جاری ہے...'}
-            </Text>
-            {[
-              { step: 1, icon: 'chatbubbles-outline', label: 'Linguistic Agent', subLabel: 'Parsing Roman Urdu intent...' },
-              { step: 2, icon: 'locate-outline',      label: 'GeoMatcher',       subLabel: 'Scanning 2km radius...' },
-              { step: 3, icon: 'git-compare-outline', label: 'Bidding Agent',    subLabel: 'ZOPA negotiation...' },
-              { step: 4, icon: 'lock-closed-outline', label: 'Escrow Agent',     subLabel: 'Locking payment milestone...' },
-              { step: 5, icon: 'mail-outline',        label: 'FollowUp Agent',   subLabel: 'Sending SMS confirmation...' },
-            ].map(({ step, icon, label, subLabel }) => {
-              const done = activeAgentStep > step;
-              const active = activeAgentStep === step;
-              return (
-                <View key={step} style={styles.agentStepRow}>
-                  <View style={[
-                    styles.agentStepDot,
-                    done   && { backgroundColor: '#10b981' },
-                    active && { backgroundColor: '#6366f1' },
-                  ]}>
-                    {active
-                      ? <ActivityIndicator size="small" color="#fff" />
-                      : <Ionicons name={done ? 'checkmark' : icon as any} size={12} color="#fff" />
-                    }
-                  </View>
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={[
-                      styles.agentStepLabel,
-                      (done || active) ? { color: colors.text } : { color: colors.textMuted }
-                    ]}>{label}</Text>
-                    {active && <Text style={styles.agentStepSub}>{subLabel}</Text>}
-                  </View>
-                  {done && <Ionicons name="checkmark-circle" size={16} color="#10b981" />}
-                </View>
-              );
-            })}
+        {/* Agentic Radar Step Tracker — removed as per request, using simple chat typing indicator instead */}
+        {isProcessing && (
+          <View style={[styles.bubbleWrapper, { alignSelf: 'flex-start' }]}>
+            <View style={[styles.bubble, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderWidth: 1 }]}>
+              <ActivityIndicator size="small" color={colors.primary} />
+            </View>
           </View>
         )}
       </ScrollView>

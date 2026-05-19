@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import {
   StyleSheet, Text, View, TouchableOpacity,
-  SafeAreaView, Alert, Dimensions,
+  Alert, Dimensions,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ISLAMABAD_SECTORS } from '../ThemeContext';
 
