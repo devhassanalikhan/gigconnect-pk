@@ -814,6 +814,10 @@ async def run_pipeline(
             bid=state["bid"] or None,
             escrow=state["escrow"] or None,
             status=state["escrow"].get("status", state["bid"].get("action", "Searching")),
+            provider_id_assigned=state["top_provider"]["id"] if state["top_provider"] else None,
+            scheduled_time=state["parsed"].get("time", "flexible"),
+            job_complexity=state["parsed"].get("job_complexity", "basic"),
+            confidence_score=state["parsed"].get("confidence"),
         )
         db.add(job)
         db.commit()

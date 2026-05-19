@@ -94,6 +94,20 @@ def init_db():
             for p in SEED_PROVIDERS:
                 db.add(Provider(**p))
             db.commit()
+        if db.query(Job).count() == 0:
+            # Seed a pre-existing job to trigger double-booking conflict for Ahmed Electric (p4)
+            conflict_job = Job(
+                id="JOB-SEEDCONFLICT",
+                parsed={"serviceType": "Electrician", "location": "G-13", "time": "urgent", "budget": 1800, "urgency": "high", "job_complexity": "basic", "confidence": 1.0},
+                providers=[],
+                bid={"action": "ACCEPT", "agreed_price": 1800},
+                escrow={"status": "MilestoneLocked"},
+                status="MilestoneLocked",
+                provider_id_assigned="p4",
+                scheduled_time="urgent"
+            )
+            db.add(conflict_job)
+            db.commit()
     finally:
         db.close()
 

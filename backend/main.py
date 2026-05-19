@@ -153,6 +153,8 @@ async def lock_escrow(req: EscrowRequest, db: Session = Depends(get_db)):
     if job:
         job.escrow = escrow
         job.status = "MilestoneLocked"
+        job.provider_id_assigned = req.provider_id
+        job.scheduled_time = parsed.get("time", "flexible")
         db.commit()
 
     return {"job_id": req.job_id, "escrow": escrow, "followup": fu, "trace": trace}
@@ -254,6 +256,23 @@ async def raise_dispute(req: DisputeRequest, db: Session = Depends(get_db)):
     trace.append(f"[DisputeAgent] Provider impact: {resolution['provider_penalty']}")
     trace.append(f"[DisputeAgent] Client compensation: {resolution['client_compensation']}")
     trace.append(f"[DisputeAgent] Dispute ID generated: {dispute_id}")
+
+    # Apply live penalty to provider record in DB
+    try:
+        job = db.query(Job).filter(Job.id == req.job_id).first()
+        provider_id = job.provider_id_assigned if job else None
+        if provider_id:
+            provider = db.query(Provider).filter(Provider.id == provider_id).first()
+            if provider:
+                if req.dispute_type == "no_show":
+                    provider.on_time_score = round(max(0.0, provider.on_time_score - 0.15), 2)
+                    trace.append(f"[DisputeAgent] Provider {provider.name} on_time_score penalized -0.15 (New: {provider.on_time_score})")
+                elif req.dispute_type == "cancellation":
+                    provider.cancellation_rate = round(min(1.0, provider.cancellation_rate + 0.05), 2)
+                    trace.append(f"[DisputeAgent] Provider {provider.name} cancellation_rate increased +0.05 (New: {provider.cancellation_rate})")
+                db.commit()
+    except Exception as e:
+        trace.append(f"[DisputeAgent] Provider penalty update failed: {str(e)}")
 
     # Save dispute to DB
     try:

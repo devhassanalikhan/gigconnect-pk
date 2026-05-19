@@ -130,7 +130,7 @@ export default function ProvidersScreen() {
             </View>
           </View>
           <Text style={styles.metaText}>
-            Ranked based on Geo-score: <Text style={styles.boldText}>(50% Distance + 50% Quality Rating)</Text>
+            Ranked based on composite score: <Text style={styles.boldText}>(25% Distance + 20% Rating + 20% OnTime + 15% Cancel Risk + 10% Price + 10% Exp)</Text>
           </Text>
         </View>
 

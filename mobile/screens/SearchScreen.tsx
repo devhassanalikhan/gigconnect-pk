@@ -119,7 +119,9 @@ export default function SearchScreen() {
       await delay(1000);
       setIsProcessing(false);
 
-      if (resultData.providers && resultData.providers.length > 0) {
+      const confirmationNeeded = resultData.parsed_request?.confirmation_needed;
+
+      if (resultData.providers && resultData.providers.length > 0 && !confirmationNeeded) {
         // Automatically route to Providers Screen passing the matching payload
         navigation.navigate('Providers', {
           serviceType: resultData.parsed_request?.serviceType || 'Service',
@@ -131,6 +133,11 @@ export default function SearchScreen() {
           providersList: resultData.providers,
           initialBid: resultData.bid,
         });
+      } else if (confirmationNeeded) {
+        Alert.alert(
+          'Clarification Needed',
+          resultData.parsed_request.confirmation_question || 'Linguistic analysis confidence is low. Please provide more details.'
+        );
       } else {
         Alert.alert(
           'No Matches Found',
