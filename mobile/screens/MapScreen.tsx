@@ -1,5 +1,5 @@
-// KaamGraph / screens/MapScreen.tsx
-import React, { useState, useEffect } from 'react';
+// KaamGraph / screens/MapScreen.tsx - REDESIGNED & FIXED
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,118 +10,347 @@ import {
   Alert,
   Dimensions,
   StatusBar,
+  Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import { useTheme, ISLAMABAD_SECTORS } from '../ThemeContext';
+import { GOOGLE_MAPS_API_KEY, API_BASE_URL, fetchWithTimeout } from '../config';
+import { isValidCoordinate } from '../utils/validation';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+
+function getHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+let MapView: any = null;
+let Marker: any = null;
+let Polyline: any = null;
+
+if (Platform.OS !== 'web') {
+  try {
+    const Maps = require('react-native-maps');
+    MapView = Maps.default || Maps.MapView;
+    Marker = Maps.Marker;
+    Polyline = Maps.Polyline;
+  } catch (err) {
+    console.warn('[KaamGraph] Maps not available:', err);
+  }
+}
 
 interface MapProvider {
   id: string;
   name: string;
   address: string;
   distance: string;
+  distanceVal: number;
   rating: number;
   category: string;
-  x: number;
-  y: number;
+  lat: number;
+  lng: number;
+  base_cost: number;
 }
 
-const ALL_PROVIDERS: MapProvider[] = [
-  {
-    id: 'p1',
-    name: 'Madina Hardware Sanitary Store',
-    address: 'Tulsa Rd, Lalazar, Rawalpindi',
-    distance: '0.7 km',
-    rating: 5.0,
-    category: 'Plumber',
-    x: 180,
-    y: 200,
-  },
-  {
-    id: 'p2',
-    name: 'BTS Solar & Electrician Services',
-    address: 'Morgah Main Bazar, Rawalpindi',
-    distance: '1.4 km',
-    rating: 4.8,
-    category: 'Electrician',
-    x: 240,
-    y: 150,
-  },
-  {
-    id: 'p3',
-    name: 'Chaudhary AC Cooling Point',
-    address: 'G-13 Sector Markaz, Islamabad',
-    distance: '0.9 km',
-    rating: 4.6,
-    category: 'AC Technician',
-    x: 120,
-    y: 110,
-  },
-  {
-    id: 'p4',
-    name: 'Rawal Paint & Decorators House',
-    address: 'Saddar Metro Station, Rawalpindi',
-    distance: '2.1 km',
-    rating: 4.4,
-    category: 'Painter',
-    x: 270,
-    y: 240,
-  }
+const LOCAL_SEED_PROVIDERS = [
+  { id: 'p1', name: 'Khan Plumbing', category: 'Plumber', rating: 4.7, lat: 33.6350, lng: 72.9810, address: 'G-13 Sector, Islamabad', base_cost: 1500 },
+  { id: 'p2', name: 'G13 Leak Fixers', category: 'Plumber', rating: 4.3, lat: 33.6420, lng: 72.9700, address: 'G-13 Markaz, Islamabad', base_cost: 1200 },
+  { id: 'p3', name: 'City Plumbers', category: 'Plumber', rating: 4.5, lat: 33.6480, lng: 72.9750, address: 'F-11 Markaz, Islamabad', base_cost: 1400 },
+  { id: 'p4', name: 'Ahmed Electric', category: 'Electrician', rating: 4.8, lat: 33.6411, lng: 72.9723, address: 'G-13 Sector, Islamabad', base_cost: 1800 },
+  { id: 'p5', name: 'FastFix Electric', category: 'Electrician', rating: 4.6, lat: 33.6290, lng: 72.9650, address: 'G-13 Main Rd, Islamabad', base_cost: 1600 },
+  { id: 'p6', name: 'Power Solutions', category: 'Electrician', rating: 4.4, lat: 33.6500, lng: 72.9900, address: 'F-11 Sector, Islamabad', base_cost: 1700 },
+  { id: 'p7', name: 'Ali AC Services', category: 'AC Technician', rating: 4.9, lat: 33.6380, lng: 72.9680, address: 'G-13/4 Sector, Islamabad', base_cost: 2000 },
+  { id: 'p8', name: 'CoolTech AC', category: 'AC Technician', rating: 4.4, lat: 33.6440, lng: 72.9760, address: 'G-13 Markaz, Islamabad', base_cost: 1800 },
+  { id: 'p9', name: 'Arctic Cool', category: 'AC Technician', rating: 4.6, lat: 33.6350, lng: 72.9810, address: 'F-11 Sector, Islamabad', base_cost: 2200 },
+  { id: 'p10', name: 'HomeGlow Painters', category: 'Painter', rating: 4.8, lat: 33.6411, lng: 72.9723, address: 'G-13 Sector, Islamabad', base_cost: 2500 },
+  { id: 'p11', name: 'Islamabad Painters', category: 'Painter', rating: 4.2, lat: 33.6290, lng: 72.9650, address: 'I-8 Sector, Islamabad', base_cost: 2000 },
+  { id: 'p12', name: 'ColorPro Painters', category: 'Painter', rating: 4.5, lat: 33.6500, lng: 72.9900, address: 'E-11 Sector, Islamabad', base_cost: 2300 },
 ];
 
 export default function MapScreen({ navigation }: any) {
-  const { colors, selectedLocationIndex, theme } = useTheme();
+  const { colors, selectedLocationIndex, theme, language } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
-  const [providers, setProviders] = useState<MapProvider[]>(ALL_PROVIDERS);
-  const [selectedProviderId, setSelectedProviderId] = useState('p1');
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [rawProviders, setRawProviders] = useState<any[]>(LOCAL_SEED_PROVIDERS);
+  const [providers, setProviders] = useState<MapProvider[]>([]);
+  const [selectedProviderId, setSelectedProviderId] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
+  const [mapRegion, setMapRegion] = useState({
+    latitude: 33.6411,
+    longitude: 72.9723,
+    latitudeDelta: 0.035,
+    longitudeDelta: 0.035,
+  });
+
+  const mapRef = useRef<any>(null);
+  const searchDebounceTimer = useRef<any>(null);
   const activeSector = ISLAMABAD_SECTORS[selectedLocationIndex];
 
-  // Auto-shift coordinate offsets based on selected home location index
-  const getCoordinatesForSector = () => {
-    switch (selectedLocationIndex) {
-      case 0: return { x: 100, y: 120 }; // G-13
-      case 1: return { x: 130, y: 100 }; // G-11
-      case 2: return { x: 140, y: 80 };  // F-11
-      case 3: return { x: 150, y: 60 };  // E-11
-      case 4: return { x: 180, y: 150 }; // I-8
-      case 5: return { x: 200, y: 130 }; // Blue Area
-      case 6: return { x: 220, y: 220 }; // Saddar RWP
-      default: return { x: 140, y: 140 };
+  useEffect(() => {
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          const { latitude, longitude } = loc.coords;
+
+          if (isValidCoordinate(latitude, longitude)) {
+            updateMapViewport(latitude, longitude);
+            fetchAndSetProviders(latitude, longitude);
+          }
+        } else {
+          fallbackToSectorLocation();
+        }
+      } catch (err) {
+        console.warn('[KaamGraph] Location error:', err);
+        fallbackToSectorLocation();
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (activeSector && isValidCoordinate(activeSector.lat, activeSector.lng)) {
+      updateMapViewport(activeSector.lat, activeSector.lng);
+      fetchAndSetProviders(activeSector.lat, activeSector.lng);
+    }
+  }, [selectedLocationIndex]);
+
+  const fallbackToSectorLocation = () => {
+    const lat = activeSector?.lat || 33.6411;
+    const lng = activeSector?.lng || 72.9723;
+    if (isValidCoordinate(lat, lng)) {
+      updateMapViewport(lat, lng);
+      fetchAndSetProviders(lat, lng);
     }
   };
 
-  const clientCoords = getCoordinatesForSector();
+  const updateMapViewport = (lat: number, lng: number) => {
+    if (!isValidCoordinate(lat, lng)) return;
+    const newRegion = {
+      latitude: lat,
+      longitude: lng,
+      latitudeDelta: 0.025,
+      longitudeDelta: 0.025,
+    };
+    setMapRegion(newRegion);
+    if (Platform.OS !== 'web' && mapRef.current) {
+      mapRef.current.animateToRegion(newRegion, 1000);
+    }
+  };
 
-  // Filter providers in real-time when query changes or search button is tapped
-  const filterProviders = (queryText: string) => {
-    setSearchQuery(queryText);
-    if (!queryText.trim()) {
-      setProviders(ALL_PROVIDERS);
+  const fetchAndSetProviders = async (centerLat: number, centerLng: number, filterQuery = '') => {
+    if (!isValidCoordinate(centerLat, centerLng)) return;
+
+    try {
+      setIsLoading(true);
+      const response = await fetchWithTimeout(`${API_BASE_URL}/api/providers`, {}, 8000);
+      const data = await response.json();
+
+      let providerList = LOCAL_SEED_PROVIDERS;
+      if (data && Array.isArray(data.providers) && data.providers.length > 0) {
+        providerList = data.providers.map((p: any) => ({
+          id: p.id || '',
+          name: p.name || 'Unknown',
+          category: p.service_type || p.category || 'Service',
+          rating: Math.min(5, Math.max(0, Number(p.rating) || 0)),
+          lat: Number(p.lat) || centerLat,
+          lng: Number(p.lng) || centerLng,
+          address: p.address || 'Islamabad',
+          base_cost: Number(p.base_cost) || 0,
+        }));
+      }
+
+      setRawProviders(providerList);
+      filterAndSortProviders(centerLat, centerLng, filterQuery, providerList);
+    } catch (error) {
+      console.log('[KaamGraph] Backend offline, using local providers.');
+      setRawProviders(LOCAL_SEED_PROVIDERS);
+      filterAndSortProviders(centerLat, centerLng, filterQuery, LOCAL_SEED_PROVIDERS);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filterAndSortProviders = (centerLat: number, centerLng: number, queryText: string, list: any[]) => {
+    if (!isValidCoordinate(centerLat, centerLng)) return;
+
+    let filtered = list;
+    if (queryText && queryText.trim().length > 0) {
+      const q = queryText.toLowerCase().trim();
+      filtered = list.filter(
+        (p) =>
+          String(p.name).toLowerCase().includes(q) ||
+          String(p.category).toLowerCase().includes(q) ||
+          String(p.address).toLowerCase().includes(q)
+      );
+    }
+
+    const calculated: MapProvider[] = filtered
+      .filter(p => isValidCoordinate(p.lat, p.lng))
+      .map((p) => ({
+        ...p,
+        distanceVal: getHaversineDistance(centerLat, centerLng, p.lat, p.lng),
+        distance: `${getHaversineDistance(centerLat, centerLng, p.lat, p.lng).toFixed(1)} km`,
+      }))
+      .sort((a, b) => a.distanceVal - b.distanceVal);
+
+    setProviders(calculated);
+    if (calculated.length > 0) {
+      setSelectedProviderId(calculated[0].id);
+    }
+  };
+
+  const handleSearchTextChange = (text: string) => {
+    // FIXED: Allow spaces, don't strip input
+    setSearchQuery(text);
+    filterAndSortProviders(mapRegion.latitude, mapRegion.longitude, text, rawProviders);
+
+    if (searchDebounceTimer.current) {
+      clearTimeout(searchDebounceTimer.current);
+    }
+
+    if (text.trim().length > 2 && GOOGLE_MAPS_API_KEY) {
+      searchDebounceTimer.current = setTimeout(async () => {
+        try {
+          // Attempt Places API (New) first (POST)
+          const newAutocompleteUrl = 'https://places.googleapis.com/v1/places:autocomplete';
+          const newResponse = await fetchWithTimeout(newAutocompleteUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
+            },
+            body: JSON.stringify({
+              input: text,
+              includedRegionCodes: ['pk'],
+            }),
+          }, 6000);
+
+          if (newResponse.ok) {
+            const data = await newResponse.json();
+            if (data && Array.isArray(data.suggestions)) {
+              const mapped = data.suggestions.map((s: any) => ({
+                place_id: s.placePrediction?.placeId || '',
+                description: s.placePrediction?.text?.text || '',
+                isNew: true,
+              })).filter((s: any) => s.place_id !== '');
+              setSuggestions(mapped.slice(0, 8));
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn('[KaamGraph] Places API (New) failed, trying legacy...', err);
+        }
+
+        // Fallback to Legacy API (GET)
+        try {
+          const autocompleteUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+            text
+          )}&key=${GOOGLE_MAPS_API_KEY}&components=country:pk`;
+
+          const response = await fetchWithTimeout(autocompleteUrl, {}, 6000);
+          const data = await response.json();
+          setSuggestions(data?.predictions?.slice(0, 8) || []);
+        } catch (error) {
+          console.warn('[KaamGraph] Autocomplete error:', error);
+          setSuggestions([]);
+        }
+      }, 500);
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const handleSelectSuggestion = async (item: any) => {
+    if (!item?.place_id) return;
+
+    setSearchQuery(item.description);
+    setSuggestions([]);
+
+    if (!GOOGLE_MAPS_API_KEY) {
+      Alert.alert('Error', 'Maps API not configured');
       return;
     }
 
-    const filtered = ALL_PROVIDERS.filter(
-      (p) =>
-        p.name.toLowerCase().includes(queryText.toLowerCase()) ||
-        p.category.toLowerCase().includes(queryText.toLowerCase()) ||
-        p.address.toLowerCase().includes(queryText.toLowerCase())
-    );
-    setProviders(filtered);
+    try {
+      // Try Places API (New) details first
+      const detailsNewUrl = `https://places.googleapis.com/v1/places/${item.place_id}`;
+      const response = await fetchWithTimeout(detailsNewUrl, {
+        method: 'GET',
+        headers: {
+          'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
+          'X-Goog-FieldMask': 'id,location,formattedAddress',
+        },
+      }, 6000);
 
-    if (filtered.length > 0) {
-      setSelectedProviderId(filtered[0].id);
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.location) {
+          const lat = Number(data.location.latitude);
+          const lng = Number(data.location.longitude);
+          if (isValidCoordinate(lat, lng)) {
+            updateMapViewport(lat, lng);
+            filterAndSortProviders(lat, lng, '', rawProviders);
+            return;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[KaamGraph] Places API (New) details failed, trying legacy...', err);
+    }
+
+    // Fallback to Legacy API Details (GET)
+    try {
+      const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(
+        item.place_id
+      )}&key=${GOOGLE_MAPS_API_KEY}`;
+      const response = await fetchWithTimeout(detailsUrl, {}, 6000);
+      const data = await response.json();
+
+      if (data?.result?.geometry?.location) {
+        const { lat, lng } = data.result.geometry.location;
+        if (isValidCoordinate(lat, lng)) {
+          updateMapViewport(lat, lng);
+          filterAndSortProviders(lat, lng, '', rawProviders);
+        }
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Could not load location details');
     }
   };
 
-  const handleCall = (name: string) => {
-    Alert.alert('Calling Provider', `Connecting to ${name}...`);
-  };
-
-  const handleWhatsApp = (name: string) => {
-    Alert.alert('WhatsApp Connected', `Opening chat thread with ${name}...`);
+  const handleGPSCenter = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        const { latitude, longitude } = loc.coords;
+        if (isValidCoordinate(latitude, longitude)) {
+          updateMapViewport(latitude, longitude);
+          filterAndSortProviders(latitude, longitude, searchQuery, rawProviders);
+        }
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Could not get location');
+    }
   };
 
   const activeProvider = providers.find((p) => p.id === selectedProviderId) || providers[0];
@@ -130,134 +359,163 @@ export default function MapScreen({ navigation }: any) {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
-      {/* Dynamic Search header */}
-      <View style={[styles.searchBar, { backgroundColor: colors.cardBackground, borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
-        <TextInput
-          style={[styles.searchInput, { color: colors.text }]}
-          placeholder="Search e.g. Plumber, Electrician..."
-          placeholderTextColor={colors.textMuted}
-          value={searchQuery}
-          onChangeText={filterProviders}
-        />
-        <TouchableOpacity style={[styles.searchBtn, { backgroundColor: colors.primary }]}>
-          <Ionicons name="search" size={18} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Grid Canvas Viewport */}
-      <View style={[styles.mapViewport, { backgroundColor: colors.background }]}>
-        <View style={styles.mapGrid} />
-
-        {/* Dynamic Rivers and Roads */}
-        <View style={styles.river} />
-        <View style={styles.highway} />
-
-        {/* Auto Selected Sector Marker tooltip */}
-        <View style={[styles.clientPin, { top: clientCoords.y, left: clientCoords.x }]}>
-          <View style={styles.clientPinOuterRing} />
-          <View style={styles.clientPinInner} />
-          <View style={styles.clientLabel}>
-            <Text style={styles.clientLabelText}>{activeSector.name}</Text>
-          </View>
+      {/* Search Bar */}
+      <View style={[styles.searchBarWrapper, { zIndex: 999 }]}>
+        <View style={[styles.searchBar, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+          <Ionicons name="location-outline" size={20} color={colors.primary} style={{ marginRight: 10 }} />
+          <TextInput
+            style={[styles.searchInput, { color: colors.text }]}
+            placeholder="Search city, area or service..."
+            placeholderTextColor={colors.textMuted}
+            value={searchQuery}
+            onChangeText={handleSearchTextChange}
+            maxLength={150}
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => { setSearchQuery(''); setSuggestions([]); }} style={styles.clearBtn}>
+              <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Available providers pin list */}
-        {providers.map((p) => {
-          const isSelected = p.id === selectedProviderId;
-          return (
-            <TouchableOpacity
-              key={p.id}
-              style={[styles.providerPin, { top: p.y, left: p.x }]}
-              onPress={() => setSelectedProviderId(p.id)}
-            >
-              <Text style={[styles.pinText, isSelected && styles.selectedPinText]}>
-                📍
-              </Text>
-              {isSelected && (
-                <View style={[styles.pinTooltip, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                  <Text style={[styles.pinTooltipText, { color: colors.text }]} numberOfLines={1}>{p.name}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
-
-        {/* Draw Vector Path lines connecting client to active selection */}
-        {activeProvider && (
-          <View
-            style={[
-              styles.routeLine,
-              {
-                width: Math.max(2, Math.abs(activeProvider.x - clientCoords.x)),
-                height: Math.max(2, Math.abs(activeProvider.y - clientCoords.y)),
-                left: Math.min(clientCoords.x, activeProvider.x) + 5,
-                top: Math.min(clientCoords.y, activeProvider.y) + 5,
-              }
-            ]}
-          />
+        {/* Suggestions */}
+        {suggestions.length > 0 && (
+          <View style={[styles.suggestionsDropdown, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            <ScrollView keyboardShouldPersistTaps="always" style={{ maxHeight: 200 }}>
+              {suggestions.map((item) => (
+                <TouchableOpacity
+                  key={item.place_id}
+                  style={[styles.suggestionRow, { borderBottomColor: colors.border }]}
+                  onPress={() => handleSelectSuggestion(item)}
+                >
+                  <Ionicons name="navigate-outline" size={16} color={colors.primary} style={{ marginRight: 10 }} />
+                  <Text style={[styles.suggestionText, { color: colors.text }]} numberOfLines={1}>
+                    {item.description}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
         )}
       </View>
 
-      {/* Bottom Providers Carousel List */}
+      {/* Map or Placeholder */}
+      <View style={styles.mapViewport}>
+        {Platform.OS === 'web' && GOOGLE_MAPS_API_KEY ? (
+          <View style={StyleSheet.absoluteFillObject}>
+            <iframe
+              src={`https://www.google.com/maps/embed/v1/view?key=${GOOGLE_MAPS_API_KEY}&center=${mapRegion.latitude},${mapRegion.longitude}&zoom=14&maptype=roadmap`}
+              style={{ width: '100%', height: '100%', border: 'none', borderRadius: 12 }}
+              allowFullScreen
+              loading="lazy"
+            />
+          </View>
+        ) : MapView ? (
+          <MapView
+            ref={mapRef}
+            style={StyleSheet.absoluteFillObject}
+            initialRegion={mapRegion}
+            onRegionChangeComplete={(region: any) => {
+              if (isValidCoordinate(region.latitude, region.longitude)) {
+                setMapRegion(region);
+              }
+            }}
+          >
+            <Marker
+              coordinate={{ latitude: mapRegion.latitude, longitude: mapRegion.longitude }}
+              title="You"
+            >
+              <View style={[styles.clientMarker, { backgroundColor: colors.primary }]} />
+            </Marker>
+
+            {providers.slice(0, 15).map((p) => (
+              <Marker
+                key={p.id}
+                coordinate={{ latitude: p.lat, longitude: p.lng }}
+                title={p.name}
+                onPress={() => setSelectedProviderId(p.id)}
+              >
+                <View style={styles.markerDot} />
+              </Marker>
+            ))}
+          </MapView>
+        ) : (
+          <View style={styles.mapPlaceholder}>
+            <Ionicons name="map-outline" size={50} color={colors.textMuted} />
+            <Text style={[styles.placeholderText, { color: colors.textMuted }]}>Map not available</Text>
+          </View>
+        )}
+
+        {/* GPS Button */}
+        <TouchableOpacity
+          style={[styles.gpsButton, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+          onPress={handleGPSCenter}
+        >
+          <Ionicons name="locate" size={22} color={colors.primary} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Providers List */}
       <View style={[styles.bottomList, { backgroundColor: colors.cardBackground, borderTopColor: colors.border }]}>
-        <Text style={[styles.listHeader, { color: colors.text }]}>
-          {providers.length} Providers Found near {activeSector.name}
-        </Text>
-        
+        <View style={styles.listTop}>
+          <Text style={[styles.listHeader, { color: colors.text }]}>
+            {isLoading ? 'Loading...' : `${providers.length} Providers Found`}
+          </Text>
+          {isLoading && <ActivityIndicator size="small" color={colors.primary} />}
+        </View>
+
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.carouselContainer}
         >
-          {providers.map((p) => {
-            const isSelected = p.id === selectedProviderId;
-            return (
-              <TouchableOpacity
-                key={p.id}
-                style={[
-                  styles.providerCard,
-                  { backgroundColor: colors.background, borderColor: isSelected ? colors.primary : colors.border, borderWidth: 1 }
-                ]}
-                onPress={() => setSelectedProviderId(p.id)}
-              >
-                <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>{p.name}</Text>
-                <Text style={[styles.cardAddress, { color: colors.textMuted }]} numberOfLines={1}>{p.address}</Text>
-                
-                <View style={styles.cardMetaRow}>
-                  <Text style={styles.cardRating}>★ {p.rating.toFixed(1)}</Text>
-                  <Text style={[styles.cardDistance, { color: colors.textMuted }]}>{p.distance} away • {p.category}</Text>
-                </View>
+          {providers.length > 0 ? (
+            providers.map((p) => {
+              const isSelected = p.id === selectedProviderId;
+              return (
+                <TouchableOpacity
+                  key={p.id}
+                  style={[
+                    styles.providerCard,
+                    {
+                      backgroundColor: colors.background,
+                      borderColor: isSelected ? colors.primary : colors.border,
+                      borderWidth: isSelected ? 2 : 1,
+                    },
+                  ]}
+                  onPress={() => setSelectedProviderId(p.id)}
+                >
+                  <Text style={[styles.cardName, { color: colors.text }]}>{p.name}</Text>
+                  <Text style={[styles.cardCategory, { color: colors.textMuted }]}>{p.category}</Text>
 
-                {/* Direct Actions */}
-                <View style={styles.cardActions}>
-                  <TouchableOpacity
-                    style={[styles.actionBtn, { backgroundColor: colors.border }]}
-                    onPress={() => handleCall(p.name)}
-                  >
-                    <Text style={[styles.actionBtnTxt, { color: colors.text }]}>📞 Call</Text>
-                  </TouchableOpacity>
+                  <View style={styles.ratingRow}>
+                    <Text style={styles.cardRating}>⭐ {p.rating.toFixed(1)}</Text>
+                    <Text style={[styles.cardDistance, { color: colors.textMuted }]}>{p.distance}</Text>
+                  </View>
 
-                  <TouchableOpacity
-                    style={[styles.actionBtn, { backgroundColor: colors.border, marginLeft: 8 }]}
-                    onPress={() => handleWhatsApp(p.name)}
-                  >
-                    <Text style={[styles.actionBtnTxt, { color: colors.text }]}>💬 Chat</Text>
-                  </TouchableOpacity>
+                  <Text style={[styles.cardCost, { color: colors.primary }]}>₨{p.base_cost}</Text>
 
-                  <TouchableOpacity
-                    style={[styles.actionBtn, { backgroundColor: colors.primary, marginLeft: 8 }]}
-                    onPress={() => navigation.navigate('Book', { provider: p, serviceType: p.category })}
-                  >
-                    <Text style={styles.actionBtnTxt}>Book</Text>
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-
-          {providers.length === 0 && (
-            <View style={styles.emptyCard}>
-              <Text style={{ color: colors.textMuted }}>No providers found matching query.</Text>
+                  <View style={styles.actionRow}>
+                    <TouchableOpacity style={[styles.smallBtn, { backgroundColor: colors.primary }]}>
+                      <Ionicons name="call" size={16} color="#fff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.smallBtn, { backgroundColor: colors.primary }]}>
+                      <Ionicons name="chatbubble" size={16} color="#fff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.smallBtn, { backgroundColor: colors.primary, flex: 1 }]}
+                      onPress={() => navigation.navigate('Book', { provider: p })}
+                    >
+                      <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>Book</Text>
+                    </TouchableOpacity>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          ) : (
+            <View style={[styles.emptyCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
+              <Ionicons name="search-outline" size={32} color={colors.textMuted} />
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>No providers found</Text>
             </View>
           )}
         </ScrollView>
@@ -267,224 +525,100 @@ export default function MapScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1 },
+  searchBarWrapper: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 12,
+    left: 12,
+    right: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 5,
   },
   searchBar: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    alignItems: 'center',
-    backgroundColor: '#0f172a',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1e293b',
-  },
-  searchInput: {
-    flex: 1,
-    height: 44,
-    borderRadius: 10,
-    backgroundColor: '#090d16',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    paddingHorizontal: 16,
-    color: '#fff',
-    fontSize: 14,
-  },
-  searchBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 10,
-  },
-  mapViewport: {
-    flex: 1,
-    backgroundColor: '#0c0f17',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  mapGrid: {
-    ...StyleSheet.absoluteFillObject,
-    opacity: 0.05,
-    borderWidth: 0.5,
-    borderColor: '#94a3b8',
-  },
-  river: {
-    position: 'absolute',
-    width: 30,
-    height: 600,
-    backgroundColor: 'rgba(30, 58, 138, 0.2)',
-    left: 90,
-    top: -50,
-    transform: [{ rotate: '30deg' }],
-  },
-  highway: {
-    position: 'absolute',
-    width: 6,
-    height: 800,
-    backgroundColor: '#1e293b',
-    left: 200,
-    top: -100,
-    transform: [{ rotate: '-40deg' }],
-  },
-  clientPin: {
-    position: 'absolute',
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: -12,
-    marginTop: -12,
-    zIndex: 10,
-  },
-  clientPinOuterRing: {
-    position: 'absolute',
-    width: 24,
-    height: 24,
+    height: 50,
     borderRadius: 12,
-    backgroundColor: 'rgba(99, 102, 241, 0.25)',
-  },
-  clientPinInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#6366f1',
-    borderWidth: 1.5,
-    borderColor: '#fff',
-  },
-  clientLabel: {
-    position: 'absolute',
-    top: 24,
-    backgroundColor: '#1e293b',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    borderWidth: 0.5,
-    borderColor: '#334155',
-  },
-  clientLabelText: {
-    color: '#fff',
-    fontSize: 9,
-    fontWeight: 'bold',
-  },
-  providerPin: {
-    position: 'absolute',
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: -16,
-    marginTop: -16,
-    zIndex: 5,
-  },
-  pinText: {
-    fontSize: 24,
-  },
-  selectedPinText: {
-    fontSize: 30,
-  },
-  pinTooltip: {
-    position: 'absolute',
-    top: -24,
-    backgroundColor: '#0f172a',
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    width: 130,
-    alignItems: 'center',
-  },
-  pinTooltipText: {
-    color: '#fff',
-    fontSize: 9,
-    fontWeight: 'bold',
-  },
-  routeLine: {
-    position: 'absolute',
-    borderWidth: 1,
-    borderColor: '#6366f1',
-    borderStyle: 'dashed',
-    borderRadius: 100,
-    opacity: 0.5,
-  },
-  bottomList: {
-    backgroundColor: '#0f172a',
-    borderTopWidth: 1,
-    borderTopColor: '#1e293b',
-    paddingVertical: 16,
-  },
-  listHeader: {
-    color: '#94a3b8',
-    fontSize: 11,
-    fontWeight: 'bold',
-    paddingHorizontal: 20,
-    marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  carouselContainer: {
     paddingHorizontal: 14,
-  },
-  providerCard: {
-    backgroundColor: '#090d16',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#1e293b',
-    padding: 16,
-    width: 290,
-    marginHorizontal: 6,
-  },
-  cardTitle: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  cardAddress: {
-    color: '#64748b',
-    fontSize: 12,
-    marginTop: 4,
-  },
-  cardMetaRow: {
-    flexDirection: 'row',
     alignItems: 'center',
+    borderWidth: 1,
+  },
+  searchInput: { flex: 1, fontSize: 14, paddingVertical: 0, marginLeft: 5 },
+  clearBtn: { padding: 6 },
+  suggestionsDropdown: {
     marginTop: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    maxHeight: 220,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 7,
   },
-  cardRating: {
-    color: '#fbbf24',
-    fontSize: 13,
-    fontWeight: 'bold',
-    marginRight: 10,
-  },
-  cardDistance: {
-    color: '#94a3b8',
-    fontSize: 12,
-  },
-  cardActions: {
+  suggestionRow: {
     flexDirection: 'row',
-    marginTop: 12,
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 0.5,
   },
-  actionBtn: {
+  suggestionText: { fontSize: 13, flex: 1 },
+  mapViewport: { flex: 1, position: 'relative', overflow: 'hidden', marginTop: 10 },
+  mapPlaceholder: {
     flex: 1,
-    height: 38,
-    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1a1a2e',
+  },
+  placeholderText: { marginTop: 12, fontSize: 14 },
+  clientMarker: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#fff' },
+  markerDot: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#6366f1', borderWidth: 2, borderColor: '#fff' },
+  gpsButton: {
+    position: 'absolute',
+    bottom: 90,
+    right: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
   },
-  actionBtnTxt: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
+  bottomList: { borderTopWidth: 1, paddingVertical: 12, paddingHorizontal: 12 },
+  listTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  listHeader: { fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.5 },
+  carouselContainer: { paddingHorizontal: 4 },
+  providerCard: {
+    borderRadius: 14,
+    padding: 14,
+    width: 280,
+    marginHorizontal: 6,
+    marginBottom: 8,
   },
+  cardName: { fontSize: 14, fontWeight: 'bold', marginBottom: 4 },
+  cardCategory: { fontSize: 12, marginBottom: 8 },
+  ratingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  cardRating: { fontSize: 13, fontWeight: 'bold' },
+  cardDistance: { fontSize: 12 },
+  cardCost: { fontSize: 13, fontWeight: 'bold', marginBottom: 10 },
+  actionRow: { flexDirection: 'row', gap: 6 },
+  smallBtn: { width: 36, height: 36, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   emptyCard: {
-    width: 290,
-    height: 120,
-    borderRadius: 16,
+    width: 280,
+    height: 140,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#1e293b',
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 6,
   },
+  emptyText: { marginTop: 10, fontSize: 13 },
 });

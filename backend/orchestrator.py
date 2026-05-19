@@ -479,6 +479,7 @@ def geo_node(state: AgentState) -> AgentState:
                 "key": GOOGLE_MAPS_API_KEY
             }
             res = requests.get(geocode_url, params=params, timeout=5)
+            success = False
             if res.ok:
                 geo_data = res.json()
                 results = geo_data.get("results", [])
@@ -492,6 +493,34 @@ def geo_node(state: AgentState) -> AgentState:
                         agent="GeoAgent", status="success",
                         message=f"📍 Geocoded '{loc_text}' to: lat={user_lat:.4f}, lng={user_lng:.4f}"
                     ))
+                    success = True
+            
+            if not success:
+                # Fallback to Places API (New) search text
+                places_url = "https://places.googleapis.com/v1/places:searchText"
+                headers = {
+                    "Content-Type": "application/json",
+                    "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
+                    "X-Goog-FieldMask": "places.location"
+                }
+                payload = {
+                    "textQuery": f"{loc_text}, Pakistan",
+                    "maxResultCount": 1
+                }
+                res_places = requests.post(places_url, json=payload, headers=headers, timeout=5)
+                if res_places.ok:
+                    places_data = res_places.json()
+                    places = places_data.get("places", [])
+                    if places and "location" in places[0]:
+                        loc = places[0]["location"]
+                        user_lat = loc["latitude"]
+                        user_lng = loc["longitude"]
+                        state["parsed"]["lat"] = user_lat
+                        state["parsed"]["lng"] = user_lng
+                        state["agent_trace"].append(_trace_entry(
+                            agent="GeoAgent", status="success",
+                            message=f"📍 Resolved locale '{loc_text}' via Places API (New) to: lat={user_lat:.4f}, lng={user_lng:.4f}"
+                        ))
         except Exception as e:
             print(f"[GeoAgent] Geocoding exception: {e}")
 

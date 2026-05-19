@@ -1,15 +1,29 @@
 import { Platform } from 'react-native';
 
-// This is the IP address of your machine on the local network.
-// On web, we use localhost. On mobile, we use the local network IP.
-const LOCAL_IP = '192.168.100.5'; 
+const getApiBaseUrl = (): string => {
+  const webUrl = process.env.EXPO_PUBLIC_API_BASE_URL_WEB;
+  const mobileUrl = process.env.EXPO_PUBLIC_API_BASE_URL_MOBILE;
 
-export const API_BASE_URL = Platform.select({
-  web: 'http://localhost:8000',
-  android: `http://${LOCAL_IP}:8000`,
-  ios: `http://${LOCAL_IP}:8000`,
-  default: `http://${LOCAL_IP}:8000`,
-});
+  const fallback = Platform.select({
+    web: 'http://localhost:8000',
+    android: 'http://192.168.100.5:8000',
+    ios: 'http://192.168.100.5:8000',
+    default: 'http://192.168.100.5:8000',
+  });
+
+  if (Platform.OS === 'web') {
+    return webUrl || fallback;
+  }
+  return mobileUrl || fallback;
+};
+
+const getGoogleMapsApiKey = (): string => {
+  const key = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || 'AIzaSyBcWIO_zNg49uPSzw8yv67PqhV47IUMN5Q';
+  return key.replace(/"/g, '');
+};
+
+export const API_BASE_URL = getApiBaseUrl();
+export const GOOGLE_MAPS_API_KEY = getGoogleMapsApiKey();
 
 console.log('[KaamGraph] API_BASE_URL configured as:', API_BASE_URL);
 
