@@ -45,6 +45,34 @@ def _haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
 
 
 def _trace_entry(agent: str, status: str, **kwargs) -> dict:
+    # ─── Beautiful Terminal Logs for Judges ───
+    emoji = "⚙️"
+    if agent == "LinguisticAgent": emoji = "🗣️"
+    elif agent == "GeoAgent": emoji = "📍"
+    elif agent == "SchedulingAgent": emoji = "📅"
+    elif agent == "BiddingAgent": emoji = "🤝"
+    elif agent == "EscrowAgent": emoji = "🔒"
+    elif agent == "FollowUpAgent": emoji = "📞"
+    elif agent == "System": emoji = "🤖"
+
+    color = "\033[96m" # Cyan
+    if status == "success":
+        color = "\033[92m" # Green
+    elif status == "warning":
+        color = "\033[93m" # Yellow
+    elif status == "error":
+        color = "\033[91m" # Red
+        
+    reset = "\033[0m"
+    bold = "\033[1m"
+    
+    msg = kwargs.get("message") or kwargs.get("error") or str(kwargs.get("output", "")) or ""
+    # Truncate message if too long
+    if len(msg) > 120:
+        msg = msg[:117] + "..."
+        
+    print(f"{emoji}  {bold}{color}{agent:<18}{reset} | {color}{status.upper():<8}{reset} | {msg}")
+
     return {
         "agent": agent,
         "status": status,
@@ -784,6 +812,12 @@ async def run_pipeline(
         "pipeline_status": "success",
     }
 
+    # Banners for terminal logs
+    print("\n" + "\033[95m" + "="*80 + "\033[0m")
+    print(f"\033[1m🤖 GIGCONNECT AI AGENTIC DISPATCH ORCHESTRATOR (Job ID: {state['job_id']})\033[0m")
+    print(f"📝 Natural Language Request: \033[94m\"{text}\"\033[0m")
+    print("\033[95m" + "="*80 + "\033[0m")
+
     state["agent_trace"].append(_trace_entry(
         agent="System",
         status="success",
@@ -838,6 +872,10 @@ async def run_pipeline(
             status="error",
             error=f"Failed to persist job to DB: {exc}",
         ))
+
+    print("\033[95m" + "="*80 + "\033[0m")
+    print(f"\033[92m✅ Pipeline Completed | Status: {state['pipeline_status']} | Dispatch Confirmed: {bool(state['escrow'].get('booking_id'))}\033[0m")
+    print("\033[95m" + "="*80 + "\033[0m\n")
 
     # ── Return serialized state ──────────────────────────
     return {

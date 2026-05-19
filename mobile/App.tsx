@@ -1,4 +1,4 @@
-// KaamGraph / Mobile / mobile/App.tsx
+// GigConnect AI / App.tsx
 
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
@@ -10,8 +10,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider, useTheme } from './ThemeContext';
 
 // ─── Import Screens ─────────────────────────────────────────────────────────────────
+import LoginScreen from './screens/LoginScreen';
+import SignupScreen from './screens/SignupScreen';
 import HomeScreen from './screens/HomeScreen';
 import SearchScreen from './screens/SearchScreen';
+import MapScreen from './screens/MapScreen';
+import WorkerLeadsScreen from './screens/WorkerLeadsScreen';
+import WorkerMapScreen from './screens/WorkerMapScreen';
+import BookScreen from './screens/BookScreen';
+import ReviewBookingScreen from './screens/ReviewBookingScreen';
 import ProvidersScreen from './screens/ProvidersScreen';
 import BidScreen from './screens/BidScreen';
 import ConfirmScreen from './screens/ConfirmScreen';
@@ -20,9 +27,14 @@ import ProfileScreen from './screens/ProfileScreen';
 
 // ─── Define Type-Safe Route Param List ──────────────────────────────────────────────
 export type RootStackParamList = {
+  Login: undefined;
+  Signup: undefined;
   Main: undefined;
   Home: undefined;
   Search: { category?: string } | undefined;
+  Map: undefined;
+  Book: { provider: any; serviceType: string } | undefined;
+  Review: { provider: any; serviceType: string; selectedDate: string; selectedTime: string } | undefined;
   History: undefined;
   Profile: undefined;
   Providers: {
@@ -66,32 +78,38 @@ const Tab = createBottomTabNavigator();
 
 // ─── Bottom Tab Navigator Setup ─────────────────────────────────────────────────────
 function TabNavigator() {
-  const { colors, t, userRole } = useTheme();
-  
+  const { t, userRole, language } = useTheme();
+  const isWorker = userRole === 'provider';
+  const activeColor = isWorker ? '#10b981' : '#6366f1';
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.cardBackground,
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
+          backgroundColor: '#0f172a',
+          borderTopColor: isWorker ? '#10b981' : '#1e293b',
+          borderTopWidth: isWorker ? 1.5 : 1,
           paddingBottom: 8,
           paddingTop: 8,
           height: 60,
         },
-        tabBarActiveTintColor: userRole === 'client' ? colors.primary : colors.success,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '600',
-        },
+        tabBarActiveTintColor: activeColor,
+        tabBarInactiveTintColor: '#475569',
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
         tabBarIcon: ({ color, focused }) => {
-          let iconName: string = '';
+          let iconName = '';
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'Search') {
+            // client: sparkles; worker: briefcase
             iconName = focused ? 'sparkles' : 'sparkles-outline';
+          } else if (route.name === 'Leads') {
+            iconName = focused ? 'briefcase' : 'briefcase-outline';
+          } else if (route.name === 'Map') {
+            iconName = focused ? 'map' : 'map-outline';
+          } else if (route.name === 'Zone') {
+            iconName = focused ? 'radio' : 'radio-outline';
           } else if (route.name === 'History') {
             iconName = focused ? 'time' : 'time-outline';
           } else if (route.name === 'Profile') {
@@ -101,10 +119,60 @@ function TabNavigator() {
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t.tabHome }} />
-      <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarLabel: t.tabSearch }} />
-      <Tab.Screen name="History" component={HistoryScreen} options={{ tabBarLabel: t.tabHistory }} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: t.tabProfile }} />
+      {/* Home is shared — but content switches via userRole inside HomeScreen */}
+      <Tab.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ tabBarLabel: t.tabHome }}
+      />
+
+      {/* AI Match (client) vs Live Leads (worker) */}
+      {isWorker ? (
+        <Tab.Screen
+          name="Leads"
+          component={WorkerLeadsScreen}
+          options={{
+            tabBarLabel: language === 'en' ? 'Leads' : 'جابز',
+          }}
+        />
+      ) : (
+        <Tab.Screen
+          name="Search"
+          component={SearchScreen}
+          options={{ tabBarLabel: t.tabSearch }}
+        />
+      )}
+
+      {/* Map (client) vs Zone (worker) */}
+      {isWorker ? (
+        <Tab.Screen
+          name="Zone"
+          component={WorkerMapScreen}
+          options={{
+            tabBarLabel: language === 'en' ? 'My Zone' : 'میرا زون',
+          }}
+        />
+      ) : (
+        <Tab.Screen
+          name="Map"
+          component={MapScreen}
+          options={{ tabBarLabel: language === 'en' ? 'Map' : 'نقشہ' }}
+        />
+      )}
+
+      {/* Escrows — shared but shows worker earnings vs client booking history */}
+      <Tab.Screen
+        name="History"
+        component={HistoryScreen}
+        options={{ tabBarLabel: t.tabHistory }}
+      />
+
+      {/* Profile — shared, role-switch button inside */}
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ tabBarLabel: t.tabProfile }}
+      />
     </Tab.Navigator>
   );
 }
@@ -115,23 +183,30 @@ function AppContent() {
   return (
     <SafeAreaProvider>
       <StatusBar 
-        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} 
-        backgroundColor={colors.background} 
+        barStyle="light-content" 
+        backgroundColor="#090d16" 
       />
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Main"
+          initialRouteName="Login"
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: colors.background },
+            contentStyle: { backgroundColor: '#090d16' },
           }}
         >
+          {/* Authentication portal routes */}
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignupScreen} />
+
           {/* Tab Navigation houses core dashboards */}
           <Stack.Screen name="Main" component={TabNavigator} />
           
           {/* Fallback routes for direct nested targeting */}
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Search" component={SearchScreen} />
+          <Stack.Screen name="Map" component={MapScreen} />
+          <Stack.Screen name="Book" component={BookScreen} />
+          <Stack.Screen name="Review" component={ReviewBookingScreen} />
           <Stack.Screen name="History" component={HistoryScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
           

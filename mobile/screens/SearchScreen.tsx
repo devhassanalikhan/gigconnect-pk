@@ -1,5 +1,4 @@
-// KaamGraph / Mobile / mobile/screens/SearchScreen.tsx
-
+// GigConnect AI / screens/SearchScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -12,726 +11,545 @@ import {
   Alert,
   StatusBar,
   Platform,
+  Dimensions,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../App';
-import { useTheme, ISLAMABAD_SECTORS } from '../ThemeContext';
-
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Search'>;
-type SearchRouteProp = RouteProp<RootStackParamList, 'Search'>;
-
+import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../ThemeContext';
 import { API_BASE_URL } from '../config';
 
-interface AgentLog {
-  agent: string;
-  status: 'success' | 'error' | 'skipped' | 'running';
-  message: string;
+const { width, height } = Dimensions.get('window');
+
+interface ChatBubble {
+  sender: 'user' | 'agent';
+  text: string;
+  time: string;
 }
 
 export default function SearchScreen() {
-  const navigation = useNavigation<NavigationProp>();
-  const route = useRoute<SearchRouteProp>();
-  const { colors, theme, language, selectedLocationIndex, setSelectedLocationIndex } = useTheme();
-  
+  const navigation = useNavigation<any>();
+  const { colors, language, chatHistory, setChatHistory } = useTheme();
+
   const [requestText, setRequestText] = useState('');
+  const [activeAgentStep, setActiveAgentStep] = useState(-1); // -1 = idle
+  const [messages, setMessages] = useState<ChatBubble[]>([
+    {
+      sender: 'agent',
+      text: 'Assalam-o-Alaikum! Main KaamGraph AI Assistant hoon. Aapko kis qism ki service chahye? (e.g. Plumber, Electrician or AC service)',
+      time: '4:12 PM',
+    }
+  ]);
+
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeStep, setActiveStep] = useState<number>(-1);
-  const [consoleLogs, setConsoleLogs] = useState<AgentLog[]>([]);
-  const [result, setResult] = useState<any>(null);
+  const [micActive, setMicActive] = useState(false);
+  const [drawerVisible, setDrawerVisible] = useState(false);
 
-  // ─── Pre-populate text if arriving from category selection ─────────────────────────
-  useEffect(() => {
-    if (route.params?.category) {
-      const catName = route.params.category;
-      setRequestText(`Mujhe ek experienced ${catName} chahye urgently.`);
-    }
-  }, [route.params?.category]);
+  // Trigger matching pipeline
+  const handleSend = async (customText?: string) => {
+    const textToSend = customText || requestText;
+    if (!textToSend.trim()) return;
 
-  // ─── Trigger Pipeline Matching ─────────────────────────────────────────────────────
-  const triggerMatching = async () => {
-    if (!requestText.trim()) {
-      Alert.alert('Empty Request', 'Kiya kaam karwana chahte hain? Please type your request first.');
-      return;
-    }
-
+    // Append client message
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const userMsg: ChatBubble = { sender: 'user', text: textToSend, time: timestamp };
+    
+    setMessages((prev) => [...prev, userMsg]);
+    if (!customText) setRequestText('');
     setIsProcessing(true);
-    setActiveStep(0);
-    setConsoleLogs([
-      { agent: 'System', status: 'running', message: 'Initializing Google Antigravity Orchestrator (agent_1778964020775)...' }
+    setActiveAgentStep(0);
+
+    const advanceStep = (step: number, delay: number) =>
+      new Promise<void>(res => setTimeout(() => { setActiveAgentStep(step); res(); }, delay));
+
+    // Save search context history
+    setChatHistory((prev: any[]) => [
+      { text: textToSend, time: '19 May 2026' },
+      ...prev.slice(0, 4)
     ]);
 
     try {
-      // Step 1 Simulation logs
-      await delay(1000);
-      setConsoleLogs(prev => [
-        ...prev.map(log => log.agent === 'System' ? { ...log, status: 'success' as const, message: 'Orchestrator Initialized successfully.' } : log),
-        { agent: 'LinguisticAgent', status: 'running', message: 'Parsing user natural language intent...' }
-      ]);
-      setActiveStep(1);
+      // Simulate agent steps visually while backend runs
+      advanceStep(1, 600);   // LinguisticAgent
+      advanceStep(2, 1400);  // GeoMatcher
+      advanceStep(3, 2200);  // BiddingAgent
 
-      const activeLoc = ISLAMABAD_SECTORS[selectedLocationIndex];
       const response = await fetch(`${API_BASE_URL}/api/match`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          text: requestText,
-          user_lat: activeLoc.lat,
-          user_lng: activeLoc.lng
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: textToSend,
+          user_lat: 33.642,
+          user_lng: 73.076,
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Orchestration failed with server status: ${response.status}`);
+        throw new Error(`Server error: ${response.status}`);
       }
 
       const resultData = await response.json();
-      setResult(resultData);
       
-      // Extract agent trace entries from backend
-      const traces = resultData.agent_trace || [];
-      
-      // Simulating step-by-step rendering for clean premium agent visual feel
-      for (let i = 0; i < traces.length; i++) {
-        const trace = traces[i];
-        await delay(1200); // 1.2s delay per agent to let the user review the traces
-        
-        setConsoleLogs(prev => {
-          // Complete previous running status
-          const updated = prev.map(log => log.status === 'running' ? { ...log, status: 'success' as const } : log);
-          return [
-            ...updated,
-            { 
-              agent: trace.agent, 
-              status: trace.status as any, 
-              message: trace.message || trace.error || 'Execution complete.' 
-            }
-          ];
-        });
-        
-        setActiveStep(i + 2);
-      }
+      advanceStep(4, 400); // EscrowAgent
 
-      await delay(1000);
-      setIsProcessing(false);
+      setTimeout(async () => {
+        setActiveAgentStep(5); // FollowUpAgent
+        await new Promise(r => setTimeout(r, 600));
+        setIsProcessing(false);
+        setActiveAgentStep(-1);
 
-      const confirmationNeeded = resultData.parsed_request?.confirmation_needed;
-
-      if (resultData.providers && resultData.providers.length > 0 && !confirmationNeeded) {
-        // Automatically route to Providers Screen passing the matching payload
-        navigation.navigate('Providers', {
-          serviceType: resultData.parsed_request?.serviceType || 'Service',
-          budget: resultData.parsed_request?.budget || 2000,
-          location: resultData.parsed_request?.location || 'Islamabad',
-          time: resultData.parsed_request?.time || 'flexible',
-          rawRequest: requestText,
-          jobId: resultData.job_id,
-          providersList: resultData.providers,
-          initialBid: resultData.bid,
-        });
-      } else if (confirmationNeeded) {
-        Alert.alert(
-          'Clarification Needed',
-          resultData.parsed_request.confirmation_question || 'Linguistic analysis confidence is low. Please provide more details.'
-        );
-      } else {
-        Alert.alert(
-          'No Matches Found',
-          'We couldn\'t find any available service providers in your radius. Try increasing your budget or changing location.'
-        );
-      }
+        if (resultData.providers && resultData.providers.length > 0) {
+          const successMsg: ChatBubble = {
+            sender: 'agent',
+            text: `✅ ${resultData.providers.length} provider(s) matched near you! Routing to booking flow...`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          };
+          setMessages((prev) => [...prev, successMsg]);
+          navigation.navigate('Book', {
+            provider: resultData.providers[0],
+            serviceType: resultData.parsed_request?.serviceType || 'Service',
+          });
+        } else {
+          const failMsg: ChatBubble = {
+            sender: 'agent',
+            text: language === 'en'
+              ? 'No providers found near you. Try adjusting budget or location.'
+              : 'Koi provider nahi mila. Budget ya location badal kar try karein.',
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          };
+          setMessages((prev) => [...prev, failMsg]);
+        }
+      }, 500);
 
     } catch (err: any) {
-      setConsoleLogs(prev => [
-        ...prev.map(log => log.status === 'running' ? { ...log, status: 'error' as const, message: 'Execution halted.' } : log),
-        { agent: 'System', status: 'error', message: err?.message || 'Network connection failed.' }
-      ]);
-      Alert.alert('Pipeline Interrupted', err?.message || 'Failed to communicate with API.');
       setIsProcessing(false);
+      setActiveAgentStep(-1);
+      const errorMsg: ChatBubble = {
+        sender: 'agent',
+        text: 'Network issue. Main backend pipeline se connect nahi kar pa raha hoon.',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages((prev) => [...prev, errorMsg]);
     }
   };
 
-  const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+  // Simulate speech recognition mic input
+  const triggerVoiceInput = () => {
+    setMicActive(true);
+    setTimeout(() => {
+      setMicActive(false);
+      const simulatedSpeechText = 'Mujhe AC technician chahye Tulsa Road Lalazar k liye urgently';
+      setRequestText(simulatedSpeechText);
+      Alert.alert('Speech Recognized', `Translated: "${simulatedSpeechText}"`);
+    }, 2500);
+  };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar 
-        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} 
-        backgroundColor={colors.background} 
-      />
+    <SafeAreaView style={[styles.container, { backgroundColor: '#090d16' }]}>
+      <StatusBar barStyle="light-content" backgroundColor="#090d16" />
 
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity 
-          style={[styles.backBtn, { backgroundColor: colors.cardBackground }]} 
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={20} color={colors.text} />
+      {/* Header bar */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.menuBtn} onPress={() => setDrawerVisible(true)}>
+          <Ionicons name="menu-outline" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>AI Agent Matcher</Text>
-        <View style={{ width: 36 }} />
+        <Text style={styles.headerTitle}>KaamGraph AI Chat</Text>
+        <TouchableOpacity style={styles.clearBtn} onPress={() => setMessages([messages[0]])}>
+          <Text style={styles.clearBtnText}>Clear</Text>
+        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <View style={[styles.card, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="sparkles" size={18} color={colors.primary} />
-            <Text style={[styles.cardTitle, { color: colors.text }]}>Describe what you need</Text>
-          </View>
-          <Text style={[styles.cardSubtitle, { color: colors.textMuted }]}>Our agents support Roman Urdu, Urdu, and English.</Text>
+      {/* Conversational Stream */}
+      <ScrollView contentContainerStyle={styles.chatArea} showsVerticalScrollIndicator={false}>
+        {messages.map((m, idx) => {
+          const isUser = m.sender === 'user';
+          return (
+            <View
+              key={`msg-${idx}`}
+              style={[
+                styles.bubbleWrapper,
+                isUser ? { alignSelf: 'flex-end' } : { alignSelf: 'flex-start' },
+              ]}
+            >
+              <View
+                style={[
+                  styles.bubble,
+                  isUser
+                    ? { backgroundColor: colors.primary }
+                    : { backgroundColor: '#0f172a', borderColor: '#1e293b', borderWidth: 1 },
+                ]}
+              >
+                <Text style={styles.bubbleText}>{m.text}</Text>
+                <Text style={styles.bubbleTime}>{m.time}</Text>
+              </View>
+            </View>
+          );
+        })}
 
-          <View style={[styles.inputWrapper, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
-            <TextInput
-              style={[styles.input, { color: colors.text }]}
-              placeholder="e.g. Bijli wala chahye urgent board lagane k liye..."
-              placeholderTextColor={colors.textMuted}
-              value={requestText}
-              onChangeText={setRequestText}
-              multiline
-              numberOfLines={4}
-              editable={!isProcessing}
-            />
-          </View>
-
-          <TouchableOpacity
-            style={[styles.btnMatch, isProcessing && styles.btnDisabled]}
-            onPress={triggerMatching}
-            disabled={isProcessing}
-          >
-            {isProcessing ? (
-              <ActivityIndicator color="#ffffff" size="small" />
-            ) : (
-              <>
-                <Text style={styles.btnMatchText}>Find Match via Antigravity</Text>
-                <Ionicons name="compass-outline" size={18} color="#ffffff" style={{ marginLeft: 8 }} />
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <View style={[styles.card, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-          <View style={styles.cardHeader}>
-            <Ionicons name="map-outline" size={18} color={colors.primary} />
-            <Text style={[styles.cardTitle, { color: colors.text }]}>
-              {language === 'ur' ? 'کام کی جگہ منتخب کریں' : 'Select Service Location'}
+        {/* Agentic Radar Step Tracker — shows while processing */}
+        {isProcessing && activeAgentStep >= 0 && (
+          <View style={styles.agentRadarCard}>
+            <Text style={styles.agentRadarTitle}>
+              {language === 'en' ? '⚡ KaamGraph AI Pipeline Running...' : '⚡ KaamGraph AI پائپ لائن جاریہے...'}
             </Text>
-          </View>
-          <Text style={[styles.cardSubtitle, { color: colors.textMuted }]}>
-            {language === 'ur' 
-              ? 'اسلام آباد میں ورکرز کو تلاش کرنے کے لیے ایک سیکٹر منتخب کریں۔' 
-              : 'Choose a specific sector to query nearby providers dynamically.'}
-          </Text>
-
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
-            contentContainerStyle={styles.sectorsScroll}
-            style={{ marginVertical: 12 }}
-          >
-            {ISLAMABAD_SECTORS.map((sector, idx) => {
-              const isActive = selectedLocationIndex === idx;
+            {[
+              { step: 1, icon: 'chatbubbles-outline', label: 'Linguistic Agent', subLabel: 'Parsing Roman Urdu intent...' },
+              { step: 2, icon: 'locate-outline',      label: 'GeoMatcher',       subLabel: 'Scanning 2km radius...' },
+              { step: 3, icon: 'git-compare-outline', label: 'Bidding Agent',    subLabel: 'ZOPA negotiation...' },
+              { step: 4, icon: 'lock-closed-outline', label: 'Escrow Agent',     subLabel: 'Locking payment milestone...' },
+              { step: 5, icon: 'mail-outline',        label: 'FollowUp Agent',   subLabel: 'Sending SMS confirmation...' },
+            ].map(({ step, icon, label, subLabel }) => {
+              const done = activeAgentStep > step;
+              const active = activeAgentStep === step;
               return (
-                <TouchableOpacity
-                  key={idx}
-                  style={[
-                    styles.sectorPill,
-                    { borderColor: colors.border, backgroundColor: colors.inputBackground },
-                    isActive && { backgroundColor: colors.primary, borderColor: colors.primary }
-                  ]}
-                  onPress={() => setSelectedLocationIndex(idx)}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons 
-                    name={sector.icon as any} 
-                    size={14} 
-                    color={isActive ? '#ffffff' : colors.textMuted} 
-                    style={{ marginRight: 6 }} 
-                  />
-                  <Text style={[styles.sectorPillText, { color: isActive ? '#ffffff' : colors.text, fontWeight: 'bold' }]}>
-                    {language === 'ur' ? sector.urdu : sector.name}
-                  </Text>
-                </TouchableOpacity>
+                <View key={step} style={styles.agentStepRow}>
+                  <View style={[
+                    styles.agentStepDot,
+                    done   && { backgroundColor: '#10b981' },
+                    active && { backgroundColor: '#6366f1' },
+                  ]}>
+                    {active
+                      ? <ActivityIndicator size="small" color="#fff" />
+                      : <Ionicons name={done ? 'checkmark' : icon as any} size={12} color="#fff" />
+                    }
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={[
+                      styles.agentStepLabel,
+                      (done || active) && { color: '#fff' }
+                    ]}>{label}</Text>
+                    {active && <Text style={styles.agentStepSub}>{subLabel}</Text>}
+                  </View>
+                  {done && <Ionicons name="checkmark-circle" size={16} color="#10b981" />}
+                </View>
               );
             })}
-          </ScrollView>
+          </View>
+        )}
+      </ScrollView>
 
-          <View style={[styles.mapContainer, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
-            <View style={styles.mapHeader}>
-              <View style={styles.gpsPulseOuter}>
-                <View style={[styles.gpsPulseInner, { backgroundColor: colors.primary }]} />
-              </View>
-              <Text style={[styles.mapGpsText, { color: colors.text }]}>
-                {language === 'ur' ? 'لائیو GPS سگنل - اسلام آباد' : 'LIVE GPS MATCH SIGNAL - ISLAMABAD'}
-              </Text>
-            </View>
-            
-            <View style={styles.coordsBoard}>
-              <View style={styles.coordCol}>
-                <Text style={styles.coordLabel}>LATITUDE</Text>
-                <Text style={[styles.coordValue, { color: colors.primary }]}>
-                  {ISLAMABAD_SECTORS[selectedLocationIndex].lat.toFixed(4)}° N
-                </Text>
-              </View>
-              <View style={styles.coordDivider} />
-              <View style={styles.coordCol}>
-                <Text style={styles.coordLabel}>LONGITUDE</Text>
-                <Text style={[styles.coordValue, { color: colors.primary }]}>
-                  {ISLAMABAD_SECTORS[selectedLocationIndex].lng.toFixed(4)}° E
-                </Text>
-              </View>
-            </View>
+      {/* Bottom input area */}
+      <View style={styles.inputArea}>
+        <TouchableOpacity style={styles.micBtn} onPress={triggerVoiceInput}>
+          <Ionicons name="mic-outline" size={22} color="#94a3b8" />
+        </TouchableOpacity>
+        
+        <TextInput
+          style={styles.textInput}
+          value={requestText}
+          onChangeText={setRequestText}
+          placeholder={language === 'en' ? 'Ask KaamGraph AI...' : 'KaamGraph AI سے پوچھیں...'}
+          placeholderTextColor="#475569"
+        />
 
-            <View style={styles.radarRingWrapper}>
-              <View style={[styles.radarMapRing, { width: 140, height: 140, borderRadius: 70, borderColor: colors.border }]} />
-              <View style={[styles.radarMapRing, { width: 100, height: 100, borderRadius: 50, borderColor: colors.primaryLight }]} />
-              <View style={[styles.radarMapRing, { width: 60, height: 60, borderRadius: 30, borderColor: colors.primary }]} />
-              <Ionicons name="pin" size={24} color="#ef4444" style={styles.mapPinIcon} />
+        <TouchableOpacity style={[styles.sendBtn, { backgroundColor: '#fff' }]} onPress={() => handleSend()}>
+          <Ionicons name="arrow-up" size={20} color="#090d16" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Mic listening overlay */}
+      <Modal visible={micActive} transparent animationType="fade">
+        <View style={styles.listeningBg}>
+          <View style={styles.listeningCard}>
+            <View style={styles.pulseWaves}>
+              <View style={[styles.pulseCircle, { transform: [{ scale: 1.2 }] }]} />
+              <Ionicons name="mic" size={40} color="#6366f1" />
             </View>
+            <Text style={styles.listeningTitle}>Listening...</Text>
+            <Text style={styles.listeningDesc}>Say something like "Electrician chahye Tulsa Road par"</Text>
           </View>
         </View>
+      </Modal>
 
-        {isProcessing && (
-          <View style={[styles.radarWrapper, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-            <View style={styles.radarHeader}>
-              <Ionicons name="compass-outline" size={14} color={colors.primary} style={{ marginRight: 6 }} />
-              <Text style={[styles.radarTitle, { color: colors.text }]}>SCANNING ACTIVE G-13 RADIUS (2.0 KM)</Text>
+      {/* Historical Roman Urdu slide-out drawer */}
+      <Modal visible={drawerVisible} transparent animationType="slide">
+        <View style={styles.drawerBg}>
+          <TouchableOpacity style={styles.drawerDismiss} onPress={() => setDrawerVisible(false)} />
+          
+          <View style={styles.drawerPanel}>
+            <View style={styles.drawerHeader}>
+              <Text style={styles.drawerTitle}>
+                {language === 'en' ? 'Recent Searches' : 'حالیہ تلاشیں'}
+              </Text>
+              <TouchableOpacity onPress={() => setDrawerVisible(false)}>
+                <Ionicons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
             </View>
-            <View style={styles.radarGraphicRow}>
-              <View style={[styles.radarCircleOuter, { borderColor: colors.primaryLight }]}>
-                <View style={[styles.radarCircleInner, { borderColor: colors.primary }]}>
-                  <View style={[styles.radarCoreDot, { backgroundColor: colors.primary }]}>
-                    <ActivityIndicator size="small" color="#ffffff" />
+
+            <ScrollView contentContainerStyle={styles.drawerScroll}>
+              {chatHistory.map((history, idx) => (
+                <TouchableOpacity
+                  key={`hist-${idx}`}
+                  style={styles.historyItem}
+                  onPress={() => {
+                    setDrawerVisible(false);
+                    handleSend(history.text);
+                  }}
+                >
+                  <Ionicons name="chatbubble-outline" size={16} color="#6366f1" style={{ marginRight: 10 }} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.historyText} numberOfLines={2}>{history.text}</Text>
+                    <Text style={styles.historyTime}>{history.time}</Text>
                   </View>
-                </View>
-              </View>
-              <View style={styles.satelliteList}>
-                <View style={[styles.satelliteItem, activeStep >= 1 && { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
-                  <Ionicons name="chatbubbles-outline" size={12} color={activeStep >= 1 ? colors.primary : colors.textMuted} />
-                  <Text style={[styles.satelliteText, { color: activeStep >= 1 ? colors.text : colors.textMuted, fontWeight: activeStep >= 1 ? 'bold' : 'normal' }]}>1. LinguisticAgent (Parsed)</Text>
-                </View>
-                <View style={[styles.satelliteItem, activeStep >= 2 && { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
-                  <Ionicons name="locate-outline" size={12} color={activeStep >= 2 ? colors.primary : colors.textMuted} />
-                  <Text style={[styles.satelliteText, { color: activeStep >= 2 ? colors.text : colors.textMuted, fontWeight: activeStep >= 2 ? 'bold' : 'normal' }]}>2. GeoMatcher (Scanned)</Text>
-                </View>
-                <View style={[styles.satelliteItem, activeStep >= 3 && { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
-                  <Ionicons name="git-compare-outline" size={12} color={activeStep >= 3 ? colors.primary : colors.textMuted} />
-                  <Text style={[styles.satelliteText, { color: activeStep >= 3 ? colors.text : colors.textMuted, fontWeight: activeStep >= 3 ? 'bold' : 'normal' }]}>3. BiddingAgent (Bargaining)</Text>
-                </View>
-                <View style={[styles.satelliteItem, activeStep >= 4 && { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
-                  <Ionicons name="lock-closed-outline" size={12} color={activeStep >= 4 ? colors.primary : colors.textMuted} />
-                  <Text style={[styles.satelliteText, { color: activeStep >= 4 ? colors.text : colors.textMuted, fontWeight: activeStep >= 4 ? 'bold' : 'normal' }]}>4. EscrowAgent (Locked)</Text>
-                </View>
-                <View style={[styles.satelliteItem, activeStep >= 5 && { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
-                  <Ionicons name="mail-outline" size={12} color={activeStep >= 5 ? colors.primary : colors.textMuted} />
-                  <Text style={[styles.satelliteText, { color: activeStep >= 5 ? colors.text : colors.textMuted, fontWeight: activeStep >= 5 ? 'bold' : 'normal' }]}>5. FollowUpAgent (Cleared)</Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {(isProcessing || consoleLogs.length > 0) && (
-          <View style={styles.terminalCard}>
-            <View style={styles.terminalHeader}>
-              <View style={styles.dotRow}>
-                <View style={[styles.terminalDot, { backgroundColor: '#ff5f56' }]} />
-                <View style={[styles.terminalDot, { backgroundColor: '#ffbd2e' }]} />
-                <View style={[styles.terminalDot, { backgroundColor: '#27c93f' }]} />
-              </View>
-              <Text style={styles.terminalTitle}>Antigravity Logs</Text>
-              {isProcessing && <ActivityIndicator size="small" color="#10b981" />}
-            </View>
-
-            <ScrollView style={styles.terminalContent} nestedScrollEnabled>
-              {consoleLogs.map((log, index) => (
-                <View key={index} style={styles.logLine}>
-                  <Text style={styles.logLineText}>
-                    <Text style={styles.logTimestamp}>[{new Date().toLocaleTimeString()}] </Text>
-                    <Text style={[styles.logAgent, { color: getAgentColor(log.agent) }]}>{log.agent}: </Text>
-                    <Text style={[styles.logText, { color: getLogTextColor(log.status) }]}>{log.message}</Text>
-                    {log.status === 'running' && <Text style={styles.cursor}>_</Text>}
-                  </Text>
-                </View>
+                </TouchableOpacity>
               ))}
+
+              {chatHistory.length === 0 && (
+                <Text style={styles.emptyHistory}>No previous chat logs recorded.</Text>
+              )}
             </ScrollView>
           </View>
-        )}
-
-        {result?.parsed_request?.confidence !== undefined ? (
-          <View style={[
-            styles.confidenceBar,
-            { borderColor: result.parsed_request.confidence >= 0.7 ? '#10b981' : '#f59e0b' }
-          ]}>
-            <Text style={styles.confidenceLabel}>
-              Parse Confidence: {(result.parsed_request.confidence * 100).toFixed(0)}%
-            </Text>
-            {result.parsed_request.confirmation_needed && (
-              <Text style={styles.confirmationQuestion}>
-                ❓ {result.parsed_request.confirmation_question}
-              </Text>
-            )}
-          </View>
-        ) : null}
-
-      </ScrollView>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
-// ─── Styling Helper Constants ───────────────────────────────────────────────────────
-const getAgentColor = (agent: string) => {
-  switch (agent) {
-    case 'System': return '#9ca3af';
-    case 'LinguisticAgent': return '#34d399';
-    case 'GeoAgent': return '#60a5fa';
-    case 'BiddingAgent': return '#fbbf24';
-    case 'EscrowAgent': return '#a78bfa';
-    case 'FollowUpAgent': return '#f472b6';
-    default: return '#38bdf8';
-  }
-};
-
-const getLogTextColor = (status: string) => {
-  switch (status) {
-    case 'success': return '#34d399'; // Neon emerald green
-    case 'error': return '#f87171'; // Red
-    case 'skipped': return '#fbbf24'; // Amber
-    case 'running': return '#ffffff';
-    default: return '#d1d5db';
-  }
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1a1a1a',
+    borderBottomColor: '#1e293b',
   },
-  backBtn: {
-    padding: 8,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 8,
+  menuBtn: {
+    padding: 4,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '900',
-    color: '#ffffff',
-  },
-  scrollContent: {
-    padding: 16,
-  },
-  card: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#333333',
-    marginBottom: 20,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  cardTitle: {
-    fontSize: 16,
     fontWeight: 'bold',
-    color: '#ffffff',
-    marginLeft: 8,
+    color: '#fff',
   },
-  cardSubtitle: {
-    fontSize: 12,
-    color: '#9ca3af',
+  clearBtn: {
+    padding: 4,
+  },
+  clearBtnText: {
+    color: '#94a3b8',
+    fontSize: 14,
+  },
+  chatArea: {
+    flexGrow: 1,
+    padding: 20,
+    justifyContent: 'flex-end',
+  },
+  bubbleWrapper: {
+    maxWidth: '80%',
     marginBottom: 16,
   },
-  inputWrapper: {
-    backgroundColor: '#0d1117',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#333333',
-    paddingHorizontal: 12,
-    marginBottom: 16,
+  bubble: {
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  input: {
-    color: '#ffffff',
-    fontSize: 14,
-    minHeight: 100,
-    paddingTop: 12,
-    paddingBottom: 12,
-    textAlignVertical: 'top',
+  bubbleText: {
+    color: '#fff',
+    fontSize: 15,
+    lineHeight: 20,
   },
-  btnMatch: {
-    backgroundColor: '#4f46e5', // Hackathon Indigo accent
-    height: 48,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  btnDisabled: {
-    backgroundColor: '#312e81',
-  },
-  btnMatchText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  terminalCard: {
-    backgroundColor: '#0c0c0e', // Monospace Terminal Background
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#333333',
-    overflow: 'hidden',
-  },
-  terminalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#16181c',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#2b2d30',
-  },
-  dotRow: {
-    flexDirection: 'row',
-    width: 50,
-    justifyContent: 'space-between',
-  },
-  terminalDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  terminalTitle: {
-    color: '#9ca3af',
-    fontSize: 11,
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
-  },
-  terminalContent: {
-    padding: 12,
-    minHeight: 180,
-    maxHeight: 250,
-  },
-  logLine: {
-    marginBottom: 8,
-  },
-  logLineText: {
-    color: '#9ca3af',
-  },
-  logTimestamp: {
-    color: '#555555',
-    fontFamily: 'monospace',
-    fontSize: 11,
-    marginRight: 6,
-  },
-  logAgent: {
-    fontFamily: 'monospace',
-    fontWeight: 'bold',
-    fontSize: 11,
-    marginRight: 6,
-  },
-  logText: {
-    fontFamily: 'monospace',
-    fontSize: 11,
-    lineHeight: 16,
-    flex: 1,
-  },
-  cursor: {
-    color: '#10b981',
-    fontWeight: 'bold',
-  },
-  radarWrapper: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 16,
-    marginBottom: 20,
-  },
-  radarHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  radarTitle: {
+  bubbleTime: {
+    color: 'rgba(255,255,255,0.4)',
     fontSize: 10,
-    fontWeight: 'bold',
-    letterSpacing: 1,
+    marginTop: 4,
+    textAlign: 'right',
   },
-  radarGraphicRow: {
+  scanningCard: {
+    alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  radarCircleOuter: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  radarCircleInner: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
-    borderWidth: 1.5,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  radarCoreDot: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  satelliteList: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  satelliteItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 6,
-    borderWidth: 0.5,
-    borderColor: 'transparent',
-    marginBottom: 4,
-  },
-  satelliteText: {
-    fontSize: 10,
-    marginLeft: 6,
-  },
-  // Location Selector Styles
-  sectorsScroll: {
-    paddingRight: 20,
-  },
-  sectorPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    backgroundColor: '#0f172a',
     borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderWidth: 1,
-    marginRight: 8,
+    borderColor: '#1e293b',
+    marginTop: 10,
+    marginBottom: 20,
   },
-  sectorPillText: {
+  radarGraphicOuter: {
+    marginRight: 10,
+  },
+  scanningText: {
+    color: '#94a3b8',
     fontSize: 12,
   },
-  mapContainer: {
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 16,
-    marginTop: 10,
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  mapHeader: {
+  inputArea: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    width: '100%',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#1e293b',
+    backgroundColor: '#090d16',
   },
-  gpsPulseOuter: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: 'rgba(16, 185, 129, 0.3)',
+  micBtn: {
+    padding: 10,
+  },
+  textInput: {
+    flex: 1,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#0f172a',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    paddingHorizontal: 16,
+    color: '#fff',
+    fontSize: 14,
+    marginHorizontal: 10,
+  },
+  sendBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  listeningBg: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
   },
-  gpsPulseInner: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  mapGpsText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  coordsBoard: {
-    flexDirection: 'row',
+  listeningCard: {
+    backgroundColor: '#0f172a',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    padding: 40,
     alignItems: 'center',
-    justifyContent: 'space-around',
-    width: '100%',
-    paddingVertical: 10,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    borderRadius: 8,
+    width: width * 0.8,
+  },
+  pulseWaves: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
     marginBottom: 20,
-    zIndex: 10,
   },
-  coordCol: {
+  pulseCircle: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 50,
+    borderWidth: 1.5,
+    borderColor: '#6366f1',
+    opacity: 0.5,
+  },
+  listeningTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  listeningDesc: {
+    color: '#94a3b8',
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 10,
+    lineHeight: 18,
+  },
+  drawerBg: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    flexDirection: 'row',
+  },
+  drawerDismiss: {
+    flex: 1,
+  },
+  drawerPanel: {
+    width: width * 0.75,
+    backgroundColor: '#0f172a',
+    borderLeftWidth: 1,
+    borderLeftColor: '#1e293b',
+    padding: 20,
+    height: '100%',
+  },
+  drawerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e293b',
+    paddingBottom: 16,
+    marginBottom: 16,
   },
-  coordLabel: {
-    fontSize: 9,
-    color: '#888',
-    marginBottom: 4,
+  drawerTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  drawerScroll: {
+    flexGrow: 1,
+  },
+  historyItem: {
+    flexDirection: 'row',
+    backgroundColor: '#090d16',
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  historyText: {
+    color: '#fff',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  historyTime: {
+    color: '#475569',
+    fontSize: 10,
+    marginTop: 4,
+  },
+  emptyHistory: {
+    color: '#475569',
+    textAlign: 'center',
+    marginTop: 40,
+    fontSize: 14,
+  },
+  // ── Agentic Radar styles ──────────────────────────────────────────────────
+  agentRadarCard: {
+    backgroundColor: '#0f172a',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#1e293b',
+    padding: 16,
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  agentRadarTitle: {
+    color: '#6366f1',
+    fontSize: 12,
     fontWeight: 'bold',
     letterSpacing: 0.5,
+    marginBottom: 14,
   },
-  coordValue: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    fontFamily: 'monospace',
-  },
-  coordDivider: {
-    width: 1,
-    height: '100%',
-    backgroundColor: '#333',
-  },
-  radarRingWrapper: {
-    position: 'relative',
-    height: 140,
-    width: 140,
-    justifyContent: 'center',
+  agentStepRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    marginBottom: 12,
   },
-  radarMapRing: {
-    position: 'absolute',
-    borderWidth: 1,
-    borderStyle: 'dashed',
+  agentStepDot: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#1e293b',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  mapPinIcon: {
-    position: 'absolute',
-    top: 45,
+  agentStepLabel: {
+    color: '#475569',
+    fontSize: 13,
+    fontWeight: '600',
   },
-  confidenceBar: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 16,
-    backgroundColor: '#1a1a1a',
-  },
-  confidenceLabel: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  confirmationQuestion: {
-    color: '#f59e0b',
-    fontSize: 12,
-    marginTop: 6,
-    fontStyle: 'italic',
+  agentStepSub: {
+    color: '#6366f1',
+    fontSize: 11,
+    marginTop: 2,
   },
 });

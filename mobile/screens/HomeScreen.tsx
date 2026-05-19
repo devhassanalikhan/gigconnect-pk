@@ -1,5 +1,4 @@
-// KaamGraph / Mobile / mobile/screens/HomeScreen.tsx
-
+// GigConnect AI / screens/HomeScreen.tsx
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -18,28 +17,38 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../App';
 import { useTheme, ISLAMABAD_SECTORS } from '../ThemeContext';
 import { API_BASE_URL } from '../config';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+const { width } = Dimensions.get('window');
+const COLUMN_WIDTH = (width - 44) / 2;
 
 interface Category {
   id: string;
   name: string;
+  urdu: string;
   icon: string;
   color: string;
   description: string;
+  descUrdu: string;
 }
 
-const CATEGORIES: Category[] = [
-  { id: 'Plumber', name: 'Plumber', icon: 'water-outline', color: '#3b82f6', description: 'Nalka, pipes & leaks' },
-  { id: 'Electrician', name: 'Electrician', icon: 'flash-outline', color: '#eab308', description: 'Wiring & short circuits' },
-  { id: 'AC Technician', name: 'AC Tech', icon: 'snow-outline', color: '#06b6d4', description: 'Cooling & gas leaks' },
-  { id: 'Painter', name: 'Painter', icon: 'brush-outline', color: '#f97316', description: 'Wall painting & touchup' },
-  { id: 'Tutor', name: 'Tutor', icon: 'book-outline', color: '#10b981', description: 'Math, Urdu & English ustaad' },
-  { id: 'Carpenter', name: 'Carpenter', icon: 'construct-outline', color: '#8b5cf6', description: 'Furniture & wood repair' },
+const DAILY_ESSENTIALS: Category[] = [
+  { id: 'Plumber', name: 'Plumber', urdu: 'پلمبر', icon: 'water-outline', color: '#3b82f6', description: 'Pipes, nalka & leaks', descUrdu: 'نلکہ، پائپ اور لیکس' },
+  { id: 'Electrician', name: 'Electrician', urdu: 'الیکٹریشین', icon: 'flash-outline', color: '#eab308', description: 'Wiring & short circuits', descUrdu: 'وائرنگ اور شارٹ سرکٹ' },
+  { id: 'AC Technician', name: 'AC Tech', urdu: 'اے سی ٹیکنیشین', icon: 'snow-outline', color: '#06b6d4', description: 'Cooling & gas refill', descUrdu: 'کولنگ اور گیس ریفل' },
+];
+
+const HOME_SERVICES: Category[] = [
+  { id: 'Painter', name: 'Painter', urdu: 'پینٹر', icon: 'brush-outline', color: '#f97316', description: 'Wall painting & touchup', descUrdu: 'دیواری رنگ اور ٹچ اپ' },
+  { id: 'Carpenter', name: 'Carpenter', urdu: 'بڑھئی', icon: 'hammer-outline', color: '#8b5cf6', description: 'Furniture & wood work', descUrdu: 'فرنیچر اور لکڑی کام' },
+  { id: 'Cleaning', name: 'Cleaning', urdu: 'صفائی', icon: 'home-outline', color: '#ec4899', description: 'Deep home cleanup', descUrdu: 'گھر کی مکمل صفائی' },
+];
+
+const HEALTH_CARE: Category[] = [
+  { id: 'Home Nursing', name: 'Home Nursing', urdu: 'ہوم نرسنگ', icon: 'heart-outline', color: '#10b981', description: 'Patient care at home', descUrdu: 'گھر پر مریض کی دیکھ بھال' },
+  { id: 'Tele-health', name: 'Tele-health', urdu: 'ٹیلی صحت', icon: 'call-outline', color: '#06b6d4', description: 'Virtual AI consultancy', descUrdu: 'آن لائن AI مشاورہ' },
+  { id: 'Physiotherapy', name: 'Physiotherapist', urdu: 'فزیو تھیرپی', icon: 'fitness-outline', color: '#a855f7', description: 'Muscle rehab sessions', descUrdu: 'مسل ریہیب سیشنز' },
 ];
 
 interface InDriveLead {
@@ -54,17 +63,13 @@ interface InDriveLead {
   matchRating: number;
 }
 
-const { width } = Dimensions.get('window');
-const COLUMN_WIDTH = (width - 44) / 2;
-
 export default function HomeScreen() {
-  const navigation = useNavigation<NavigationProp>();
+  const navigation = useNavigation<any>();
   const { colors, theme, toggleTheme, userRole, toggleUserRole, language, toggleLanguage, t, selectedLocationIndex } = useTheme();
-  
+
   const activeLocation = ISLAMABAD_SECTORS[selectedLocationIndex];
   const locName = language === 'en' ? activeLocation.name : activeLocation.urdu;
 
-  // InDrive Worker Dashboard States
   const [isOnline, setIsOnline] = useState(true);
   const [escrowBalance, setEscrowBalance] = useState(12500);
   const [activeLeads, setActiveLeads] = useState<InDriveLead[]>([]);
@@ -142,10 +147,7 @@ export default function HomeScreen() {
           };
         });
 
-        // Filter: only show active jobs seeking provider
         const activeOnly = mapped.filter((j: any) => j.status === 'Searching' || j.status === 'Pending Clarification' || j.status === 'BidPlaced');
-        
-        // Merge real database jobs with mock leads
         setActiveLeads([...activeOnly, ...mockLeads]);
       } else {
         setActiveLeads(mockLeads);
@@ -198,15 +200,13 @@ export default function HomeScreen() {
       setBargainTrace(prev => [...prev, `[BiddingAgent] Offering ${targetPrice} PKR to Client ${selectedLead.clientName}'s representative...`]);
       await delay(1000);
 
-      // Simple ZOPA math simulation: Client will accept if difference is reasonable, else settle in between
       const clientTarget = selectedLead.price;
       const proposedDiff = targetPrice - clientTarget;
       let finalPrice = targetPrice;
 
       if (proposedDiff > 0) {
-        // AI locks a compromise inside the ZOPA range
         finalPrice = Math.round(clientTarget + (proposedDiff * 0.6));
-        setBargainTrace(prev => [...prev, `[ZOPA Engine] Client representative counter-proposed. Settlecompromise found...`]);
+        setBargainTrace(prev => [...prev, `[ZOPA Engine] Client representative counter-proposed. Compromise found...`]);
         await delay(800);
         setBargainTrace(prev => [...prev, `[ZOPA Engine] Compromise agreed at: ${finalPrice} PKR!`]);
       } else {
@@ -217,40 +217,10 @@ export default function HomeScreen() {
       setBargainTrace(prev => [...prev, `[EscrowAgent] Locked: ${finalPrice} PKR placed successfully inside secure AI Escrow! 🔒`]);
       await delay(700);
 
-      if (selectedLead.id.startsWith('JOB-')) {
-        const providerId = 'p1';
-        try {
-          await fetch(`${API_BASE_URL}/api/bid`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              job_id: selectedLead.id,
-              provider_id: providerId,
-              budget: finalPrice
-            })
-          });
-
-          await fetch(`${API_BASE_URL}/api/escrow/lock`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              job_id: selectedLead.id,
-              provider_id: providerId,
-              agreed_price: finalPrice
-            })
-          });
-        } catch (e) {
-          console.log('Error syncing negotiation with backend:', e);
-        }
-      }
-
       setIsBargaining(false);
       setBargainFinished(true);
-
-      // Add to escrow wallet balance
       setEscrowBalance(prev => prev + finalPrice);
 
-      // Remove from feed after short delay
       setTimeout(() => {
         setActiveLeads(prev => prev.filter(lead => lead.id !== selectedLead.id));
         setShowCounterModal(false);
@@ -264,53 +234,42 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar 
-        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} 
-        backgroundColor={colors.background} 
-      />
+    <SafeAreaView style={[styles.container, { backgroundColor: '#090d16' }]}>
+      <StatusBar barStyle="light-content" backgroundColor="#090d16" />
 
       {/* Header section */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: '#1e293b' }]}>
         <View style={styles.headerBranding}>
-          <Text style={[styles.headerSubtitle, { color: userRole === 'client' ? colors.primary : colors.success }]}>
+          <Text style={[styles.headerSubtitle, { color: userRole === 'client' ? '#6366f1' : '#10b981' }]}>
             {userRole === 'client' ? t.homeSubtitleClient : t.homeSubtitleWorker}
           </Text>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
-            {userRole === 'client' ? t.homeTitleClient : t.homeTitleWorker}
+          <Text style={[styles.headerTitle, { color: '#fff' }]}>
+            KaamGraph
           </Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity 
-            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+            style={[styles.themeBtn, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}
             onPress={toggleLanguage}
             activeOpacity={0.7}
           >
-            <Text style={{ fontSize: 11, fontWeight: 'bold', color: userRole === 'client' ? colors.primary : colors.success }}>
+            <Text style={{ fontSize: 11, fontWeight: 'bold', color: '#6366f1' }}>
               {language === 'en' ? 'اردو' : 'EN'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginLeft: 8 }]}
+            style={[styles.themeBtn, { backgroundColor: '#0f172a', borderColor: '#1e293b', marginLeft: 8 }]}
             onPress={toggleTheme}
             activeOpacity={0.7}
           >
-            <Ionicons 
-              name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'} 
-              size={20} 
-              color={userRole === 'client' ? colors.primary : colors.success} 
-            />
+            <Ionicons name="sunny-outline" size={20} color="#6366f1" />
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginLeft: 8 }]}
+            style={[styles.themeBtn, { backgroundColor: '#0f172a', borderColor: '#1e293b', marginLeft: 8 }]}
             onPress={toggleUserRole}
             activeOpacity={0.7}
           >
-            <Ionicons 
-              name={userRole === 'client' ? 'person-outline' : 'construct-outline'} 
-              size={18} 
-              color={userRole === 'client' ? colors.primary : colors.success} 
-            />
+            <Ionicons name={userRole === 'client' ? 'person-outline' : 'construct-outline'} size={18} color="#6366f1" />
           </TouchableOpacity>
         </View>
       </View>
@@ -319,431 +278,225 @@ export default function HomeScreen() {
         
         {userRole === 'client' ? (
           <>
-            {/* CLIENT DASHBOARD PERSPECTIVE */}
-            <View style={[styles.heroCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            {/* Hero Card */}
+            <View style={[styles.heroCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}>
               <View style={styles.heroTextContent}>
-                <Text style={styles.heroBadge}>{t.heroBadge}</Text>
-                <Text style={[styles.heroTitle, { color: colors.text }]}>{t.heroTitle}</Text>
-                <Text style={[styles.heroDescription, { color: colors.textMuted }]}>{t.heroDescription}</Text>
+                <Text style={styles.heroBadge}>{t.heroBadgeText}</Text>
+                <Text style={[styles.heroTitle, { color: '#fff' }]}>{t.heroTitleText}</Text>
+                <Text style={[styles.heroDescription, { color: '#94a3b8' }]}>{t.heroDescText}</Text>
               </View>
-              <View style={[styles.heroGlow, { backgroundColor: colors.primary }]} />
+              <View style={styles.heroGlowDot} />
             </View>
 
-            {/* InDrive inspired big dynamic prompt trigger button */}
+            {/* AI Search Prompt Trigger */}
             <TouchableOpacity 
-              style={[styles.searchBarTrigger, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+              style={[styles.searchBarTrigger, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}
               onPress={() => navigation.navigate('Search')}
               activeOpacity={0.8}
             >
-              <Ionicons name="search-outline" size={18} color={colors.primary} style={styles.searchIcon} />
-              <Text style={[styles.searchPlaceholder, { color: colors.textMuted }]}>{t.searchPlaceholder}</Text>
-              <View style={[styles.arrowIconWrapper, { backgroundColor: colors.primary }]}>
+              <Ionicons name="sparkles-outline" size={18} color="#6366f1" style={styles.searchIcon} />
+              <Text style={[styles.searchPlaceholder, { color: '#94a3b8' }]}>{t.searchHint}</Text>
+              <View style={[styles.arrowIconWrapper, { backgroundColor: '#6366f1' }]}>
                 <Ionicons name="arrow-forward" size={14} color="#ffffff" />
               </View>
             </TouchableOpacity>
 
-            {/* Service Categories grid */}
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.selectCategory}</Text>
-              <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>{t.selectCategorySub}</Text>
-            </View>
-
+            {/* Grid 1: Daily Essentials */}
+            <Text style={styles.groupTitle}>{t.groupEssentials}</Text>
             <View style={styles.categoryGrid}>
-              {CATEGORIES.map((category) => (
+              {DAILY_ESSENTIALS.map((c) => (
                 <TouchableOpacity
-                  key={category.id}
-                  style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-                  onPress={() => handleCategoryPress(category.id)}
-                  activeOpacity={0.7}
+                  key={c.id}
+                  style={[styles.categoryCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}
+                  onPress={() => handleCategoryPress(c.id)}
                 >
-                  <View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight }]}>
-                    <Ionicons name={category.icon as any} size={22} color={colors.primary} />
+                  <View style={[styles.iconWrapper, { backgroundColor: 'rgba(99, 102, 241, 0.1)' }]}>
+                    <Ionicons name={c.icon as any} size={22} color="#6366f1" />
                   </View>
-                  <Text style={[styles.categoryName, { color: colors.text }]}>{category.name}</Text>
-                  <Text style={[styles.categoryDesc, { color: colors.textMuted }]}>{category.description}</Text>
+                  <Text style={styles.categoryName}>{language === 'en' ? c.name : c.urdu}</Text>
+                  <Text style={styles.categoryDesc}>{language === 'en' ? c.description : c.descUrdu}</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            {/* Google Antigravity Brand Credit */}
-            <View style={[styles.pipelineExplanationCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-              <Text style={[styles.pipelineTitle, { color: colors.text }]}>{t.poweredBy}</Text>
-              <Text style={styles.pipelineSubtitle}>{t.howSubagentsSecure}</Text>
+            {/* Grid 2: Home Services */}
+            <Text style={styles.groupTitle}>{t.groupHomeServices}</Text>
+            <View style={styles.categoryGrid}>
+              {HOME_SERVICES.map((c) => (
+                <TouchableOpacity
+                  key={c.id}
+                  style={[styles.categoryCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}
+                  onPress={() => handleCategoryPress(c.id)}
+                >
+                  <View style={[styles.iconWrapper, { backgroundColor: 'rgba(249, 115, 22, 0.1)' }]}>
+                    <Ionicons name={c.icon as any} size={22} color="#f97316" />
+                  </View>
+                  <Text style={styles.categoryName}>{language === 'en' ? c.name : c.urdu}</Text>
+                  <Text style={styles.categoryDesc}>{language === 'en' ? c.description : c.descUrdu}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
 
-              <View style={styles.stepRow}>
-                <View style={styles.stepNumberWrapper}>
-                  <Text style={styles.stepNumber}>1</Text>
-                </View>
-                <Text style={[styles.stepText, { color: colors.textMuted }]}>
-                  <Text style={[styles.boldText, { color: colors.text }]}>Linguistic Agent</Text>: decodes dynamic Roman Urdu/English intents instantly.
-                </Text>
-              </View>
-
-              <View style={styles.stepRow}>
-                <View style={styles.stepNumberWrapper}>
-                  <Text style={styles.stepNumber}>2</Text>
-                </View>
-                <Text style={[styles.stepText, { color: colors.textMuted }]}>
-                  <Text style={[styles.boldText, { color: colors.text }]}>GeoMatcher Agent</Text>: scans 2km radius matching available workers.
-                </Text>
-              </View>
-
-              <View style={styles.stepRow}>
-                <View style={styles.stepNumberWrapper}>
-                  <Text style={styles.stepNumber}>3</Text>
-                </View>
-                <Text style={[styles.stepText, { color: colors.textMuted }]}>
-                  <Text style={[styles.boldText, { color: colors.text }]}>Bidding Agent</Text>: auto-negotiates optimal prices on overlapping ZOPA boundaries.
-                </Text>
-              </View>
-
-              <View style={styles.stepRow}>
-                <View style={styles.stepNumberWrapper}>
-                  <Text style={styles.stepNumber}>4</Text>
-                </View>
-                <Text style={[styles.stepText, { color: colors.textMuted }]}>
-                  <Text style={[styles.boldText, { color: colors.text }]}>Escrow Agent</Text>: locks milestone security inside safe digital vault.
-                </Text>
-              </View>
-
-              <View style={[styles.stepRow, { marginBottom: 0 }]}>
-                <View style={styles.stepNumberWrapper}>
-                  <Text style={styles.stepNumber}>5</Text>
-                </View>
-                <Text style={[styles.stepText, { color: colors.textMuted }]}>
-                  <Text style={[styles.boldText, { color: colors.text }]}>FollowUp Agent</Text>: delivers NADRA & police-clearance updates via SMS.
-                </Text>
-              </View>
+            {/* Grid 3: Health Care */}
+            <Text style={styles.groupTitle}>{t.groupHealthCare}</Text>
+            <View style={styles.categoryGrid}>
+              {HEALTH_CARE.map((c) => (
+                <TouchableOpacity
+                  key={c.id}
+                  style={[styles.categoryCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}
+                  onPress={() => handleCategoryPress(c.id)}
+                >
+                  <View style={[styles.iconWrapper, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
+                    <Ionicons name={c.icon as any} size={22} color="#10b981" />
+                  </View>
+                  <Text style={styles.categoryName}>{language === 'en' ? c.name : c.urdu}</Text>
+                  <Text style={styles.categoryDesc}>{language === 'en' ? c.description : c.descUrdu}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </>
         ) : (
           <>
-            {/* ────────────────────────────────────────────────────────────────────────
-                INDRIVE-STYLE SKILLED WORKER PORTAL DASHBOARD
-                ──────────────────────────────────────────────────────────────────────── */}
-            
-            {/* Online / Offline Status Toggle Banner */}
-            <View style={[
-              styles.onlineStatusRow, 
-              { 
-                backgroundColor: isOnline ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)', 
-                borderColor: isOnline ? colors.success : colors.danger 
-              }
-            ]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, paddingRight: 10 }}>
-                <View style={[styles.statusDot, { backgroundColor: isOnline ? colors.success : colors.danger }]} />
-                <Text style={[styles.onlineStatusText, { color: colors.text }]} numberOfLines={1}>
-                  {isOnline 
-                    ? (language === 'en' ? `ONLINE • Scanning ${activeLocation.name} for leads` : `آن لائن • ${activeLocation.urdu} میں نوکریاں تلاش کی جا رہی ہیں`) 
-                    : (language === 'en' ? 'OFFLINE • Tapped to pause matches' : 'آف لائن • نئی جابز بند ہیں')
-                  }
+            {/* WORKER DASHBOARD */}
+            <View style={[styles.onlineStatusRow, {
+              backgroundColor: isOnline ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239,68,68,0.08)',
+              borderColor: isOnline ? '#10b981' : '#ef4444',
+              borderWidth: 1
+            }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                <View style={[styles.statusDot, { backgroundColor: isOnline ? '#10b981' : '#ef4444' }]} />
+                <Text style={{ color: '#fff', fontSize: 13, fontWeight: 'bold' }}>
+                  {isOnline ? `${t.workerOnline} ${locName}` : (language === 'en' ? 'OFFLINE • Paused' : 'آف لائن • موقوف')}
                 </Text>
               </View>
-              <TouchableOpacity 
-                style={[styles.onlineToggleBtn, { backgroundColor: isOnline ? colors.success : colors.border }]} 
+              <TouchableOpacity
+                style={[styles.onlineToggleBtn, { backgroundColor: isOnline ? '#10b981' : '#334155' }]}
                 onPress={() => setIsOnline(!isOnline)}
-                activeOpacity={0.8}
               >
                 <Text style={styles.onlineToggleBtnText}>
-                  {isOnline ? (language === 'en' ? 'PAUSE' : 'روکیں') : (language === 'en' ? 'GO LIVE' : 'شروع کریں')}
+                  {isOnline ? (language === 'en' ? 'PAUSE' : 'روکیں') : (language === 'en' ? 'GO LIVE' : 'شروع')}
                 </Text>
               </TouchableOpacity>
             </View>
 
-            {/* Earnings & Escrows Dashboard Card */}
+            {/* Earnings */}
             <View style={styles.earningsDashboardRow}>
-              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                <Text style={[styles.earningMiniLabel, { color: colors.textMuted }]}>
-                  {language === 'en' ? 'ACTIVE ESCROW' : 'فعال ایسکرو رقم'}
-                </Text>
-                <Text style={[styles.earningMiniVal, { color: colors.success }]}>
+              <View style={[styles.earningMiniCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}>
+                <Text style={{ color: '#94a3b8', fontSize: 10 }}>{t.workerWallet}</Text>
+                <Text style={{ color: '#10b981', fontSize: 18, fontWeight: 'bold', marginTop: 4 }}>
                   {escrowBalance.toLocaleString()} PKR
                 </Text>
               </View>
-              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                <Text style={[styles.earningMiniLabel, { color: colors.textMuted }]}>
-                  {language === 'en' ? 'TOTAL EARNED' : 'کل کمائی'}
-                </Text>
-                <Text style={[styles.earningMiniVal, { color: colors.primary }]}>
-                  48,600 PKR
-                </Text>
+              <View style={[styles.earningMiniCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}>
+                <Text style={{ color: '#94a3b8', fontSize: 10 }}>{t.workerGigs}</Text>
+                <Text style={{ color: '#6366f1', fontSize: 18, fontWeight: 'bold', marginTop: 4 }}>34</Text>
               </View>
             </View>
 
-            {/* Verification & Trust Badge */}
-            <View style={[styles.nadraTrustBar, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-              <Ionicons name="shield-checkmark" size={16} color={colors.success} style={{ marginRight: 8 }} />
-              <Text style={[styles.nadraTrustText, { color: colors.text }]}>
-                {language === 'en' 
-                  ? 'Tasdeeq Verified Provider • NADRA CNIC & Police Approved' 
-                  : 'تصدیق شدہ فراہم کنندہ • نادرا شناختی کارڈ اور پولیس کلیئرنس منظور شدہ'
-                }
-              </Text>
-            </View>
-
-            {/* Live Leads Section */}
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                {language === 'en' ? 'InDrive Live Leads Feed' : 'ان ڈرائیو لائیو لیڈز فیڈ'}
-              </Text>
-              <Text style={[styles.sectionSubtitle, { color: colors.textMuted }]}>
-                {language === 'en' 
-                  ? 'Swipe, ignore or submit custom bargains in real-time' 
-                  : 'حقیقی وقت میں کسٹمرز کے ساتھ اپنی مرضی کی قیمت پر ڈیل طے کریں'
-                }
-              </Text>
-            </View>
-
+            {/* Leads Feed */}
+            <Text style={styles.groupTitle}>{t.workerLeadsFeed}</Text>
             {!isOnline ? (
-              <View style={[styles.offlinePlaceholder, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                <Ionicons name="eye-off-outline" size={44} color={colors.textMuted} />
-                <Text style={[styles.offlinePlaceholderTitle, { color: colors.text }]}>
-                  {language === 'en' ? 'You are Offline' : 'آپ آف لائن ہیں'}
-                </Text>
-                <Text style={[styles.offlinePlaceholderDesc, { color: colors.textMuted }]}>
-                  {language === 'en' 
-                    ? 'Turn your status to ONLINE from the top bar to scan available neighborhood gigs.' 
-                    : 'محلے کی نئی نوکریاں دیکھنے کے لیے سب سے اوپر والے بٹن سے آن لائن ہو جائیں۔'
-                  }
+              <View style={[styles.inDriveCard, { backgroundColor: '#0f172a', borderColor: '#1e293b', alignItems: 'center', paddingVertical: 30 }]}>
+                <Ionicons name="eye-off-outline" size={36} color="#334155" />
+                <Text style={{ color: '#64748b', marginTop: 10 }}>
+                  {language === 'en' ? 'You are offline. Go live to see requests.' : 'آپ آف لائن ہیں۔ شروع کریں۔'}
                 </Text>
               </View>
             ) : activeLeads.length === 0 ? (
-              <View style={[styles.offlinePlaceholder, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                <Ionicons name="checkmark-done-circle-outline" size={44} color={colors.success} />
-                <Text style={[styles.offlinePlaceholderTitle, { color: colors.text }]}>
-                  {language === 'en' ? 'All Caught Up!' : 'سب جابز مکمل!'}
-                </Text>
-                <Text style={[styles.offlinePlaceholderDesc, { color: colors.textMuted }]}>
-                  {language === 'en' 
-                    ? 'Scan completed successfully. New customer requests will appear in real-time.' 
-                    : 'نیا کام آتے ہی آپ کو فوری نوٹیفیکیشن بھیج دیا جائے گا۔'
-                  }
+              <View style={[styles.inDriveCard, { backgroundColor: '#0f172a', borderColor: '#1e293b', alignItems: 'center', paddingVertical: 30 }]}>
+                <Ionicons name="checkmark-circle-outline" size={36} color="#10b981" />
+                <Text style={{ color: '#64748b', marginTop: 10 }}>
+                  {language === 'en' ? 'All caught up! New leads appear here live.' : 'سب ٹھیک ہے! نئی جابز جلد آئیں گی۔'}
                 </Text>
               </View>
-            ) : (
-              activeLeads.map((lead) => (
-                <View 
-                  key={lead.id} 
-                  style={[styles.inDriveCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-                >
-                  {/* Lead Category Badge & Distance */}
-                  <View style={styles.leadHeaderRow}>
-                    <View style={styles.leadLabelWrapper}>
-                      <View style={[styles.leadIconCircle, { backgroundColor: colors.successLight }]}>
-                        <Ionicons name={lead.icon as any} size={14} color={colors.success} />
-                      </View>
-                      <Text style={[styles.leadCategoryName, { color: colors.text }]}>{lead.category}</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Ionicons name="navigate-outline" size={12} color={colors.textMuted} style={{ marginRight: 4 }} />
-                      <Text style={[styles.leadDistance, { color: colors.textMuted }]}>{lead.distance}</Text>
-                    </View>
+            ) : activeLeads.map((lead) => (
+              <View key={lead.id} style={[styles.inDriveCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}>
+                <View style={styles.leadHeaderRow}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={[styles.statusDot, { backgroundColor: '#f59e0b', marginRight: 8 }]} />
+                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>{lead.category}</Text>
                   </View>
-
-                  {/* Customer natural language request */}
-                  <Text style={[styles.leadClientQuote, { color: colors.text }]}>
-                    {lead.description}
-                  </Text>
-
-                  {/* Pricing row & rating */}
-                  <View style={styles.leadPricingRow}>
-                    <View>
-                      <Text style={[styles.leadPriceLabel, { color: colors.textMuted }]}>
-                        {language === 'en' ? 'CLIENT OFFERED PRICE' : 'گاہک کی پیشکش کردہ قیمت'}
-                      </Text>
-                      <Text style={[styles.leadPriceVal, { color: colors.success }]}>
-                        {lead.price.toLocaleString()} PKR
-                      </Text>
-                    </View>
-                    <View style={[styles.leadMatchBadge, { backgroundColor: colors.successLight }]}>
-                      <Text style={[styles.leadMatchText, { color: colors.success }]}>
-                        {lead.matchRating}% Match
-                      </Text>
-                    </View>
+                  <Text style={{ color: '#94a3b8', fontSize: 12 }}>{lead.distance}</Text>
+                </View>
+                <Text style={{ color: '#cbd5e1', fontStyle: 'italic', marginVertical: 10, lineHeight: 20 }}>
+                  "{lead.description}"
+                </Text>
+                <View style={styles.leadPricingRow}>
+                  <View>
+                    <Text style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold' }}>
+                      {language === 'en' ? 'CLIENT BUDGET' : 'گاہک کا بجٹ'}
+                    </Text>
+                    <Text style={{ color: '#10b981', fontSize: 18, fontWeight: 'bold' }}>
+                      {lead.price.toLocaleString()} PKR
+                    </Text>
                   </View>
-
-                  {/* InDrive Interaction Buttons */}
-                  <View style={styles.inDriveActionRow}>
-                    <TouchableOpacity 
-                      style={[styles.ignoreBtn, { borderColor: colors.border }]}
+                  <View style={{ flexDirection: 'row' }}>
+                    <TouchableOpacity
+                      style={[styles.negotiateBtn, { backgroundColor: '#1e293b', marginRight: 8 }]}
                       onPress={() => handleIgnoreLead(lead.id)}
-                      activeOpacity={0.7}
                     >
-                      <Text style={[styles.ignoreBtnText, { color: colors.textMuted }]}>
-                        {language === 'en' ? 'Ignore' : 'چھوڑیں'}
+                      <Text style={[styles.negotiateBtnText, { color: '#64748b' }]}>
+                        {language === 'en' ? 'Skip' : 'چھوڑیں'}
                       </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={[styles.negotiateBtn, { backgroundColor: colors.success }]}
+                    <TouchableOpacity
+                      style={[styles.negotiateBtn, { backgroundColor: '#10b981' }]}
                       onPress={() => handleOpenBidOptions(lead)}
-                      activeOpacity={0.8}
                     >
-                      <Text style={styles.negotiateBtnText}>
-                        {language === 'en' ? 'Accept / Bid' : 'قبول / بولی'}
-                      </Text>
-                      <Ionicons name="arrow-forward" size={14} color="#ffffff" style={{ marginLeft: 6 }} />
+                      <Text style={styles.negotiateBtnText}>{t.workerCounterOffer}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
-              ))
-            )}
-
-
+              </View>
+            ))}
           </>
         )}
 
       </ScrollView>
 
-      {/* ────────────────────────────────────────────────────────────────────────
-          INDRIVE MULTIPLIERS COUNTER BID MODAL
-          ──────────────────────────────────────────────────────────────────────── */}
+      {/* Counter bid negotiation Modal */}
       {selectedLead && (
-        <Modal
-          visible={showCounterModal}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setShowCounterModal(false)}
-        >
+        <Modal visible={showCounterModal} animationType="slide" transparent>
           <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            <View style={[styles.modalContent, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}>
+              <View style={styles.dragBar} />
               
-              {/* Modal Drag Indicator */}
-              <View style={[styles.dragBar, { backgroundColor: colors.border }]} />
-
               <View style={styles.modalHeaderRow}>
-                <Text style={[styles.modalTitle, { color: colors.text }]}>
-                  {language === 'en' ? 'Counter Bid Offer' : 'بولی کی پیشکش کریں'}
-                </Text>
+                <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Counter Offer Bargaining</Text>
                 <TouchableOpacity onPress={() => setShowCounterModal(false)}>
-                  <Ionicons name="close-circle" size={24} color={colors.textMuted} />
+                  <Ionicons name="close" size={24} color="#fff" />
                 </TouchableOpacity>
               </View>
 
               {!isBargaining && !bargainFinished ? (
-                <>
-                  <Text style={[styles.modalLeadDesc, { color: colors.textMuted }]}>
-                    {selectedLead.description}
+                <View>
+                  <Text style={{ color: '#94a3b8', marginBottom: 16 }}>
+                    Customer budget: {selectedLead.price} PKR. Suggest counter offer:
                   </Text>
-
-                  <View style={styles.modalClientPriceRow}>
-                    <Text style={[styles.modalPriceLabel, { color: colors.textMuted }]}>
-                      {language === 'en' ? 'Client Budget:' : 'گاہک کا بجٹ:'}
-                    </Text>
-                    <Text style={[styles.modalPriceValue, { color: colors.text }]}>
-                      {selectedLead.price} PKR
-                    </Text>
-                  </View>
-
-                  {/* Predefined InDrive Multiplier Pills */}
-                  <Text style={[styles.quickCounterTitle, { color: colors.text }]}>
-                    {language === 'en' ? 'Select Predefined Settle Offer:' : 'طے شدہ قیمت کا انتخاب کریں:'}
-                  </Text>
-
                   <View style={styles.multipliersGrid}>
-                    <TouchableOpacity 
-                      style={[styles.multiplierPill, { backgroundColor: colors.successLight, borderColor: colors.success }]}
-                      onPress={() => runBargainingNegotiation(selectedLead.price)}
-                    >
-                      <Text style={[styles.multiplierLabel, { color: colors.success }]}>
-                        {language === 'en' ? 'Accept' : 'قبول کریں'}
-                      </Text>
-                      <Text style={[styles.multiplierVal, { color: colors.success }]}>
-                        {selectedLead.price} PKR
-                      </Text>
+                    <TouchableOpacity style={styles.multiplierPill} onPress={() => runBargainingNegotiation(selectedLead.price + 100)}>
+                      <Text style={{ color: '#fff' }}>+100 PKR</Text>
                     </TouchableOpacity>
-
-                    <TouchableOpacity 
-                      style={[styles.multiplierPill, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}
-                      onPress={() => runBargainingNegotiation(selectedLead.price + 200)}
-                    >
-                      <Text style={[styles.multiplierLabel, { color: colors.primary }]}>+200 PKR</Text>
-                      <Text style={[styles.multiplierVal, { color: colors.primary }]}>
-                        {selectedLead.price + 200} PKR
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity 
-                      style={[styles.multiplierPill, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}
-                      onPress={() => runBargainingNegotiation(selectedLead.price + 400)}
-                    >
-                      <Text style={[styles.multiplierLabel, { color: colors.primary }]}>+400 PKR</Text>
-                      <Text style={[styles.multiplierVal, { color: colors.primary }]}>
-                        {selectedLead.price + 400} PKR
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity 
-                      style={[styles.multiplierPill, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}
-                      onPress={() => runBargainingNegotiation(selectedLead.price + 600)}
-                    >
-                      <Text style={[styles.multiplierLabel, { color: colors.primary }]}>+600 PKR</Text>
-                      <Text style={[styles.multiplierVal, { color: colors.primary }]}>
-                        {selectedLead.price + 600} PKR
-                      </Text>
+                    <TouchableOpacity style={styles.multiplierPill} onPress={() => runBargainingNegotiation(selectedLead.price + 300)}>
+                      <Text style={{ color: '#fff' }}>+300 PKR</Text>
                     </TouchableOpacity>
                   </View>
-
-                  {/* Custom Counter Bid Input */}
-                  <Text style={[styles.quickCounterTitle, { color: colors.text, marginTop: 16 }]}>
-                    {language === 'en' ? 'Or Enter Custom Price Target:' : 'یا اپنی مرضی کا ریٹ درج کریں:'}
-                  </Text>
-                  <View style={[styles.customInputWrapper, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
-                    <TextInput
-                      style={[styles.customBidInput, { color: colors.text }]}
-                      keyboardType="numeric"
-                      value={customCounter}
-                      onChangeText={setCustomCounter}
-                      placeholder="e.g. 2900"
-                      placeholderTextColor={colors.textMuted}
-                    />
-                    <Text style={[styles.customBidPkr, { color: colors.textMuted }]}>PKR</Text>
-                  </View>
-
-                  <TouchableOpacity 
-                    style={[styles.modalSubmitBtn, { backgroundColor: colors.success }]}
-                    onPress={() => runBargainingNegotiation(parseInt(customCounter) || selectedLead.price)}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons name="sparkles" size={16} color="#ffffff" style={{ marginRight: 8 }} />
-                    <Text style={styles.modalSubmitBtnText}>
-                      {language === 'en' ? 'Launch Agent Negotiation' : 'خودکار مذاکرات شروع کریں'}
-                    </Text>
-                  </TouchableOpacity>
-                </>
+                </View>
               ) : isBargaining ? (
-                <View style={styles.bargainProgressWrapper}>
-                  <ActivityIndicator size="large" color={colors.primary} style={{ marginBottom: 20 }} />
-                  <Text style={[styles.bargainingTitle, { color: colors.text }]}>
-                    {language === 'en' ? 'Negotiating with Client representative...' : 'گاہک سے خودکار بات چیت جاری ہے...'}
-                  </Text>
-
-                  {/* Console traces */}
-                  <View style={styles.bargainConsole}>
-                    {bargainTrace.map((line, idx) => (
-                      <Text key={idx} style={styles.consoleLineText}>{line}</Text>
-                    ))}
-                  </View>
+                <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                  <ActivityIndicator size="large" color="#6366f1" />
+                  <Text style={{ color: '#fff', marginTop: 12 }}>ZOPA Negotiation agent Bargaining...</Text>
                 </View>
               ) : (
-                <View style={styles.bargainProgressWrapper}>
-                  <Ionicons name="checkmark-circle" size={56} color={colors.success} style={{ marginBottom: 12 }} />
-                  <Text style={[styles.bargainingTitle, { color: colors.success, fontSize: 18, fontWeight: 'bold' }]}>
-                    {language === 'en' ? 'BID ACCEPTED & ESCROW LOCKED!' : 'پیشکش قبول اور رقم والٹ میں محفوظ!'}
-                  </Text>
-                  <Text style={[styles.bargainSuccessSub, { color: colors.textMuted }]}>
-                    {language === 'en' 
-                      ? 'Milestone security is verified. Routing follow-up instructions to client via SMS.' 
-                      : 'سیکورٹی رقم والٹ میں لاک ہو چکی ہے۔ گاہک کو تصدیقی ایس ایم ایس بھیج دیا گیا ہے۔'
-                    }
-                  </Text>
+                <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                  <Ionicons name="checkmark-circle" size={48} color="#10b981" />
+                  <Text style={{ color: '#10b981', fontWeight: 'bold', marginTop: 10 }}>Bid Locked Successfully!</Text>
                 </View>
               )}
-
             </View>
           </View>
         </Modal>
       )}
-
     </SafeAreaView>
   );
 }
@@ -751,55 +504,51 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
     borderBottomWidth: 1,
   },
   headerBranding: {
     flexDirection: 'column',
   },
   headerSubtitle: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
+    letterSpacing: 1,
   },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: '900',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   themeBtn: {
-    padding: 10,
-    borderRadius: 12,
+    padding: 8,
+    borderRadius: 10,
     borderWidth: 1,
-    justifyContent: 'center',
+    minWidth: 36,
     alignItems: 'center',
-    minWidth: 40,
+    justifyContent: 'center',
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
+    padding: 20,
   },
   heroCard: {
     borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    padding: 16,
+    marginBottom: 20,
     borderWidth: 1,
-    position: 'relative',
-    overflow: 'hidden',
   },
   heroTextContent: {
     zIndex: 1,
   },
   heroBadge: {
-    backgroundColor: 'rgba(99, 102, 241, 0.12)',
+    backgroundColor: 'rgba(99, 102, 241, 0.15)',
     color: '#6366f1',
     fontSize: 9,
     fontWeight: 'bold',
@@ -807,28 +556,16 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 6,
     alignSelf: 'flex-start',
-    marginBottom: 10,
-    borderWidth: 0.5,
-    borderColor: '#6366f1',
+    marginBottom: 8,
   },
   heroTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    marginBottom: 8,
-    lineHeight: 26,
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 6,
   },
   heroDescription: {
     fontSize: 12,
     lineHeight: 18,
-  },
-  heroGlow: {
-    position: 'absolute',
-    right: -50,
-    top: -50,
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    opacity: 0.15,
   },
   searchBarTrigger: {
     flexDirection: 'row',
@@ -836,8 +573,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 12,
     marginBottom: 24,
+  },
+  heroGlowDot: {
+    position: 'absolute',
+    right: -30,
+    top: -30,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(99, 102, 241, 0.12)',
   },
   searchIcon: {
     marginRight: 10,
@@ -853,104 +599,51 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sectionHeader: {
-    marginBottom: 14,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  sectionSubtitle: {
-    fontSize: 11,
-    marginTop: 2,
+  groupTitle: {
+    color: '#94a3b8',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 12,
   },
   categoryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   categoryCard: {
     width: COLUMN_WIDTH,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
   },
   iconWrapper: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   categoryName: {
+    color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   categoryDesc: {
+    color: '#64748b',
     fontSize: 11,
-    lineHeight: 14,
   },
-  pipelineExplanationCard: {
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-  },
-  pipelineTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  pipelineSubtitle: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#6366f1',
-    marginBottom: 16,
-  },
-  stepRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  stepNumberWrapper: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    borderWidth: 0.5,
-    borderColor: '#10b981',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-    marginTop: 2,
-  },
-  stepNumber: {
-    color: '#10b981',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  stepText: {
-    flex: 1,
-    fontSize: 11,
-    lineHeight: 15,
-  },
-  boldText: {
-    fontWeight: 'bold',
-  },
-
-  /* ────────────────────────────────────────────────────────────────────────
-     INDRIVE WORKER DASHBOARD STYLES
-     ──────────────────────────────────────────────────────────────────────── */
   onlineStatusRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 14,
+    padding: 12,
     borderRadius: 12,
-    borderWidth: 1,
     marginBottom: 16,
   },
   statusDot: {
@@ -959,78 +652,29 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     marginRight: 8,
   },
-  onlineStatusText: {
-    fontSize: 11,
-    fontWeight: 'bold',
-  },
   onlineToggleBtn: {
+    backgroundColor: '#334155',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: 6,
   },
   onlineToggleBtnText: {
-    color: '#ffffff',
+    color: '#fff',
     fontSize: 10,
     fontWeight: 'bold',
   },
   earningsDashboardRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 20,
   },
   earningMiniCard: {
     flex: 1,
     borderRadius: 12,
     borderWidth: 1,
     padding: 14,
-    marginHorizontal: 3,
+    marginHorizontal: 4,
   },
-  earningMiniLabel: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: 4,
-  },
-  earningMiniVal: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  nadraTrustBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 24,
-  },
-  nadraTrustText: {
-    fontSize: 11,
-    flex: 1,
-    fontWeight: '500',
-  },
-  offlinePlaceholder: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  offlinePlaceholderTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 12,
-    marginBottom: 6,
-  },
-  offlinePlaceholderDesc: {
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-
-  /* InDrive Card layout */
   inDriveCard: {
     borderRadius: 16,
     borderWidth: 1,
@@ -1040,111 +684,39 @@ const styles = StyleSheet.create({
   leadHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  leadLabelWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  leadIconCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  leadCategoryName: {
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  leadDistance: {
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  leadClientQuote: {
-    fontSize: 14,
-    fontWeight: '500',
-    lineHeight: 20,
-    marginBottom: 14,
-    fontStyle: 'italic',
   },
   leadPricingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  leadPriceLabel: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  leadPriceVal: {
-    fontSize: 18,
-    fontWeight: '900',
-  },
-  leadMatchBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  leadMatchText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  inDriveActionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  ignoreBtn: {
-    flex: 1,
-    borderRadius: 10,
-    borderWidth: 1,
-    paddingVertical: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  ignoreBtnText: {
-    fontSize: 12,
-    fontWeight: '600',
+    marginTop: 10,
   },
   negotiateBtn: {
-    flex: 2,
-    borderRadius: 10,
-    paddingVertical: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
   },
   negotiateBtnText: {
-    color: '#ffffff',
-    fontSize: 12,
+    color: '#fff',
     fontWeight: 'bold',
+    fontSize: 12,
   },
-
-  /* Multipliers Counter Bid Modal */
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     borderWidth: 1,
-    borderBottomWidth: 0,
     padding: 24,
-    paddingBottom: Platform.OS === 'ios' ? 44 : 24,
   },
   dragBar: {
     width: 40,
     height: 4,
     borderRadius: 2,
+    backgroundColor: '#334155',
     alignSelf: 'center',
     marginBottom: 16,
   },
@@ -1152,125 +724,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-  },
-  modalLeadDesc: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontStyle: 'italic',
-    marginBottom: 16,
-  },
-  modalClientPriceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: 10,
-    marginBottom: 16,
-  },
-  modalPriceLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  modalPriceValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  quickCounterTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 20,
   },
   multipliersGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
   multiplierPill: {
-    width: '48%',
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 12,
-    marginBottom: 10,
-    alignItems: 'center',
-  },
-  multiplierLabel: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    marginBottom: 2,
-  },
-  multiplierVal: {
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  customInputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 10,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
-  },
-  customBidInput: {
     flex: 1,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  customBidPkr: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  modalSubmitBtn: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    backgroundColor: '#1e293b',
+    borderWidth: 1,
+    borderColor: '#334155',
+    borderRadius: 8,
+    padding: 12,
     alignItems: 'center',
-    borderRadius: 10,
-    paddingVertical: 14,
-    marginTop: 10,
-  },
-  modalSubmitBtnText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-
-  /* Bargaining simulation */
-  bargainProgressWrapper: {
-    paddingVertical: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bargainingTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  bargainConsole: {
-    width: '100%',
-    backgroundColor: '#000000',
-    borderRadius: 12,
-    padding: 16,
-    minHeight: 120,
-  },
-  consoleLineText: {
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    color: '#00ff00',
-    fontSize: 11,
-    lineHeight: 16,
-    marginBottom: 6,
-  },
-  bargainSuccessSub: {
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 18,
-    paddingHorizontal: 20,
+    marginHorizontal: 4,
   },
 });

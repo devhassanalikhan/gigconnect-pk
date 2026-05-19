@@ -1,12 +1,39 @@
 // KaamGraph / Mobile / mobile/screens/ProfileScreen.tsx
 
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Platform, StatusBar } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Platform, StatusBar, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../ThemeContext';
 
-export default function ProfileScreen() {
-  const { colors, theme, toggleTheme, userRole, toggleUserRole, language, toggleLanguage, t } = useTheme();
+export default function ProfileScreen({ navigation }: any) {
+  const { colors, theme, toggleTheme, userRole, toggleUserRole, language, toggleLanguage, t, userProfile, setUserProfile } = useTheme();
+
+  const [nameInput, setNameInput] = useState(userProfile.name);
+  const [phoneInput, setPhoneInput] = useState(userProfile.phone);
+  const [emailInput, setEmailInput] = useState(userProfile.email);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const handleSave = () => {
+    setUserProfile((prev) => ({
+      ...prev,
+      name: nameInput,
+      phone: phoneInput,
+      email: emailInput,
+    }));
+    setIsEditing(false);
+    Alert.alert('Success', 'Profile saved successfully!');
+  };
+
+  const handleLogout = () => {
+    setUserProfile((prev) => ({
+      ...prev,
+      isLoggedIn: false,
+    }));
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login' }],
+    });
+  };
 
   return (
     <ScrollView 
@@ -33,7 +60,7 @@ export default function ProfileScreen() {
             <Ionicons name="checkmark-circle" size={16} color={colors.success} />
           </View>
         </View>
-        <Text style={[styles.userName, { color: colors.text }]}>{userRole === 'client' ? 'Hassan Ali Khan' : 'Arsalan AC & Electrician'}</Text>
+        <Text style={[styles.userName, { color: colors.text }]}>{userRole === 'client' ? userProfile.name : 'Arsalan AC & Electrician'}</Text>
         <Text style={[styles.userRole, { color: colors.textMuted }]}>{userRole === 'client' ? t.premiumClient : t.topRatedProvider}</Text>
         
         {/* CNIC Verification Status */}
@@ -64,23 +91,60 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      {/* KPI Stats Grid - Adapts Dynamically */}
-      <View style={styles.statsRow}>
-        <View style={[styles.statCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-          <Text style={[styles.statVal, { color: userRole === 'client' ? colors.primary : colors.success }]}>{userRole === 'client' ? '12,500' : '48,600'}</Text>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>{userRole === 'client' ? t.escrowVal : t.earningsVal}</Text>
-        </View>
-        <View style={[styles.statCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-          <Text style={[styles.statVal, { color: userRole === 'client' ? colors.primary : colors.success }]}>{userRole === 'client' ? '24' : '68'}</Text>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>{t.completedGigs}</Text>
-        </View>
-        <View style={[styles.statCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-          <Text style={[styles.statVal, { color: userRole === 'client' ? colors.primary : colors.success }]}>{userRole === 'client' ? '4.9' : '4.95'}</Text>
-          <Text style={[styles.statLabel, { color: colors.textMuted }]}>{t.ratingLabel}</Text>
-        </View>
+      {/* Profile Details Edit Card */}
+      <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Profile Settings</Text>
+      <View style={[styles.menuContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border, padding: 16 }]}>
+        {isEditing ? (
+          <View>
+            <Text style={styles.inputLabel}>Full Name</Text>
+            <TextInput
+              style={styles.profileInput}
+              value={nameInput}
+              onChangeText={setNameInput}
+            />
+            <Text style={styles.inputLabel}>Phone</Text>
+            <TextInput
+              style={styles.profileInput}
+              value={phoneInput}
+              onChangeText={setPhoneInput}
+            />
+            <Text style={styles.inputLabel}>Email</Text>
+            <TextInput
+              style={styles.profileInput}
+              value={emailInput}
+              onChangeText={setEmailInput}
+            />
+            <View style={styles.editActions}>
+              <TouchableOpacity style={[styles.saveBtn, { backgroundColor: colors.primary }]} onPress={handleSave}>
+                <Text style={styles.btnText}>Save</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setIsEditing(false)}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Name:</Text>
+              <Text style={styles.infoValue}>{userProfile.name}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Phone:</Text>
+              <Text style={styles.infoValue}>{userProfile.phone}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Email:</Text>
+              <Text style={styles.infoValue}>{userProfile.email}</Text>
+            </View>
+            <TouchableOpacity style={[styles.editModeBtn, { borderColor: colors.border }]} onPress={() => setIsEditing(true)}>
+              <Text style={styles.editModeBtnText}>Edit Details</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
-      {/* Theme Settings Switching option */}
+      {/* Appearance Settings */}
       <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>{t.appearanceMode}</Text>
       <View style={[styles.menuContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
         <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]} onPress={toggleTheme} activeOpacity={0.7}>
@@ -147,27 +211,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Support Section */}
-      <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>{t.supportHeader}</Text>
-      <View style={[styles.menuContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-        <TouchableOpacity style={[styles.menuItem, { borderBottomColor: colors.border }]}>
-          <View style={styles.menuLeft}>
-            <Ionicons name="chatbubble-ellipses-outline" size={20} color="#06b6d4" />
-            <Text style={[styles.menuText, { color: colors.text }]}>{t.supportHelpline}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]}>
-          <View style={styles.menuLeft}>
-            <Ionicons name="document-text-outline" size={20} color={colors.danger} />
-            <Text style={[styles.menuText, { color: colors.text }]}>{t.termsRules}</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.dangerLight, borderColor: colors.danger }]}>
+      <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.dangerLight, borderColor: colors.danger }]} onPress={handleLogout}>
         <Text style={[styles.logoutText, { color: colors.danger }]}>{t.logOut}</Text>
       </TouchableOpacity>
     </ScrollView>
@@ -227,6 +271,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginLeft: 6,
     fontWeight: '600',
+    color: '#fbbf24',
   },
   roleSwitchCard: {
     borderRadius: 16,
@@ -320,5 +365,76 @@ const styles = StyleSheet.create({
   logoutText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  inputLabel: {
+    color: '#94a3b8',
+    fontSize: 11,
+    fontWeight: 'bold',
+    marginBottom: 6,
+    textTransform: 'uppercase',
+  },
+  profileInput: {
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: '#090d16',
+    borderWidth: 1,
+    borderColor: '#334155',
+    paddingHorizontal: 12,
+    color: '#fff',
+    fontSize: 14,
+    marginBottom: 14,
+  },
+  editActions: {
+    flexDirection: 'row',
+    marginTop: 10,
+  },
+  saveBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  btnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 40,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  cancelBtnText: {
+    color: '#fff',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  infoLabel: {
+    width: 60,
+    color: '#94a3b8',
+    fontWeight: 'bold',
+  },
+  infoValue: {
+    color: '#fff',
+  },
+  editModeBtn: {
+    height: 40,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  editModeBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });

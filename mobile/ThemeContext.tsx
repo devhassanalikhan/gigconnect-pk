@@ -127,6 +127,19 @@ export interface TranslationSet {
   premiumClient: string;
   topRatedProvider: string;
 
+  // HomeScreen groups & hero
+  groupEssentials: string;
+  groupHomeServices: string;
+  groupHealthCare: string;
+  searchHint: string;
+  heroBadgeText: string;
+  heroTitleText: string;
+  heroDescText: string;
+  workerOnline: string;
+  workerWallet: string;
+  workerGigs: string;
+  workerLeadsFeed: string;
+  workerCounterOffer: string;
   // Tabs
   tabHome: string;
   tabSearch: string;
@@ -179,6 +192,18 @@ const englishTranslations: TranslationSet = {
   verifiedBadgeWorker: "NADRA & Police Clearance Approved",
   premiumClient: "Premium Client",
   topRatedProvider: "Top Rated Provider",
+  groupEssentials: "⚡ Daily Essentials",
+  groupHomeServices: "🏡 Home Services",
+  groupHealthCare: "❤️ Health Care",
+  searchHint: "Mujhe AC wala chahye Tulsa road par...",
+  heroBadgeText: "🔥 PAKISTAN'S 1ST AGENTIC ECONOMY",
+  heroTitleText: "Verified services near you, locked with AI Escrow.",
+  heroDescText: "Describe in Roman Urdu or English — our 5-Agent pipeline matches, bids & pays automatically.",
+  workerOnline: "ONLINE • Scanning",
+  workerWallet: "ACTIVE WALLET",
+  workerGigs: "COMPLETED GIGS",
+  workerLeadsFeed: "💼 Neighbor Requests Feed",
+  workerCounterOffer: "Counter Offer",
   tabHome: "Home",
   tabSearch: "AI Match",
   tabHistory: "Escrows",
@@ -230,11 +255,43 @@ const urduTranslations: TranslationSet = {
   verifiedBadgeWorker: "نادرا اور پولیس تصدیق منظور شدہ",
   premiumClient: "پریمیم کلائنٹ",
   topRatedProvider: "ٹاپ ریٹیڈ فراہم کنندہ",
+  groupEssentials: "⚡ روزمرہ کی ضروریات",
+  groupHomeServices: "🏡 گھریلو خدمات",
+  groupHealthCare: "❤️ صحت کی سہولیات",
+  searchHint: "مجھے AC والا چاہیے ٹلسہ روڈ پر...",
+  heroBadgeText: "🔥 پاکستان کی پہلی ایجنٹک معیشت",
+  heroTitleText: "آپ کے قریب قابل بھروسہ خدمات، AI Escrow کے ساتھ محفوظ۔",
+  heroDescText: "رومن اردو یا انگریزی میں بتائیں — ہمارے 5-ایجنٹ سسٹم خود میچنگ، بولی اور ادائیگی کریں گے۔",
+  workerOnline: "آن لائن • اسکینننگ",
+  workerWallet: "فعال والٹ",
+  workerGigs: "مکمل کام",
+  workerLeadsFeed: "💼 قریبی درخواستیں",
+  workerCounterOffer: "جوابی پیشکش",
   tabHome: "ہوم",
   tabSearch: "میچنگ",
   tabHistory: "ایسکرو",
   tabProfile: "پروفائل",
 };
+
+export interface UserProfile {
+  name: string;
+  email: string;
+  phone: string;
+  isLoggedIn: boolean;
+}
+
+export interface BookingDetails {
+  id: string;
+  provider: any;
+  service: string;
+  date: string;
+  time: string;
+  address: string;
+  issue: string;
+  status: 'Pending' | 'Accepted' | 'In progress' | 'Completed' | 'Cancelled';
+  timelineLogs: { title: string; time: string; done: boolean }[];
+  escrowReleased: boolean;
+}
 
 interface ThemeContextProps {
   theme: ThemeType;
@@ -248,6 +305,12 @@ interface ThemeContextProps {
   selectedLocationIndex: number;
   setSelectedLocationIndex: (idx: number) => void;
   t: TranslationSet;
+  userProfile: UserProfile;
+  setUserProfile: React.Dispatch<React.SetStateAction<UserProfile>>;
+  activeBooking: BookingDetails | null;
+  setActiveBooking: React.Dispatch<React.SetStateAction<BookingDetails | null>>;
+  chatHistory: any[];
+  setChatHistory: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
@@ -258,6 +321,26 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [userRole, setUserRole] = useState<UserRole>('client');
   const [language, setLanguage] = useState<AppLanguage>('en');
   const [selectedLocationIndex, setSelectedLocationIndex] = useState<number>(0);
+
+  // Global user state management for high fidelity simulation
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    name: 'Hassan',
+    email: 'alikhan125466ak@gmail.com',
+    phone: '03175084821',
+    isLoggedIn: false, // Starts on LoginScreen
+  });
+  const [activeBooking, setActiveBooking] = useState<BookingDetails | null>(null);
+  const [chatHistory, setChatHistory] = useState<any[]>([
+    {
+      id: 'chat-1',
+      title: 'Mujhy AC thek karwana ha',
+      timestamp: '5/19/2026, 4:08:47 PM',
+      messages: [
+        { id: 'm1', sender: 'user', text: 'Mujhy AC thek karwana ha' },
+        { id: 'm2', sender: 'bot', text: 'Ji, AC Technician hazir hai! Hum aapke budget aur coordinates ke hisab se behtareen worker dhoond rahe hain.' }
+      ]
+    }
+  ]);
 
   useEffect(() => {
     if (systemScheme) {
@@ -293,7 +376,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       toggleLanguage, 
       selectedLocationIndex,
       setSelectedLocationIndex,
-      t 
+      t,
+      userProfile,
+      setUserProfile,
+      activeBooking,
+      setActiveBooking,
+      chatHistory,
+      setChatHistory
     }}>
       {children}
     </ThemeContext.Provider>
