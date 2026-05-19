@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
+import { useTheme } from '../ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Confirm'>;
 type ConfirmRouteProp = RouteProp<RootStackParamList, 'Confirm'>;
@@ -25,6 +26,7 @@ import { API_BASE_URL } from '../config';
 export default function ConfirmScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ConfirmRouteProp>();
+  const { toggleUserRole } = useTheme();
 
   const {
     jobId,
@@ -208,6 +210,18 @@ export default function ConfirmScreen() {
         >
           <Text style={styles.btnHomeText}>Return to Dashboard</Text>
           <Ionicons name="home-sharp" size={16} color="#ffffff" style={{ marginLeft: 8 }} />
+        </TouchableOpacity>
+
+        {/* Demo Role-Switch: View Lead as Worker */}
+        <TouchableOpacity
+          style={[styles.btnHome, { backgroundColor: '#10b981', borderColor: '#059669', marginTop: 12 }]}
+          onPress={() => {
+            toggleUserRole();
+            navigation.navigate('Home');
+          }}
+        >
+          <Text style={styles.btnHomeText}>Demo Role-Switch: View Lead as Worker</Text>
+          <Ionicons name="construct-sharp" size={16} color="#ffffff" style={{ marginLeft: 8 }} />
         </TouchableOpacity>
 
       </ScrollView>

@@ -54,7 +54,7 @@ interface JobRecord {
 
 export default function HistoryScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { colors, theme } = useTheme();
+  const { colors, theme, userRole } = useTheme();
 
   const [jobs, setJobs] = useState<JobRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -71,7 +71,17 @@ export default function HistoryScreen() {
         throw new Error(`Server returned error status: ${response.status}`);
       }
       const result = await response.json();
-      setJobs(result.jobs || []);
+      
+      // Filter based on active role
+      const filtered = (result.jobs || []).filter((j: any) => {
+        if (userRole === 'client') {
+          return true; // client sees all history
+        } else {
+          // provider p1/p2 is assigned to these
+          return j.provider_id_assigned === 'p1' || j.provider_id_assigned === 'p4' || j.provider_id_assigned?.startsWith('GPLACE');
+        }
+      });
+      setJobs(filtered);
     } catch (err: any) {
       console.error(err);
       Alert.alert('Network Error', 'Failed to retrieve booking history. Please make sure the backend is running.');
@@ -133,15 +143,19 @@ export default function HistoryScreen() {
         >
           <Ionicons name="arrow-back" size={20} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Booking History</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
+          {userRole === 'client' ? 'Client Escrow History' : 'Provider Gig Earnings'}
+        </Text>
         <View style={{ width: 36 }} />
       </View>
 
       {/* Fetch Loading Indicator */}
       {isLoading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loaderText, { color: colors.primary }]}>Loading secure history directory...</Text>
+          <ActivityIndicator size="large" color={userRole === 'client' ? colors.primary : colors.success} />
+          <Text style={[styles.loaderText, { color: userRole === 'client' ? colors.primary : colors.success }]}>
+            {userRole === 'client' ? 'Loading secure escrow directory...' : 'Loading provider wallet ledgers...'}
+          </Text>
         </View>
       ) : (
         <ScrollView
@@ -151,7 +165,7 @@ export default function HistoryScreen() {
             <RefreshControl
               refreshing={isRefreshing}
               onRefresh={() => fetchHistory(true)}
-              tintColor="#4f46e5"
+              tintColor={userRole === 'client' ? '#4f46e5' : '#10b981'}
             />
           }
         >
@@ -163,11 +177,11 @@ export default function HistoryScreen() {
               <View key={item.id} style={[styles.jobCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
                 <View style={styles.cardHeader}>
                   <View style={styles.categoryRow}>
-                    <View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight }]}>
+                    <View style={[styles.iconWrapper, { backgroundColor: userRole === 'client' ? colors.primaryLight : colors.successLight }]}>
                       <Ionicons
                         name={getCategoryIcon(item.parsed?.serviceType) as any}
                         size={18}
-                        color={colors.primary}
+                        color={userRole === 'client' ? colors.primary : colors.success}
                       />
                     </View>
                     <View style={styles.serviceInfo}>

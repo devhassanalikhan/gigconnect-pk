@@ -66,7 +66,7 @@ const Tab = createBottomTabNavigator();
 
 // ─── Bottom Tab Navigator Setup ─────────────────────────────────────────────────────
 function TabNavigator() {
-  const { colors, t } = useTheme();
+  const { colors, t, userRole } = useTheme();
   
   return (
     <Tab.Navigator
@@ -80,7 +80,7 @@ function TabNavigator() {
           paddingTop: 8,
           height: 60,
         },
-        tabBarActiveTintColor: colors.primary, // Theme dynamic active accent
+        tabBarActiveTintColor: userRole === 'client' ? colors.primary : colors.success,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarLabelStyle: {
           fontSize: 10,

@@ -21,6 +21,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
 import { useTheme, ISLAMABAD_SECTORS } from '../ThemeContext';
+import { API_BASE_URL } from '../config';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -58,7 +59,7 @@ const COLUMN_WIDTH = (width - 44) / 2;
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { colors, theme, toggleTheme, userRole, language, toggleLanguage, t, selectedLocationIndex } = useTheme();
+  const { colors, theme, toggleTheme, userRole, toggleUserRole, language, toggleLanguage, t, selectedLocationIndex } = useTheme();
   
   const activeLocation = ISLAMABAD_SECTORS[selectedLocationIndex];
   const locName = language === 'en' ? activeLocation.name : activeLocation.urdu;
@@ -68,43 +69,97 @@ export default function HomeScreen() {
   const [escrowBalance, setEscrowBalance] = useState(12500);
   const [activeLeads, setActiveLeads] = useState<InDriveLead[]>([]);
 
-  React.useEffect(() => {
-    setActiveLeads([
-      {
-        id: '1',
-        category: 'AC Technician',
-        icon: 'snow-outline',
-        color: '#06b6d4',
-        clientName: 'Hassan A.',
-        description: `Mujhe kal subah ${locName} me urgent AC lagwana hai koi technician bhejo.`,
-        distance: '1.4 km away',
-        price: 2500,
-        matchRating: 98,
-      },
-      {
-        id: '2',
-        category: 'Electrician',
-        icon: 'flash-outline',
-        color: '#eab308',
-        clientName: 'Zainab M.',
-        description: `Main board me short circuit ho rha hai urgently electrician chahye ${locName}.`,
-        distance: '0.8 km away',
-        price: 1800,
-        matchRating: 95,
-      },
-      {
-        id: '3',
-        category: 'Plumber',
-        icon: 'water-outline',
-        color: '#3b82f6',
-        clientName: 'Bilal K.',
-        description: `Kitchen tap leak kr rha hai, paani bohot zaya ho rha hai. Urgent help!`,
-        distance: '2.1 km away',
-        price: 1200,
-        matchRating: 90,
+  const fetchJobs = React.useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/jobs`);
+      const data = await res.json();
+      
+      const mockLeads = [
+        {
+          id: '1',
+          category: 'AC Technician',
+          icon: 'snow-outline',
+          color: '#06b6d4',
+          clientName: 'Hassan A.',
+          description: `Mujhe kal subah ${locName} me urgent AC lagwana hai koi technician bhejo.`,
+          distance: '1.4 km away',
+          price: 2500,
+          matchRating: 98,
+        },
+        {
+          id: '2',
+          category: 'Electrician',
+          icon: 'flash-outline',
+          color: '#eab308',
+          clientName: 'Zainab M.',
+          description: `Main board me short circuit ho rha hai urgently electrician chahye ${locName}.`,
+          distance: '0.8 km away',
+          price: 1800,
+          matchRating: 95,
+        },
+        {
+          id: '3',
+          category: 'Plumber',
+          icon: 'water-outline',
+          color: '#3b82f6',
+          clientName: 'Bilal K.',
+          description: `Kitchen tap leak kr rha hai, paani bohot zaya ho rha hai. Urgent help!`,
+          distance: '2.1 km away',
+          price: 1200,
+          matchRating: 90,
+        }
+      ];
+
+      if (data && data.jobs) {
+        const mapped = data.jobs.map((job: any) => {
+          const serviceType = job.parsed?.serviceType || 'Plumber';
+          const budget = job.parsed?.budget || 2000;
+          const location = job.parsed?.location || 'G-13';
+          const confidence = job.parsed?.confidence ?? 1.0;
+          
+          let icon = 'construct-outline';
+          let color = '#a78bfa';
+          if (serviceType === 'Plumber') { icon = 'water-outline'; color = '#3b82f6'; }
+          else if (serviceType === 'Electrician') { icon = 'flash-outline'; color = '#eab308'; }
+          else if (serviceType === 'AC Technician') { icon = 'snow-outline'; color = '#06b6d4'; }
+          else if (serviceType === 'Painter') { icon = 'brush-outline'; color = '#ec4899'; }
+          else if (serviceType === 'Tutor') { icon = 'book-outline'; color = '#10b981'; }
+          else if (serviceType === 'Carpenter') { icon = 'hammer-outline'; color = '#f97316'; }
+
+          const shortId = job.id.startsWith('JOB-') ? job.id.slice(4, 9) : job.id.slice(0, 5);
+          return {
+            id: job.id,
+            category: serviceType,
+            icon: icon,
+            color: color,
+            clientName: `Client ${shortId}`,
+            description: job.parsed?.text || `Requires experienced ${serviceType} at ${location}. Urgent: ${job.parsed?.time || 'yes'}.`,
+            distance: '1.2 km away',
+            price: budget,
+            matchRating: Math.round(confidence * 100),
+            status: job.status,
+            fullJob: job
+          };
+        });
+
+        // Filter: only show active jobs seeking provider
+        const activeOnly = mapped.filter((j: any) => j.status === 'Searching' || j.status === 'Pending Clarification' || j.status === 'BidPlaced');
+        
+        // Merge real database jobs with mock leads
+        setActiveLeads([...activeOnly, ...mockLeads]);
+      } else {
+        setActiveLeads(mockLeads);
       }
-    ]);
+    } catch (e) {
+      console.log('Error fetching jobs:', e);
+    }
   }, [locName]);
+
+  React.useEffect(() => {
+    fetchJobs();
+    const interval = setInterval(fetchJobs, 5000);
+    return () => clearInterval(interval);
+  }, [fetchJobs]);
 
   const [selectedLead, setSelectedLead] = useState<InDriveLead | null>(null);
   const [showCounterModal, setShowCounterModal] = useState(false);
@@ -162,6 +217,33 @@ export default function HomeScreen() {
       setBargainTrace(prev => [...prev, `[EscrowAgent] Locked: ${finalPrice} PKR placed successfully inside secure AI Escrow! 🔒`]);
       await delay(700);
 
+      if (selectedLead.id.startsWith('JOB-')) {
+        const providerId = 'p1';
+        try {
+          await fetch(`${API_BASE_URL}/api/bid`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              job_id: selectedLead.id,
+              provider_id: providerId,
+              budget: finalPrice
+            })
+          });
+
+          await fetch(`${API_BASE_URL}/api/escrow/lock`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              job_id: selectedLead.id,
+              provider_id: providerId,
+              agreed_price: finalPrice
+            })
+          });
+        } catch (e) {
+          console.log('Error syncing negotiation with backend:', e);
+        }
+      }
+
       setIsBargaining(false);
       setBargainFinished(true);
 
@@ -216,6 +298,17 @@ export default function HomeScreen() {
             <Ionicons 
               name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'} 
               size={20} 
+              color={userRole === 'client' ? colors.primary : colors.success} 
+            />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginLeft: 8 }]}
+            onPress={toggleUserRole}
+            activeOpacity={0.7}
+          >
+            <Ionicons 
+              name={userRole === 'client' ? 'person-outline' : 'construct-outline'} 
+              size={18} 
               color={userRole === 'client' ? colors.primary : colors.success} 
             />
           </TouchableOpacity>
