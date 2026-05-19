@@ -1,4 +1,4 @@
-// GigConnect AI / screens/HistoryScreen.tsx
+// KaamGraph / screens/HistoryScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,

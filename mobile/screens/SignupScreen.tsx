@@ -1,4 +1,4 @@
-// GigConnect AI / screens/SignupScreen.tsx
+// KaamGraph / screens/SignupScreen.tsx
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -60,7 +60,7 @@ export default function SignupScreen({ navigation }: any) {
               <Text style={styles.logoText}>✨</Text>
             </View>
             <Text style={[styles.title, { color: colors.text }]}>Create Account</Text>
-            <Text style={[styles.subtitle, { color: colors.textMuted }]}>Join GigConnect AI ecosystem</Text>
+            <Text style={[styles.subtitle, { color: colors.textMuted }]}>Join KaamGraph ecosystem</Text>
           </View>
 
           <View style={[styles.formCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>

@@ -1,5 +1,5 @@
 # database.py
-# SQLAlchemy database models and setup for GigConnect PK
+# SQLAlchemy database models and setup for KaamGraph PK
 
 from datetime import datetime
 from sqlalchemy import create_engine, Column, String, Float, Boolean, DateTime, JSON, Integer, ForeignKey

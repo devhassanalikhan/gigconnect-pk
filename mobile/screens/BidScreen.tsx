@@ -205,8 +205,8 @@ export default function BidScreen() {
         {/* Loader Overlay */}
         {(isNegotiating || isEscrowLocking) && (
           <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color="#fbbf24" />
-            <Text style={styles.loaderText}>
+            <ActivityIndicator size="large" color="#6366f1" />
+            <Text style={[styles.loaderText, { color: colors.primary }]}>
               {isEscrowLocking ? 'Locking Milestone Escrow...' : 'Bidding Agent negotiating counter-offer...'}
             </Text>
           </View>
@@ -215,54 +215,54 @@ export default function BidScreen() {
         {!isNegotiating && !isEscrowLocking && (
           <>
             {/* Candidate Summary Panel */}
-            <View style={styles.providerMiniCard}>
+            <View style={[styles.providerMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
               <View style={styles.avatarWrapper}>
-                <Ionicons name="person-circle" size={48} color="#4f46e5" />
+                <Ionicons name="person-circle" size={56} color="#6366f1" />
               </View>
               <View style={styles.nameWrapper}>
-                <Text style={styles.providerName}>{providerName}</Text>
-                <Text style={styles.providerType}>{serviceType} Provider</Text>
+                <Text style={[styles.providerName, { color: colors.text }]}>{providerName}</Text>
+                <Text style={[styles.providerType, { color: colors.primary }]}>{serviceType} Provider</Text>
               </View>
-              <View style={styles.jobIdBadge}>
-                <Text style={styles.jobIdText}>{jobId.slice(0, 8)}</Text>
+              <View style={[styles.jobIdBadge, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
+                <Text style={[styles.jobIdText, { color: colors.primary }]}>#{jobId.slice(0, 6)}</Text>
               </View>
             </View>
 
             {/* Bidding Decision Board */}
-            <View style={styles.decisionCard}>
-              <Text style={styles.sectionHeader}>PROPOSAL STATUS</Text>
+            <View style={[styles.decisionCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <Text style={[styles.sectionHeader, { color: colors.primary }]}>PROPOSAL STATUS</Text>
               
               {currentAction === 'ACCEPT' && (
-                <View style={[styles.statusBanner, { backgroundColor: '#05966920', borderColor: '#059669' }]}>
-                  <Ionicons name="checkmark-circle" size={20} color="#059669" />
-                  <Text style={[styles.statusText, { color: '#34d399' }]}>DIRECT MATCH SUCCESS</Text>
+                <View style={[styles.statusBanner, { backgroundColor: 'rgba(16, 185, 129, 0.1)', borderColor: '#10b981' }]}>
+                  <Ionicons name="checkmark-circle" size={20} color="#10b981" />
+                  <Text style={[styles.statusText, { color: '#10b981' }]}>DIRECT MATCH SUCCESS</Text>
                 </View>
               )}
 
               {currentAction === 'COUNTER' && (
-                <View style={[styles.statusBanner, { backgroundColor: '#eab30820', borderColor: '#eab308' }]}>
-                  <Ionicons name="git-compare" size={20} color="#eab308" />
-                  <Text style={[styles.statusText, { color: '#fbbf24' }]}>COUNTER-OFFER IN PROCESS</Text>
+                <View style={[styles.statusBanner, { backgroundColor: 'rgba(245, 158, 11, 0.1)', borderColor: '#f59e0b' }]}>
+                  <Ionicons name="git-compare" size={20} color="#f59e0b" />
+                  <Text style={[styles.statusText, { color: '#f59e0b' }]}>COUNTER-OFFER IN PROCESS</Text>
                 </View>
               )}
 
               {currentAction === 'REJECT' && (
-                <View style={[styles.statusBanner, { backgroundColor: '#dc262620', borderColor: '#dc2626' }]}>
-                  <Ionicons name="close-circle" size={20} color="#dc2626" />
-                  <Text style={[styles.statusText, { color: '#f87171' }]}>OFFER REJECTED BY AGENT</Text>
+                <View style={[styles.statusBanner, { backgroundColor: 'rgba(225, 29, 72, 0.1)', borderColor: '#e11d48' }]}>
+                  <Ionicons name="close-circle" size={20} color="#e11d48" />
+                  <Text style={[styles.statusText, { color: '#e11d48' }]}>OFFER REJECTED BY AGENT</Text>
                 </View>
               )}
 
               {/* Price Tag Board */}
-              <View style={styles.priceRow}>
+              <View style={[styles.priceRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
                 <View style={styles.priceColumn}>
-                  <Text style={styles.priceLabel}>Agreed / Proposed</Text>
-                  <Text style={[styles.priceValue, { color: currentAction === 'REJECT' ? '#f87171' : '#34d399' }]}>{currentAgreedPrice} PKR</Text>
+                  <Text style={[styles.priceLabel, { color: colors.textMuted }]}>Agreed / Proposed</Text>
+                  <Text style={[styles.priceValue, { color: currentAction === 'REJECT' ? colors.danger : colors.success }]}>{currentAgreedPrice} PKR</Text>
                 </View>
-                <View style={styles.verticalDivider} />
+                <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
                 <View style={styles.priceColumn}>
-                  <Text style={styles.priceLabel}>Provider Cost Min</Text>
-                  <Text style={styles.priceValue}>{currentProviderMin} PKR</Text>
+                  <Text style={[styles.priceLabel, { color: colors.textMuted }]}>Provider Cost Min</Text>
+                  <Text style={[styles.priceValue, { color: colors.text }]}>{currentProviderMin} PKR</Text>
                 </View>
               </View>
 
@@ -284,39 +284,39 @@ export default function BidScreen() {
             </View>
 
             {route.params.priceBreakdown ? (
-              <View style={styles.breakdownCard}>
-                <Text style={styles.breakdownTitle}>PRICE BREAKDOWN</Text>
+              <View style={[styles.breakdownCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+                <Text style={[styles.breakdownTitle, { color: colors.primary }]}>PRICE BREAKDOWN</Text>
                 <View style={styles.breakdownRow}>
-                  <Text style={styles.breakdownLabel}>Base Service Cost</Text>
-                  <Text style={styles.breakdownValue}>{route.params.priceBreakdown.base_cost} PKR</Text>
+                  <Text style={[styles.breakdownLabel, { color: colors.textMuted }]}>Base Service Cost</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.text }]}>{route.params.priceBreakdown.base_cost} PKR</Text>
                 </View>
                 <View style={styles.breakdownRow}>
-                  <Text style={styles.breakdownLabel}>Transport Cost</Text>
-                  <Text style={styles.breakdownValue}>{route.params.priceBreakdown.transport_cost} PKR</Text>
+                  <Text style={[styles.breakdownLabel, { color: colors.textMuted }]}>Transport Cost</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.text }]}>{route.params.priceBreakdown.transport_cost} PKR</Text>
                 </View>
                 {route.params.priceBreakdown.urgency_surcharge > 0 && (
                   <View style={styles.breakdownRow}>
-                    <Text style={styles.breakdownLabel}>Urgency Surcharge</Text>
-                    <Text style={[styles.breakdownValue, { color: '#f59e0b' }]}>
+                    <Text style={[styles.breakdownLabel, { color: colors.textMuted }]}>Urgency Surcharge</Text>
+                    <Text style={[styles.breakdownValue, { color: colors.warning }]}>
                       +{route.params.priceBreakdown.urgency_surcharge} PKR
                     </Text>
                   </View>
                 )}
                 {route.params.priceBreakdown.complexity_surcharge > 0 && (
                   <View style={styles.breakdownRow}>
-                    <Text style={styles.breakdownLabel}>Complexity Surcharge</Text>
-                    <Text style={[styles.breakdownValue, { color: '#f59e0b' }]}>
+                    <Text style={[styles.breakdownLabel, { color: colors.textMuted }]}>Complexity Surcharge</Text>
+                    <Text style={[styles.breakdownValue, { color: colors.warning }]}>
                       +{route.params.priceBreakdown.complexity_surcharge} PKR
                     </Text>
                   </View>
                 )}
-                <View style={[styles.breakdownRow, { borderTopWidth: 1, borderTopColor: '#333', marginTop: 8, paddingTop: 8 }]}>
-                  <Text style={[styles.breakdownLabel, { color: '#fff', fontWeight: 'bold' }]}>Provider Minimum</Text>
-                  <Text style={[styles.breakdownValue, { color: '#34d399', fontWeight: 'bold' }]}>
+                <View style={[styles.breakdownRow, { borderTopWidth: 1, borderTopColor: colors.border, marginTop: 8, paddingTop: 8 }]}>
+                  <Text style={[styles.breakdownLabel, { color: colors.text, fontWeight: 'bold' }]}>Provider Minimum</Text>
+                  <Text style={[styles.breakdownValue, { color: colors.success, fontWeight: 'bold' }]}>
                     {route.params.priceBreakdown.provider_minimum} PKR
                   </Text>
                 </View>
-                <Text style={styles.breakdownNote}>
+                <Text style={[styles.breakdownNote, { color: colors.textMuted }]}>
                   {route.params.bidReasoning}
                 </Text>
               </View>
@@ -351,13 +351,13 @@ export default function BidScreen() {
 
             {/* Bidding Agent Trace Logger Console */}
             {currentReason ? (
-              <View style={styles.terminalCard}>
-                <View style={styles.terminalHeader}>
-                  <Ionicons name="logo-android" size={14} color="#fbbf24" />
-                  <Text style={styles.terminalTitle}>BiddingAgent Reasoning</Text>
+              <View style={[styles.terminalCard, { backgroundColor: 'rgba(15, 23, 42, 0.8)', borderColor: colors.border }]}>
+                <View style={[styles.terminalHeader, { borderBottomColor: colors.border }]}>
+                  <Ionicons name="logo-android" size={14} color={colors.primary} />
+                  <Text style={[styles.terminalTitle, { color: colors.primary }]}>BiddingAgent Reasoning</Text>
                 </View>
                 <ScrollView style={styles.terminalContent} nestedScrollEnabled>
-                  <Text style={styles.terminalText}>{currentReason}</Text>
+                  <Text style={[styles.terminalText, { color: colors.text }]}>{currentReason}</Text>
                 </ScrollView>
               </View>
             ) : null}
@@ -442,12 +442,24 @@ const getStyles = (colors: any) => StyleSheet.create({
   providerMiniCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.cardBackground,
-    borderRadius: 12,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: 12,
-    marginBottom: 16,
+    padding: 16,
+    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)',
+      }
+    }),
   },
   avatarCircle: {
     width: 40,
@@ -493,12 +505,24 @@ const getStyles = (colors: any) => StyleSheet.create({
     fontFamily: 'monospace',
   },
   decisionCard: {
-    backgroundColor: colors.cardBackground,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 24,
+    padding: 24,
     borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: 16,
+    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 15,
+      },
+      android: {
+        elevation: 4,
+      },
+      web: {
+        boxShadow: '0px 8px 15px rgba(0, 0, 0, 0.15)',
+      }
+    }),
   },
   sectionHeader: {
     fontSize: 10,
@@ -523,12 +547,10 @@ const getStyles = (colors: any) => StyleSheet.create({
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: colors.background,
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: 0.5,
-    borderColor: colors.border,
-    marginBottom: 16,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 20,
   },
   priceColumn: {
     flex: 1,
@@ -733,12 +755,10 @@ const getStyles = (colors: any) => StyleSheet.create({
     fontWeight: 'bold',
   },
   breakdownCard: {
-    backgroundColor: colors.cardBackground,
-    borderRadius: 12,
+    borderRadius: 24,
+    padding: 24,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   breakdownTitle: {
     fontSize: 10,

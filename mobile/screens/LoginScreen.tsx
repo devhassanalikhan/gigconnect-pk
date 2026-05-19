@@ -1,4 +1,4 @@
-// GigConnect AI / screens/LoginScreen.tsx
+// KaamGraph / screens/LoginScreen.tsx
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -54,8 +54,8 @@ export default function LoginScreen({ navigation }: any) {
           <View style={[styles.logoOrb, { borderColor: colors.primary }]}>
             <Text style={styles.logoText}>⚡</Text>
           </View>
-          <Text style={[styles.appName, { color: colors.text }]}>GigConnect AI</Text>
-          <Text style={[styles.appTagline, { color: colors.textMuted }]}>Pakistan's Premier Agentic Gig Portal</Text>
+          <Text style={[styles.appName, { color: colors.text }]}>KaamGraph</Text>
+          <Text style={[styles.appTagline, { color: colors.textMuted }]}>Pakistan's Premier Agentic Service Marketplace</Text>
         </View>
 
         <View style={[styles.formCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
@@ -137,10 +137,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
-    shadowColor: '#6366f1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#6366f1',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 4,
+      },
+      web: {
+        boxShadow: '0px 4px 10px rgba(99, 102, 241, 0.3)',
+      }
+    }),
   },
   logoText: {
     fontSize: 28,
@@ -157,16 +167,23 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   formCard: {
-    backgroundColor: '#0f172a',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#1e293b',
     padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.3,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 8,
+      },
+      web: {
+        boxShadow: '0px 10px 20px rgba(0, 0, 0, 0.3)',
+      }
+    }),
   },
   title: {
     fontSize: 22,
@@ -210,10 +227,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
-    shadowColor: '#6366f1',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#6366f1',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+      web: {
+        boxShadow: '0px 4px 8px rgba(99, 102, 241, 0.25)',
+      }
+    }),
   },
   buttonText: {
     fontSize: 16,

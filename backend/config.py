@@ -1,5 +1,5 @@
 # config.py
-# Centralized configuration management for GigConnect PK
+# Centralized configuration management for KaamGraph PK
 
 import os
 from dotenv import load_dotenv
@@ -8,14 +8,18 @@ load_dotenv()
 
 # ─── AI Configuration ──────────────────────────────────────
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+# FIX: Updated to gemini-2.5-flash (gemini-2.0-flash is DEPRECATED as of March 2026)
 GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 # ─── Maps / Apify Configuration ───────────────────────────
+# FIX: This MUST be a separate API key from your Gemini key.
+#      Go to console.cloud.google.com → APIs & Services → Credentials
+#      Create a NEW key, restrict it to "Places API" (NOT Agent Platform API)
 GOOGLE_MAPS_API_KEY: str = os.getenv("GOOGLE_MAPS_API_KEY", "")
 APIFY_API_TOKEN: str = os.getenv("APIFY_API_TOKEN", "")
 
 # ─── Database Configuration ────────────────────────────────
-DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./gigconnect.db")
+DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./kaamgraph.db")
 
 # ─── App Configuration ─────────────────────────────────────
 APP_TITLE: str = "KaamGraph API"
@@ -23,7 +27,6 @@ APP_VERSION: str = "1.1.0"
 CORS_ORIGINS: list[str] = os.getenv("CORS_ORIGINS", "*").split(",")
 
 # ─── Geo Defaults ──────────────────────────────────────────
-# Default user coordinates (Islamabad G-13 area)
 DEFAULT_USER_LAT: float = float(os.getenv("DEFAULT_USER_LAT", "33.6411"))
 DEFAULT_USER_LNG: float = float(os.getenv("DEFAULT_USER_LNG", "72.9723"))
 GEO_RADIUS_KM: float = float(os.getenv("GEO_RADIUS_KM", "5.0"))

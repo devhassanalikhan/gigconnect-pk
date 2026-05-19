@@ -1,4 +1,4 @@
-// GigConnect AI / screens/SearchScreen.tsx
+// KaamGraph / screens/SearchScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -45,6 +45,8 @@ export default function SearchScreen() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [micActive, setMicActive] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const [matchedProviders, setMatchedProviders] = useState<any[]>([]);
+  const [parsedRequest, setParsedRequest] = useState<any>(null);
 
   // Trigger matching pipeline
   const handleSend = async (customText?: string) => {
@@ -100,17 +102,17 @@ export default function SearchScreen() {
         setActiveAgentStep(-1);
 
         if (resultData.providers && resultData.providers.length > 0) {
+          setMatchedProviders(resultData.providers);
+          setParsedRequest(resultData.parsed_request);
+          
           const successMsg: ChatBubble = {
             sender: 'agent',
-            text: `✅ ${resultData.providers.length} provider(s) matched near you! Routing to booking flow...`,
+            text: `✅ ${resultData.providers.length} provider(s) matched near you! Scroll down to see results.`,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           };
           setMessages((prev) => [...prev, successMsg]);
-          navigation.navigate('Book', {
-            provider: resultData.providers[0],
-            serviceType: resultData.parsed_request?.serviceType || 'Service',
-          });
         } else {
+          setMatchedProviders([]);
           const failMsg: ChatBubble = {
             sender: 'agent',
             text: language === 'en'
@@ -127,7 +129,7 @@ export default function SearchScreen() {
       setActiveAgentStep(-1);
       const errorMsg: ChatBubble = {
         sender: 'agent',
-        text: 'Network issue. Main backend pipeline se connect nahi kar pa raha hoon.',
+        text: `Network issue. Backend pipeline (${API_BASE_URL}) se connect nahi kar pa raha hoon. Error: ${err.message}`,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -191,6 +193,42 @@ export default function SearchScreen() {
             <View style={[styles.bubble, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderWidth: 1 }]}>
               <ActivityIndicator size="small" color={colors.primary} />
             </View>
+          </View>
+        )}
+
+        {/* Dynamic Provider Results */}
+        {matchedProviders.length > 0 && !isProcessing && (
+          <View style={styles.resultsContainer}>
+            <Text style={[styles.resultsTitle, { color: colors.textMuted }]}>
+              {language === 'en' ? 'MATCHED PROVIDERS' : 'منتخب ورکرز'}
+            </Text>
+            {matchedProviders.map((p, pIdx) => (
+              <TouchableOpacity
+                key={`p-${pIdx}`}
+                style={[styles.providerCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+                onPress={() => navigation.navigate('Book', {
+                  provider: p,
+                  serviceType: parsedRequest?.serviceType || 'Service',
+                })}
+              >
+                <View style={styles.providerInfo}>
+                  <View style={styles.providerMain}>
+                    <Text style={[styles.providerNameText, { color: colors.text }]}>{p.name}</Text>
+                    <View style={styles.ratingRow}>
+                      <Ionicons name="star" size={12} color="#f59e0b" />
+                      <Text style={[styles.ratingText, { color: colors.text }]}> {p.rating}</Text>
+                      <Text style={[styles.distanceText, { color: colors.textMuted }]}> • {p.distance_km}km away</Text>
+                    </View>
+                  </View>
+                  <View style={[styles.priceTagSmall, { backgroundColor: colors.primaryLight }]}>
+                    <Text style={[styles.priceTextSmall, { color: colors.primary }]}>{p.base_cost} PKR</Text>
+                  </View>
+                </View>
+                <View style={[styles.selectBtn, { backgroundColor: colors.primary }]}>
+                  <Text style={styles.selectBtnText}>{language === 'en' ? 'Select & Bid' : 'منتخب کریں'}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
         )}
       </ScrollView>
@@ -508,14 +546,71 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  agentStepLabel: {
-    color: '#475569',
-    fontSize: 13,
-    fontWeight: '600',
-  },
   agentStepSub: {
     color: '#6366f1',
     fontSize: 11,
     marginTop: 2,
+  },
+  resultsContainer: {
+    marginTop: 20,
+    marginBottom: 40,
+  },
+  resultsTitle: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 2,
+    marginBottom: 12,
+    paddingLeft: 4,
+  },
+  providerCard: {
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+  },
+  providerInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  providerMain: {
+    flex: 1,
+  },
+  providerNameText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ratingText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  distanceText: {
+    fontSize: 12,
+  },
+  priceTagSmall: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  priceTextSmall: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  selectBtn: {
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectBtnText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: 'bold',
   },
 });

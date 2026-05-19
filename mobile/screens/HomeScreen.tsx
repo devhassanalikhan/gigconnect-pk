@@ -1,4 +1,4 @@
-// GigConnect AI / screens/HomeScreen.tsx
+// KaamGraph / screens/HomeScreen.tsx
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -13,6 +13,8 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Animated,
+  Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -61,6 +63,28 @@ export default function HomeScreen() {
   // Worker Dashboard state
   const [isOnline, setIsOnline] = useState(false);
   const [escrowBalance, setEscrowBalance] = useState(14500);
+
+  // Pulsing animation for icons
+  const pulseAnim = React.useRef(new Animated.Value(1)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.1,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: Platform.OS !== 'web',
+        }),
+      ])
+    ).start();
+  }, [pulseAnim]);
 
   const handleCategoryPress = (category: string) => {
     navigation.navigate('Search', { category });
@@ -128,11 +152,51 @@ export default function HomeScreen() {
               activeOpacity={0.8}
             >
               <Ionicons name="sparkles-outline" size={18} color="#6366f1" style={styles.searchIcon} />
-              <Text style={[styles.searchPlaceholder, { color: '#94a3b8' }]}>{t.searchHint}</Text>
+              <TextInput
+                style={[styles.searchPlaceholder, { color: colors.text }]}
+                placeholder={t.searchHint}
+                placeholderTextColor="#94a3b8"
+                editable={false}
+              />
               <View style={[styles.arrowIconWrapper, { backgroundColor: '#6366f1' }]}>
                 <Ionicons name="arrow-forward" size={14} color="#ffffff" />
               </View>
             </TouchableOpacity>
+
+            {/* Overview Section */}
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.groupTitle, { color: colors.textMuted, marginBottom: 0 }]}>{t.overviewTitle}</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('History')}>
+                <Text style={{ color: colors.primary, fontSize: 11, fontWeight: 'bold' }}>{t.viewDetails}</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={[styles.overviewCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <View style={styles.overviewHeader}>
+                <View style={[styles.statusBadge, { backgroundColor: colors.primaryLight }]}>
+                  <View style={[styles.pulseDot, { backgroundColor: colors.primary }]} />
+                  <Text style={[styles.statusText, { color: colors.primary }]}>ACTIVE</Text>
+                </View>
+                <Text style={[styles.timeText, { color: colors.textMuted }]}>Today, 10:30 AM</Text>
+              </View>
+              
+              <View style={styles.overviewBody}>
+                <View style={styles.overviewMain}>
+                  <Text style={[styles.serviceTitle, { color: colors.text }]}>AC Maintenance</Text>
+                  <Text style={[styles.providerSub, { color: colors.textMuted }]}>Hassan Technics • G-13 Markaz</Text>
+                </View>
+                <View style={[styles.priceTag, { backgroundColor: colors.successLight }]}>
+                  <Text style={[styles.priceText, { color: colors.success }]}>1,500 PKR</Text>
+                </View>
+              </View>
+
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { backgroundColor: colors.primary, width: '65%' }]} />
+              </View>
+              <Text style={[styles.progressLabel, { color: colors.textMuted }]}>
+                {language === 'en' ? 'Provider is arriving' : 'ورکر آ رہا ہے'} • 12 mins away
+              </Text>
+            </View>
 
             {/* Grid 1: Daily Essentials */}
             <Text style={[styles.groupTitle, { color: colors.textMuted }]}>{t.groupEssentials}</Text>
@@ -143,9 +207,9 @@ export default function HomeScreen() {
                   style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
                   onPress={() => handleCategoryPress(c.id)}
                 >
-                  <View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight }]}>
+                  <Animated.View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight, transform: [{ scale: pulseAnim }] }]}>
                     <Ionicons name={c.icon as any} size={22} color={colors.primary} />
-                  </View>
+                  </Animated.View>
                   <Text style={[styles.categoryName, { color: colors.text }]}>{language === 'en' ? c.name : c.urdu}</Text>
                   <Text style={[styles.categoryDesc, { color: colors.textMuted }]}>{language === 'en' ? c.description : c.descUrdu}</Text>
                 </TouchableOpacity>
@@ -161,9 +225,9 @@ export default function HomeScreen() {
                   style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
                   onPress={() => handleCategoryPress(c.id)}
                 >
-                  <View style={[styles.iconWrapper, { backgroundColor: 'rgba(249, 115, 22, 0.1)' }]}>
+                  <Animated.View style={[styles.iconWrapper, { backgroundColor: 'rgba(249, 115, 22, 0.1)', transform: [{ scale: pulseAnim }] }]}>
                     <Ionicons name={c.icon as any} size={22} color="#f97316" />
-                  </View>
+                  </Animated.View>
                   <Text style={[styles.categoryName, { color: colors.text }]}>{language === 'en' ? c.name : c.urdu}</Text>
                   <Text style={[styles.categoryDesc, { color: colors.textMuted }]}>{language === 'en' ? c.description : c.descUrdu}</Text>
                 </TouchableOpacity>
@@ -179,9 +243,9 @@ export default function HomeScreen() {
                   style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
                   onPress={() => handleCategoryPress(c.id)}
                 >
-                  <View style={[styles.iconWrapper, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
+                  <Animated.View style={[styles.iconWrapper, { backgroundColor: 'rgba(16, 185, 129, 0.1)', transform: [{ scale: pulseAnim }] }]}>
                     <Ionicons name={c.icon as any} size={22} color="#10b981" />
-                  </View>
+                  </Animated.View>
                   <Text style={[styles.categoryName, { color: colors.text }]}>{language === 'en' ? c.name : c.urdu}</Text>
                   <Text style={[styles.categoryDesc, { color: colors.textMuted }]}>{language === 'en' ? c.description : c.descUrdu}</Text>
                 </TouchableOpacity>
@@ -312,10 +376,24 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   heroCard: {
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 24,
     borderWidth: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#6366f1',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.2,
+        shadowRadius: 20,
+      },
+      android: {
+        elevation: 5,
+      },
+      web: {
+        boxShadow: '0px 10px 20px rgba(99, 102, 241, 0.2)',
+      }
+    }),
   },
   heroTextContent: {
     zIndex: 1,
@@ -343,11 +421,25 @@ const styles = StyleSheet.create({
   searchBarTrigger: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    marginBottom: 28,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+      web: {
+        boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+      }
+    }),
   },
   heroGlowDot: {
     position: 'absolute',
@@ -388,10 +480,24 @@ const styles = StyleSheet.create({
   },
   categoryCard: {
     width: COLUMN_WIDTH,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 16,
     borderWidth: 1,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0px 5px 10px rgba(0, 0, 0, 0.1)',
+      }
+    }),
   },
   iconWrapper: {
     width: 40,
@@ -402,14 +508,106 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   categoryName: {
-    color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   categoryDesc: {
-    color: '#64748b',
     fontSize: 11,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  overviewCard: {
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 32,
+    borderWidth: 1,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 15,
+      },
+      android: {
+        elevation: 4,
+      },
+      web: {
+        boxShadow: '0px 8px 15px rgba(0, 0, 0, 0.15)',
+      }
+    }),
+  },
+  overviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  pulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
+  },
+  statusText: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  timeText: {
+    fontSize: 11,
+  },
+  overviewBody: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  overviewMain: {
+    flex: 1,
+  },
+  serviceTitle: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  providerSub: {
+    fontSize: 12,
+  },
+  priceTag: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  priceText: {
+    fontSize: 13,
+    fontWeight: 'bold',
+  },
+  progressBarBg: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    marginBottom: 8,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  progressLabel: {
+    fontSize: 11,
+    fontStyle: 'italic',
   },
   onlineStatusRow: {
     flexDirection: 'row',

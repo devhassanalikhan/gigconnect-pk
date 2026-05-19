@@ -145,6 +145,11 @@ export interface TranslationSet {
   tabSearch: string;
   tabHistory: string;
   tabProfile: string;
+  // Overview
+  overviewTitle: string;
+  noActiveBooking: string;
+  activeBookingStatus: string;
+  viewDetails: string;
 }
 
 const englishTranslations: TranslationSet = {
@@ -208,6 +213,10 @@ const englishTranslations: TranslationSet = {
   tabSearch: "AI Match",
   tabHistory: "Escrows",
   tabProfile: "Profile",
+  overviewTitle: "Project Overview",
+  noActiveBooking: "No active bookings. Start by searching above!",
+  activeBookingStatus: "Booking in progress...",
+  viewDetails: "View Details",
 };
 
 const urduTranslations: TranslationSet = {
@@ -271,6 +280,10 @@ const urduTranslations: TranslationSet = {
   tabSearch: "میچنگ",
   tabHistory: "ایسکرو",
   tabProfile: "پروفائل",
+  overviewTitle: "پراجیکٹ کا جائزہ",
+  noActiveBooking: "کوئی فعال بکنگ نہیں ہے۔ اوپر تلاش شروع کریں!",
+  activeBookingStatus: "بکنگ جاری ہے...",
+  viewDetails: "تفصیلات دیکھیں",
 };
 
 export interface UserProfile {

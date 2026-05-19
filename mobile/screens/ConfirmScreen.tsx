@@ -88,49 +88,49 @@ export default function ConfirmScreen() {
         
         {/* Success Branding Banner */}
         <View style={styles.successBanner}>
-          <View style={styles.successIconWrapper}>
-            <Ionicons name="checkmark-circle" size={56} color="#059669" />
+          <View style={[styles.successIconWrapper, { backgroundColor: 'rgba(16, 185, 129, 0.1)', borderColor: colors.success }]}>
+            <Ionicons name="checkmark-circle" size={64} color={colors.success} />
           </View>
-          <Text style={styles.successTitle}>Booking Confirmed!</Text>
-          <Text style={styles.successSubtitle}>
+          <Text style={[styles.successTitle, { color: colors.text }]}>Booking Confirmed!</Text>
+          <Text style={[styles.successSubtitle, { color: colors.textMuted }]}>
             Milestone secured with AI Escrow. {providerName} has been assigned to your task.
           </Text>
         </View>
 
         {/* Escrow Transaction Card */}
-        <View style={styles.receiptCard}>
-          <Text style={styles.sectionHeader}>PAYMENT ESCROW RECEIPT</Text>
+        <View style={[styles.receiptCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+          <Text style={[styles.sectionHeader, { color: colors.primary }]}>PAYMENT ESCROW RECEIPT</Text>
 
           <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Job ID</Text>
-            <Text style={styles.receiptMonospace}>{jobId.slice(0, 10)}</Text>
+            <Text style={[styles.receiptLabel, { color: colors.textMuted }]}>Job ID</Text>
+            <Text style={[styles.receiptMonospace, { color: colors.text }]}>#{jobId.slice(0, 10)}</Text>
           </View>
 
           <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Booking ID</Text>
-            <Text style={styles.receiptMonospace}>{bookingId}</Text>
+            <Text style={[styles.receiptLabel, { color: colors.textMuted }]}>Booking ID</Text>
+            <Text style={[styles.receiptMonospace, { color: colors.text }]}>{bookingId}</Text>
           </View>
 
           <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Escrow ID</Text>
-            <Text style={styles.receiptMonospace}>{escrowId}</Text>
+            <Text style={[styles.receiptLabel, { color: colors.textMuted }]}>Escrow ID</Text>
+            <Text style={[styles.receiptMonospace, { color: colors.text }]}>{escrowId}</Text>
           </View>
 
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Total Amount Locked</Text>
-            <Text style={styles.totalValue}>{total.toFixed(0)} PKR</Text>
-          </View>
-
-          <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Platform Fee (9.99%)</Text>
-            <Text style={styles.receiptFee}>-{fee.toFixed(2)} PKR</Text>
+            <Text style={[styles.receiptLabel, { color: colors.textMuted }]}>Total Amount Locked</Text>
+            <Text style={[styles.totalValue, { color: colors.text }]}>{total.toFixed(0)} PKR</Text>
           </View>
 
           <View style={styles.receiptRow}>
-            <Text style={styles.receiptLabel}>Net Payout to Worker</Text>
-            <Text style={styles.netValue}>{netToProvider.toFixed(2)} PKR</Text>
+            <Text style={[styles.receiptLabel, { color: colors.textMuted }]}>Platform Fee (9.99%)</Text>
+            <Text style={[styles.receiptFee, { color: colors.warning }]}>-{fee.toFixed(2)} PKR</Text>
+          </View>
+
+          <View style={styles.receiptRow}>
+            <Text style={[styles.receiptLabel, { color: colors.textMuted }]}>Net Payout to Worker</Text>
+            <Text style={[styles.netValue, { color: colors.success }]}>{netToProvider.toFixed(2)} PKR</Text>
           </View>
         </View>
 
@@ -146,9 +146,9 @@ export default function ConfirmScreen() {
         ) : null}
 
         {/* Interactive Simulated Rating Module */}
-        <View style={styles.ratingCard}>
-          <Text style={styles.ratingSectionHeader}>RATE SERVICE PROVIDER</Text>
-          <Text style={styles.ratingSubtitle}>
+        <View style={[styles.ratingCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+          <Text style={[styles.ratingSectionHeader, { color: colors.primary }]}>RATE SERVICE PROVIDER</Text>
+          <Text style={[styles.ratingSubtitle, { color: colors.text }]}>
             {ratingSubmitted ? 'Feedback submitted' : `How was your experience with ${providerName}?`}
           </Text>
 
@@ -163,43 +163,43 @@ export default function ConfirmScreen() {
                   >
                     <Ionicons
                       name={star <= rating ? "star" : "star-outline"}
-                      size={32}
-                      color="#eab308"
+                      size={36}
+                      color="#f59e0b"
                       style={styles.starIcon}
                     />
                   </TouchableOpacity>
                 ))}
               </View>
-              <TouchableOpacity style={styles.ratingBtn} onPress={submitRating}>
-                <Text style={styles.ratingBtnText}>Submit Rating Feedback</Text>
+              <TouchableOpacity style={[styles.ratingBtn, { backgroundColor: colors.background, borderColor: colors.border }]} onPress={submitRating}>
+                <Text style={[styles.ratingBtnText, { color: colors.text }]}>Submit Rating Feedback</Text>
               </TouchableOpacity>
             </>
           ) : (
-            <View style={styles.ratingSuccessBox}>
-              <Ionicons name="ribbon-sharp" size={24} color="#eab308" />
-              <Text style={styles.ratingSuccessText}>Rating: {rating} / 5 Stars registered!</Text>
+            <View style={[styles.ratingSuccessBox, { backgroundColor: 'rgba(245, 158, 11, 0.1)', borderColor: '#f59e0b' }]}>
+              <Ionicons name="ribbon-sharp" size={24} color="#f59e0b" />
+              <Text style={[styles.ratingSuccessText, { color: '#f59e0b' }]}>Rating: {rating} / 5 Stars registered!</Text>
             </View>
           )}
         </View>
 
-        <View style={styles.disputeCard}>
-          <Text style={styles.sectionHeader}>REPORT AN ISSUE (DISPUTE AGENT)</Text>
-          <Text style={styles.disputeSubtitle}>Escrow is locked. If something goes wrong, you can open a dispute.</Text>
+        <View style={[styles.disputeCard, { backgroundColor: 'rgba(225, 29, 72, 0.05)', borderColor: 'rgba(225, 29, 72, 0.3)' }]}>
+          <Text style={[styles.sectionHeader, { color: colors.danger }]}>REPORT AN ISSUE (DISPUTE AGENT)</Text>
+          <Text style={[styles.disputeSubtitle, { color: colors.textMuted }]}>Escrow is locked. If something goes wrong, you can open a dispute.</Text>
           
           <View style={styles.disputeBtnRow}>
-            <TouchableOpacity style={styles.disputeBtn} onPress={() => handleDispute('no_show')}>
-              <Ionicons name="person-remove-outline" size={14} color="#f87171" />
-              <Text style={styles.disputeBtnText}>No-Show</Text>
+            <TouchableOpacity style={[styles.disputeBtn, { backgroundColor: 'rgba(225, 29, 72, 0.1)', borderColor: 'rgba(225, 29, 72, 0.3)' }]} onPress={() => handleDispute('no_show')}>
+              <Ionicons name="person-remove-outline" size={14} color={colors.danger} />
+              <Text style={[styles.disputeBtnText, { color: colors.danger }]}>No-Show</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.disputeBtn} onPress={() => handleDispute('quality_complaint')}>
-              <Ionicons name="construct-outline" size={14} color="#f87171" />
-              <Text style={styles.disputeBtnText}>Quality</Text>
+            <TouchableOpacity style={[styles.disputeBtn, { backgroundColor: 'rgba(225, 29, 72, 0.1)', borderColor: 'rgba(225, 29, 72, 0.3)' }]} onPress={() => handleDispute('quality_complaint')}>
+              <Ionicons name="construct-outline" size={14} color={colors.danger} />
+              <Text style={[styles.disputeBtnText, { color: colors.danger }]}>Quality</Text>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.disputeBtn} onPress={() => handleDispute('price_disagreement')}>
-              <Ionicons name="cash-outline" size={14} color="#f87171" />
-              <Text style={styles.disputeBtnText}>Pricing</Text>
+            <TouchableOpacity style={[styles.disputeBtn, { backgroundColor: 'rgba(225, 29, 72, 0.1)', borderColor: 'rgba(225, 29, 72, 0.3)' }]} onPress={() => handleDispute('price_disagreement')}>
+              <Ionicons name="cash-outline" size={14} color={colors.danger} />
+              <Text style={[styles.disputeBtnText, { color: colors.danger }]}>Pricing</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -282,12 +282,24 @@ const getStyles = (colors: any) => StyleSheet.create({
     lineHeight: 18,
   },
   receiptCard: {
-    backgroundColor: colors.cardBackground,
-    borderRadius: 12,
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
-    marginBottom: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 15,
+      },
+      android: {
+        elevation: 4,
+      },
+      web: {
+        boxShadow: '0px 8px 15px rgba(0, 0, 0, 0.15)',
+      }
+    }),
   },
   sectionHeader: {
     fontSize: 10,
@@ -356,13 +368,25 @@ const getStyles = (colors: any) => StyleSheet.create({
     lineHeight: 18,
   },
   ratingCard: {
-    backgroundColor: colors.cardBackground,
-    borderRadius: 12,
+    borderRadius: 24,
+    padding: 24,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
     marginBottom: 24,
     alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0px 6px 12px rgba(0, 0, 0, 0.1)',
+      }
+    }),
   },
   ratingSectionHeader: {
     fontSize: 10,
