@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
+import { useTheme } from '../ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Bid'>;
 type BidRouteProp = RouteProp<RootStackParamList, 'Bid'>;
@@ -27,6 +28,8 @@ import { API_BASE_URL } from '../config';
 export default function BidScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<BidRouteProp>();
+  const { colors, theme } = useTheme();
+  const styles = getStyles(colors);
 
   const {
     jobId,
@@ -185,13 +188,13 @@ export default function BidScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       {/* Screen Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Bidding Board</Text>
         <View style={{ width: 40 }} />
@@ -201,7 +204,7 @@ export default function BidScreen() {
         
         {/* Loader Overlay */}
         {(isNegotiating || isEscrowLocking) && (
-          <View style={styles.loaderWrapper}>
+          <View style={styles.loaderContainer}>
             <ActivityIndicator size="large" color="#fbbf24" />
             <Text style={styles.loaderText}>
               {isEscrowLocking ? 'Locking Milestone Escrow...' : 'Bidding Agent negotiating counter-offer...'}
@@ -212,7 +215,7 @@ export default function BidScreen() {
         {!isNegotiating && !isEscrowLocking && (
           <>
             {/* Candidate Summary Panel */}
-            <View style={styles.providerInfoCard}>
+            <View style={styles.providerMiniCard}>
               <View style={styles.avatarWrapper}>
                 <Ionicons name="person-circle" size={48} color="#4f46e5" />
               </View>
@@ -396,10 +399,10 @@ export default function BidScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f',
+    backgroundColor: colors.background,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
@@ -410,42 +413,54 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1a1a1a',
+    borderBottomColor: colors.border,
   },
   backBtn: {
     padding: 8,
-    backgroundColor: '#1a1a1a',
-    borderRadius: 8,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900',
-    color: '#ffffff',
+    color: colors.text,
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 40,
   },
-  loaderWrapper: {
+  loaderContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 100,
+    paddingVertical: 60,
   },
   loaderText: {
-    color: '#fbbf24',
+    color: colors.primary,
     fontSize: 13,
     fontWeight: '600',
     marginTop: 16,
     textAlign: 'center',
   },
-  providerInfoCard: {
+  providerMiniCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 12,
-    padding: 14,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: colors.border,
+    padding: 12,
     marginBottom: 16,
+  },
+  avatarCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#6366f1',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   avatarWrapper: {
     marginRight: 12,
@@ -456,38 +471,38 @@ const styles = StyleSheet.create({
   providerName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: colors.text,
   },
   providerType: {
     fontSize: 11,
-    color: '#4f46e5',
+    color: colors.primary,
     fontWeight: 'bold',
     textTransform: 'uppercase',
   },
   jobIdBadge: {
-    backgroundColor: '#0d1117',
+    backgroundColor: colors.background,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 0.5,
-    borderColor: '#333333',
+    borderColor: colors.border,
   },
   jobIdText: {
-    color: '#9ca3af',
+    color: colors.textMuted,
     fontSize: 10,
     fontFamily: 'monospace',
   },
   decisionCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: colors.border,
     marginBottom: 16,
   },
   sectionHeader: {
     fontSize: 10,
-    color: '#9ca3af',
+    color: colors.primary,
     fontWeight: 'bold',
     letterSpacing: 1.0,
     marginBottom: 12,
@@ -508,11 +523,11 @@ const styles = StyleSheet.create({
   priceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#0d1117',
+    backgroundColor: colors.background,
     borderRadius: 10,
     padding: 12,
     borderWidth: 0.5,
-    borderColor: '#262626',
+    borderColor: colors.border,
     marginBottom: 16,
   },
   priceColumn: {
@@ -521,30 +536,30 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     fontSize: 10,
-    color: '#9ca3af',
+    color: colors.textMuted,
     marginBottom: 4,
   },
   priceValue: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#ffffff',
+    color: colors.text,
   },
   verticalDivider: {
     width: 1,
-    backgroundColor: '#333333',
+    backgroundColor: colors.border,
   },
   sliderContainer: {
     marginTop: 10,
   },
   track: {
     height: 4,
-    backgroundColor: '#333333',
+    backgroundColor: colors.border,
     borderRadius: 2,
     position: 'relative',
   },
   activeTrack: {
     height: 4,
-    backgroundColor: '#fbbf24',
+    backgroundColor: colors.primary,
     borderRadius: 2,
     position: 'absolute',
     top: 0,
@@ -556,7 +571,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: '#ffffff',
     borderWidth: 2,
-    borderColor: '#fbbf24',
+    borderColor: colors.primary,
     position: 'absolute',
     top: -4,
   },
@@ -567,35 +582,35 @@ const styles = StyleSheet.create({
   },
   scaleText: {
     fontSize: 9,
-    color: '#9ca3af',
+    color: colors.textMuted,
   },
   counterBox: {
-    backgroundColor: '#1c1c24',
+    backgroundColor: colors.cardBackground,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#eab308',
+    borderColor: colors.primary,
     padding: 16,
     marginBottom: 16,
   },
   counterTitle: {
     fontSize: 13,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: colors.text,
     marginBottom: 12,
   },
   counterInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0d1117',
+    backgroundColor: colors.background,
     borderRadius: 10,
-    borderColor: '#333333',
+    borderColor: colors.border,
     borderWidth: 1,
     paddingHorizontal: 12,
     marginBottom: 14,
   },
   counterInput: {
     flex: 1,
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 16,
     height: 44,
   },
@@ -613,11 +628,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#262626',
+    backgroundColor: colors.border,
     marginRight: 8,
   },
   cancelBtnText: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -627,18 +642,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#eab308',
+    backgroundColor: colors.primary,
   },
   submitBtnText: {
-    color: '#0f0f0f',
+    color: '#ffffff',
     fontSize: 12,
     fontWeight: 'bold',
   },
   terminalCard: {
-    backgroundColor: '#0c0c0e',
+    backgroundColor: colors.background,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: colors.border,
     padding: 12,
     marginBottom: 20,
   },
@@ -646,12 +661,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 0.5,
-    borderBottomColor: '#333333',
+    borderBottomColor: colors.border,
     paddingBottom: 8,
     marginBottom: 8,
   },
   terminalTitle: {
-    color: '#fbbf24',
+    color: colors.primary,
     fontSize: 11,
     fontWeight: 'bold',
     fontFamily: 'monospace',
@@ -661,7 +676,7 @@ const styles = StyleSheet.create({
     maxHeight: 120,
   },
   terminalText: {
-    color: '#d1d5db',
+    color: colors.text,
     fontFamily: 'monospace',
     fontSize: 11,
     lineHeight: 16,
@@ -672,7 +687,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   acceptActionBtn: {
-    backgroundColor: '#fbbf24', // Indrive golden
+    backgroundColor: colors.success,
     height: 48,
     borderRadius: 10,
     justifyContent: 'center',
@@ -681,14 +696,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   acceptActionText: {
-    color: '#0f0f0f',
+    color: '#ffffff',
     fontSize: 14,
     fontWeight: 'bold',
   },
   counterActionBtn: {
-    backgroundColor: '#2b2d31',
+    backgroundColor: colors.primary,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: colors.primary,
     height: 48,
     borderRadius: 10,
     justifyContent: 'center',
@@ -702,9 +717,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   rejectActionBtn: {
-    backgroundColor: '#161616',
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: '#2d2d2d',
+    borderColor: colors.border,
     height: 48,
     borderRadius: 10,
     justifyContent: 'center',
@@ -713,21 +728,21 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   rejectActionText: {
-    color: '#9ca3af',
+    color: colors.textMuted,
     fontSize: 14,
     fontWeight: 'bold',
   },
   breakdownCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: colors.border,
     padding: 16,
     marginBottom: 16,
   },
   breakdownTitle: {
     fontSize: 10,
-    color: '#9ca3af',
+    color: colors.primary,
     fontWeight: 'bold',
     letterSpacing: 1.0,
     marginBottom: 12,
@@ -739,16 +754,16 @@ const styles = StyleSheet.create({
   },
   breakdownLabel: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: colors.textMuted,
   },
   breakdownValue: {
     fontSize: 12,
-    color: '#ffffff',
+    color: colors.text,
     fontWeight: '600',
   },
   breakdownNote: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: colors.textMuted,
     fontStyle: 'italic',
     marginTop: 12,
     textAlign: 'center',

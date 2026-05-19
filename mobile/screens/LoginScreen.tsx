@@ -14,7 +14,7 @@ import {
 import { useTheme } from '../ThemeContext';
 
 export default function LoginScreen({ navigation }: any) {
-  const { colors, userProfile, setUserProfile } = useTheme();
+  const { colors, userProfile, setUserProfile, theme } = useTheme();
   const [email, setEmail] = useState(userProfile.email);
   const [password, setPassword] = useState('password123');
   const [loading, setLoading] = useState(false);
@@ -45,31 +45,31 @@ export default function LoginScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#090d16' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
         <View style={styles.headerArea}>
-          <View style={styles.logoOrb}>
+          <View style={[styles.logoOrb, { borderColor: colors.primary }]}>
             <Text style={styles.logoText}>⚡</Text>
           </View>
-          <Text style={styles.appName}>GigConnect AI</Text>
-          <Text style={styles.appTagline}>Pakistan's Premier Agentic Gig Portal</Text>
+          <Text style={[styles.appName, { color: colors.text }]}>GigConnect AI</Text>
+          <Text style={[styles.appTagline, { color: colors.textMuted }]}>Pakistan's Premier Agentic Gig Portal</Text>
         </View>
 
-        <View style={styles.formCard}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to access your dashboard</Text>
+        <View style={[styles.formCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+          <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
+          <Text style={[styles.subtitle, { color: colors.textMuted }]}>Sign in to access your dashboard</Text>
 
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email Address</Text>
+            <Text style={[styles.label, { color: colors.textMuted }]}>Email Address</Text>
             <TextInput
-              style={[styles.input, { borderColor: '#1e293b', color: '#fff' }]}
+              style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
               placeholder="example@gmail.com"
-              placeholderTextColor="#475569"
+              placeholderTextColor={colors.textMuted}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -78,11 +78,11 @@ export default function LoginScreen({ navigation }: any) {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
+            <Text style={[styles.label, { color: colors.textMuted }]}>Password</Text>
             <TextInput
-              style={[styles.input, { borderColor: '#1e293b', color: '#fff' }]}
+              style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
               placeholder="Enter your password"
-              placeholderTextColor="#475569"
+              placeholderTextColor={colors.textMuted}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -104,7 +104,7 @@ export default function LoginScreen({ navigation }: any) {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>New here?</Text>
+          <Text style={[styles.footerText, { color: colors.textMuted }]}>New here?</Text>
           <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
             <Text style={[styles.footerLink, { color: colors.primary }]}> Create account</Text>
           </TouchableOpacity>

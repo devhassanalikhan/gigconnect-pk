@@ -26,7 +26,8 @@ import { API_BASE_URL } from '../config';
 export default function ConfirmScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ConfirmRouteProp>();
-  const { toggleUserRole } = useTheme();
+  const { colors, theme, toggleUserRole } = useTheme();
+  const styles = getStyles(colors);
 
   const {
     jobId,
@@ -75,8 +76,8 @@ export default function ConfirmScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       {/* Screen Header */}
       <View style={styles.header}>
@@ -229,10 +230,10 @@ export default function ConfirmScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f',
+    backgroundColor: colors.background,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
@@ -240,13 +241,13 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#1a1a1a',
+    borderBottomColor: colors.border,
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#ffffff',
+    color: colors.text,
   },
   scrollContent: {
     padding: 16,
@@ -261,36 +262,36 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#05966915',
+    backgroundColor: 'rgba(5, 150, 105, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#05966930',
+    borderColor: 'rgba(5, 150, 105, 0.3)',
   },
   successTitle: {
     fontSize: 22,
     fontWeight: '900',
-    color: '#ffffff',
+    color: colors.text,
     marginBottom: 6,
   },
   successSubtitle: {
     fontSize: 13,
-    color: '#9ca3af',
+    color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 18,
   },
   receiptCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: colors.border,
     padding: 16,
     marginBottom: 16,
   },
   sectionHeader: {
     fontSize: 10,
-    color: '#9ca3af',
+    color: colors.primary,
     fontWeight: 'bold',
     letterSpacing: 1.0,
     marginBottom: 16,
@@ -303,22 +304,22 @@ const styles = StyleSheet.create({
   },
   receiptLabel: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: colors.textMuted,
   },
   receiptMonospace: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 12,
     fontFamily: 'monospace',
   },
   divider: {
     height: 1,
-    backgroundColor: '#333333',
+    backgroundColor: colors.border,
     marginVertical: 12,
   },
   totalValue: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: colors.text,
   },
   receiptFee: {
     fontSize: 12,
@@ -331,9 +332,9 @@ const styles = StyleSheet.create({
     color: '#34d399',
   },
   smsPreviewBox: {
-    backgroundColor: '#13201a',
+    backgroundColor: colors.successLight,
     borderRadius: 12,
-    borderColor: '#065f46',
+    borderColor: colors.success,
     borderWidth: 1,
     padding: 14,
     marginBottom: 16,
@@ -345,27 +346,27 @@ const styles = StyleSheet.create({
   },
   smsTitle: {
     fontSize: 11,
-    color: '#34d399',
+    color: colors.success,
     fontWeight: 'bold',
     marginLeft: 6,
   },
   smsText: {
     fontSize: 12,
-    color: '#d1fae5',
+    color: colors.text,
     lineHeight: 18,
   },
   ratingCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: colors.border,
     padding: 16,
     marginBottom: 24,
     alignItems: 'center',
   },
   ratingSectionHeader: {
     fontSize: 10,
-    color: '#9ca3af',
+    color: colors.primary,
     fontWeight: 'bold',
     letterSpacing: 1.0,
     marginBottom: 8,
@@ -373,7 +374,7 @@ const styles = StyleSheet.create({
   },
   ratingSubtitle: {
     fontSize: 12,
-    color: '#ffffff',
+    color: colors.text,
     marginBottom: 16,
   },
   starsRow: {
@@ -384,9 +385,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   ratingBtn: {
-    backgroundColor: '#161616',
+    backgroundColor: colors.background,
     borderWidth: 0.5,
-    borderColor: '#333333',
+    borderColor: colors.border,
     height: 38,
     borderRadius: 8,
     paddingHorizontal: 16,
@@ -394,14 +395,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ratingBtnText: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 12,
     fontWeight: 'bold',
   },
   ratingSuccessBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fbbf2415',
+    backgroundColor: 'rgba(251, 191, 36, 0.12)',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -415,7 +416,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   btnHome: {
-    backgroundColor: '#4f46e5',
+    backgroundColor: colors.primary,
     height: 48,
     borderRadius: 10,
     justifyContent: 'center',
@@ -428,16 +429,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   disputeCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#ef444450',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
     padding: 16,
     marginBottom: 24,
   },
   disputeSubtitle: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: colors.textMuted,
     marginBottom: 12,
   },
   disputeBtnRow: {
@@ -447,9 +448,9 @@ const styles = StyleSheet.create({
   },
   disputeBtn: {
     flex: 1,
-    backgroundColor: '#3f1111',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
     borderWidth: 1,
-    borderColor: '#7f1d1d',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',
@@ -458,7 +459,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   disputeBtnText: {
-    color: '#fca5a5',
+    color: '#f87171',
     fontSize: 11,
     fontWeight: 'bold',
   },

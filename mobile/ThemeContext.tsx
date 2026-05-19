@@ -38,11 +38,11 @@ export interface ThemeColors {
 }
 
 const darkColors: ThemeColors = {
-  background: '#0f0f0f',
-  cardBackground: '#16161a',
+  background: '#090d16',
+  cardBackground: '#0f172a',
   text: '#ffffff',
   textMuted: '#94a3b8',
-  border: '#262629',
+  border: '#1e293b',
   primary: '#6366f1',
   primaryLight: 'rgba(99, 102, 241, 0.12)',
   success: '#10b981',
@@ -53,7 +53,7 @@ const darkColors: ThemeColors = {
   dangerLight: 'rgba(225, 29, 72, 0.12)',
   terminalBackground: '#0c0c0e',
   terminalHeader: '#16181c',
-  inputBackground: '#0d1117',
+  inputBackground: '#0b0f19',
   statusBar: 'light',
 };
 
@@ -342,9 +342,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   ]);
 
+  const isInitialized = React.useRef(false);
+
   useEffect(() => {
-    if (systemScheme) {
+    if (systemScheme && !isInitialized.current) {
       setTheme(systemScheme as ThemeType);
+      isInitialized.current = true;
     }
   }, [systemScheme]);
 

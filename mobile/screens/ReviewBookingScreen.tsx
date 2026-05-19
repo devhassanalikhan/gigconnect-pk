@@ -1,4 +1,3 @@
-// GigConnect AI / screens/ReviewBookingScreen.tsx
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -10,11 +9,12 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { useTheme } from '../ThemeContext';
 
 export default function ReviewBookingScreen({ route, navigation }: any) {
-  const { colors, setActiveBooking } = useTheme();
+  const { colors, setActiveBooking, theme } = useTheme();
   const { provider, serviceType, selectedDate, selectedTime } = route.params;
 
   const [address, setAddress] = useState('Adyala Road, Rawalpindi');
@@ -61,85 +61,86 @@ export default function ReviewBookingScreen({ route, navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#090d16' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Review your booking</Text>
-          <Text style={styles.subtitle}>Confirm the details before submitting.</Text>
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <Text style={[styles.title, { color: colors.text }]}>Review your booking</Text>
+          <Text style={[styles.subtitle, { color: colors.textMuted }]}>Confirm the details before submitting.</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Service Info Block */}
-          <View style={styles.detailBlock}>
-            <Text style={styles.label}>SERVICE</Text>
-            <Text style={styles.value}>{serviceType}</Text>
+          <View style={[styles.detailBlock, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            <Text style={[styles.label, { color: colors.primary }]}>SERVICE</Text>
+            <Text style={[styles.value, { color: colors.text }]}>{serviceType}</Text>
           </View>
 
           {/* Provider Card */}
-          <View style={styles.detailBlock}>
-            <Text style={styles.label}>PROVIDER</Text>
-            <Text style={styles.value}>{provider.name}</Text>
-            <Text style={styles.subtext}>
+          <View style={[styles.detailBlock, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            <Text style={[styles.label, { color: colors.primary }]}>PROVIDER</Text>
+            <Text style={[styles.value, { color: colors.text }]}>{provider.name}</Text>
+            <Text style={[styles.subtext, { color: colors.textMuted }]}>
               {provider.distance_km} km away • Rating {provider.rating}★
             </Text>
           </View>
 
           {/* Date and Time row */}
           <View style={styles.row}>
-            <View style={[styles.detailBlock, { flex: 1, marginRight: 10 }]}>
-              <Text style={styles.label}>DATE</Text>
-              <Text style={styles.value}>{selectedDate}</Text>
+            <View style={[styles.detailBlock, { flex: 1, marginRight: 10, backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <Text style={[styles.label, { color: colors.primary }]}>DATE</Text>
+              <Text style={[styles.value, { color: colors.text }]}>{selectedDate}</Text>
             </View>
-            <View style={[styles.detailBlock, { flex: 1, marginLeft: 10 }]}>
-              <Text style={styles.label}>TIME</Text>
-              <Text style={styles.value}>{selectedTime}</Text>
+            <View style={[styles.detailBlock, { flex: 1, marginLeft: 10, backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <Text style={[styles.label, { color: colors.primary }]}>TIME</Text>
+              <Text style={[styles.value, { color: colors.text }]}>{selectedTime}</Text>
             </View>
           </View>
 
           {/* Address Editable Area */}
-          <View style={styles.detailBlock}>
-            <Text style={styles.label}>ADDRESS</Text>
+          <View style={[styles.detailBlock, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            <Text style={[styles.label, { color: colors.primary }]}>ADDRESS</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
               value={address}
               onChangeText={setAddress}
               placeholder="Enter your street address"
-              placeholderTextColor="#475569"
+              placeholderTextColor={colors.textMuted}
             />
           </View>
 
           {/* Issue Description Area */}
-          <View style={styles.detailBlock}>
-            <Text style={styles.label}>ISSUE DETAILS</Text>
+          <View style={[styles.detailBlock, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            <Text style={[styles.label, { color: colors.primary }]}>ISSUE DETAILS</Text>
             <TextInput
-              style={[styles.input, { height: 80, textAlignVertical: 'top', paddingTop: 12 }]}
+              style={[styles.input, { height: 80, textAlignVertical: 'top', paddingTop: 12, backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
               value={issue}
               onChangeText={setIssue}
               placeholder="Describe what needs to be fixed..."
-              placeholderTextColor="#475569"
+              placeholderTextColor={colors.textMuted}
               multiline
             />
           </View>
         </ScrollView>
 
         {/* Action Buttons */}
-        <View style={styles.footer}>
+        <View style={[styles.footer, { borderTopColor: colors.border }]}>
           <TouchableOpacity
-            style={styles.editBtn}
+            style={[styles.editBtn, { borderColor: colors.border }]}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.editBtnText}>Edit</Text>
+            <Text style={[styles.editBtnText, { color: colors.text }]}>Edit</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={[styles.submitBtn, { backgroundColor: '#fff' }]}
+            style={[styles.submitBtn, { backgroundColor: colors.primary }]}
             onPress={handleSubmit}
           >
-            <Text style={[styles.submitBtnText, { color: '#090d16' }]}>Submit booking</Text>
+            <Text style={[styles.submitBtnText, { color: '#fff' }]}>Submit booking</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

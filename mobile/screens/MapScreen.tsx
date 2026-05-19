@@ -10,6 +10,7 @@ import {
   ScrollView,
   Alert,
   Dimensions,
+  StatusBar,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, ISLAMABAD_SECTORS } from '../ThemeContext';
@@ -71,7 +72,7 @@ const ALL_PROVIDERS: MapProvider[] = [
 ];
 
 export default function MapScreen({ navigation }: any) {
-  const { colors, selectedLocationIndex } = useTheme();
+  const { colors, selectedLocationIndex, theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [providers, setProviders] = useState<MapProvider[]>(ALL_PROVIDERS);
   const [selectedProviderId, setSelectedProviderId] = useState('p1');
@@ -126,23 +127,25 @@ export default function MapScreen({ navigation }: any) {
   const activeProvider = providers.find((p) => p.id === selectedProviderId) || providers[0];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#090d16' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+
       {/* Dynamic Search header */}
-      <View style={styles.searchBar}>
+      <View style={[styles.searchBar, { backgroundColor: colors.cardBackground, borderBottomColor: colors.border, borderBottomWidth: 1 }]}>
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: colors.text }]}
           placeholder="Search e.g. Plumber, Electrician..."
-          placeholderTextColor="#475569"
+          placeholderTextColor={colors.textMuted}
           value={searchQuery}
           onChangeText={filterProviders}
         />
-        <TouchableOpacity style={[styles.searchBtn, { backgroundColor: '#6366f1' }]}>
+        <TouchableOpacity style={[styles.searchBtn, { backgroundColor: colors.primary }]}>
           <Ionicons name="search" size={18} color="#fff" />
         </TouchableOpacity>
       </View>
 
       {/* Grid Canvas Viewport */}
-      <View style={styles.mapViewport}>
+      <View style={[styles.mapViewport, { backgroundColor: colors.background }]}>
         <View style={styles.mapGrid} />
 
         {/* Dynamic Rivers and Roads */}
@@ -171,8 +174,8 @@ export default function MapScreen({ navigation }: any) {
                 📍
               </Text>
               {isSelected && (
-                <View style={styles.pinTooltip}>
-                  <Text style={styles.pinTooltipText} numberOfLines={1}>{p.name}</Text>
+                <View style={[styles.pinTooltip, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+                  <Text style={[styles.pinTooltipText, { color: colors.text }]} numberOfLines={1}>{p.name}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -196,8 +199,8 @@ export default function MapScreen({ navigation }: any) {
       </View>
 
       {/* Bottom Providers Carousel List */}
-      <View style={styles.bottomList}>
-        <Text style={styles.listHeader}>
+      <View style={[styles.bottomList, { backgroundColor: colors.cardBackground, borderTopColor: colors.border }]}>
+        <Text style={[styles.listHeader, { color: colors.text }]}>
           {providers.length} Providers Found near {activeSector.name}
         </Text>
         
@@ -213,36 +216,36 @@ export default function MapScreen({ navigation }: any) {
                 key={p.id}
                 style={[
                   styles.providerCard,
-                  isSelected && { borderColor: '#6366f1', borderWidth: 1.5 }
+                  { backgroundColor: colors.background, borderColor: isSelected ? colors.primary : colors.border, borderWidth: 1 }
                 ]}
                 onPress={() => setSelectedProviderId(p.id)}
               >
-                <Text style={styles.cardTitle} numberOfLines={1}>{p.name}</Text>
-                <Text style={styles.cardAddress} numberOfLines={1}>{p.address}</Text>
+                <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>{p.name}</Text>
+                <Text style={[styles.cardAddress, { color: colors.textMuted }]} numberOfLines={1}>{p.address}</Text>
                 
                 <View style={styles.cardMetaRow}>
                   <Text style={styles.cardRating}>★ {p.rating.toFixed(1)}</Text>
-                  <Text style={styles.cardDistance}>{p.distance} away • {p.category}</Text>
+                  <Text style={[styles.cardDistance, { color: colors.textMuted }]}>{p.distance} away • {p.category}</Text>
                 </View>
 
                 {/* Direct Actions */}
                 <View style={styles.cardActions}>
                   <TouchableOpacity
-                    style={[styles.actionBtn, { backgroundColor: '#1e293b' }]}
+                    style={[styles.actionBtn, { backgroundColor: colors.border }]}
                     onPress={() => handleCall(p.name)}
                   >
-                    <Text style={styles.actionBtnTxt}>📞 Call</Text>
+                    <Text style={[styles.actionBtnTxt, { color: colors.text }]}>📞 Call</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={[styles.actionBtn, { backgroundColor: '#1e293b', marginLeft: 8 }]}
+                    style={[styles.actionBtn, { backgroundColor: colors.border, marginLeft: 8 }]}
                     onPress={() => handleWhatsApp(p.name)}
                   >
-                    <Text style={styles.actionBtnTxt}>💬 Chat</Text>
+                    <Text style={[styles.actionBtnTxt, { color: colors.text }]}>💬 Chat</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    style={[styles.actionBtn, { backgroundColor: '#6366f1', marginLeft: 8 }]}
+                    style={[styles.actionBtn, { backgroundColor: colors.primary, marginLeft: 8 }]}
                     onPress={() => navigation.navigate('Book', { provider: p, serviceType: p.category })}
                   >
                     <Text style={styles.actionBtnTxt}>Book</Text>
@@ -254,7 +257,7 @@ export default function MapScreen({ navigation }: any) {
 
           {providers.length === 0 && (
             <View style={styles.emptyCard}>
-              <Text style={{ color: '#64748b' }}>No providers found matching query.</Text>
+              <Text style={{ color: colors.textMuted }}>No providers found matching query.</Text>
             </View>
           )}
         </ScrollView>

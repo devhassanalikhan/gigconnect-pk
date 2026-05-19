@@ -51,6 +51,7 @@ interface JobRecord {
 export default function HistoryScreen() {
   const navigation = useNavigation<any>();
   const { colors, theme, userRole, language, activeBooking, setActiveBooking } = useTheme();
+  const styles = getStyles(colors);
 
   const [jobs, setJobs] = useState<JobRecord[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -170,12 +171,12 @@ export default function HistoryScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#090d16' }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#090d16" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       {/* Dynamic role-aware Header */}
       <View style={[styles.header, {
-        borderBottomColor: userRole === 'provider' ? '#10b981' : '#1e293b',
+        borderBottomColor: userRole === 'provider' ? colors.success : colors.border,
       }]}>
         <View>
           <Text style={[styles.headerSub, {
@@ -558,7 +559,7 @@ export default function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -583,7 +584,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.text,
   },
   scrollContent: {
     padding: 20,
@@ -591,7 +592,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontSize: 13,
     fontWeight: 'bold',
-    color: '#94a3b8',
+    color: colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 12,
@@ -600,10 +601,10 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   activeCard: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: colors.border,
     padding: 20,
   },
   cardTop: {
@@ -623,7 +624,7 @@ const styles = StyleSheet.create({
   workerName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.text,
     marginTop: 4,
   },
   badge: {
@@ -643,7 +644,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   metaTime: {
-    color: '#94a3b8',
+    color: colors.textMuted,
     fontSize: 13,
     marginTop: 8,
     marginBottom: 20,
@@ -677,9 +678,10 @@ const styles = StyleSheet.create({
   timelineLogTitle: {
     fontSize: 14,
     fontWeight: '600',
+    color: colors.text,
   },
   timelineLogTime: {
-    color: '#475569',
+    color: colors.textMuted,
     fontSize: 11,
     marginTop: 2,
   },
@@ -705,19 +707,20 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 8,
     borderWidth: 1.5,
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 3,
   },
   outlineBtnText: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 13,
     fontWeight: 'bold',
   },
   escrowContainer: {
     marginTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
+    borderTopColor: colors.border,
     paddingTop: 16,
   },
   escrowBtn: {
@@ -746,10 +749,10 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   jobCard: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: colors.border,
     padding: 16,
     marginBottom: 16,
   },
@@ -763,12 +766,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   serviceTitle: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 15,
     fontWeight: 'bold',
   },
   jobDate: {
-    color: '#475569',
+    color: colors.textMuted,
     fontSize: 11,
     marginTop: 2,
   },
@@ -776,28 +779,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 14,
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
+    borderTopColor: colors.border,
     paddingTop: 12,
   },
   detailItem: {
     flex: 1,
   },
   detailLabel: {
-    color: '#475569',
+    color: colors.textMuted,
     fontSize: 9,
     fontWeight: 'bold',
   },
   detailVal: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '600',
     marginTop: 2,
   },
   emptyCard: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: colors.border,
     padding: 30,
     alignItems: 'center',
     justifyContent: 'center',
@@ -806,12 +809,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.text,
     marginTop: 12,
   },
   emptySubtitle: {
     fontSize: 12,
-    color: '#94a3b8',
+    color: colors.textMuted,
     textAlign: 'center',
     marginTop: 6,
     lineHeight: 18,
@@ -823,26 +826,26 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   modalCard: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: colors.border,
     padding: 24,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.text,
     marginBottom: 16,
   },
   modalDesc: {
-    color: '#94a3b8',
+    color: colors.textMuted,
     fontSize: 13,
     lineHeight: 18,
     marginBottom: 16,
   },
   inputLabel: {
-    color: '#94a3b8',
+    color: colors.textMuted,
     fontSize: 11,
     fontWeight: 'bold',
     marginBottom: 6,
@@ -850,11 +853,11 @@ const styles = StyleSheet.create({
   modalInput: {
     height: 44,
     borderRadius: 8,
-    backgroundColor: '#090d16',
+    backgroundColor: colors.background,
     borderWidth: 1.5,
-    borderColor: '#1e293b',
+    borderColor: colors.border,
     paddingHorizontal: 12,
-    color: '#fff',
+    color: colors.text,
     fontSize: 14,
     marginBottom: 16,
   },
@@ -878,13 +881,13 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: '#334155',
+    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 6,
   },
   modalCancelBtnText: {
-    color: '#fff',
+    color: colors.text,
     fontWeight: 'bold',
   },
   // ── Worker Escrow Section Styles ──────────────────────────────────
@@ -892,7 +895,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   workerJobCard: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#10b981',
@@ -933,21 +936,21 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   workerClientName: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 14,
     fontWeight: '600',
     marginLeft: 8,
   },
   workerClientMeta: {
-    color: '#64748b',
+    color: colors.textMuted,
     fontSize: 12,
     marginLeft: 8,
   },
   earningsBox: {
-    backgroundColor: '#090d16',
+    backgroundColor: colors.background,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: colors.border,
     padding: 14,
     marginTop: 12,
     marginBottom: 12,
@@ -958,23 +961,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   earningsLabel: {
-    color: '#64748b',
+    color: colors.textMuted,
     fontSize: 12,
   },
   earningsValue: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 13,
     fontWeight: '600',
   },
   earningsTotal: {
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
+    borderTopColor: colors.border,
     paddingTop: 8,
     marginTop: 4,
     marginBottom: 0,
   },
   earningsTotalLabel: {
-    color: '#94a3b8',
+    color: colors.textMuted,
     fontSize: 11,
     fontWeight: 'bold',
     letterSpacing: 0.5,
@@ -985,7 +988,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   timelineHeader: {
-    color: '#94a3b8',
+    color: colors.textMuted,
     fontSize: 11,
     fontWeight: 'bold',
     letterSpacing: 0.5,
@@ -1010,12 +1013,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   workerTimelineTitle: {
-    color: '#475569',
+    color: colors.text,
     fontSize: 12,
     fontWeight: '600',
   },
   workerTimelineTime: {
-    color: '#334155',
+    color: colors.textMuted,
     fontSize: 10,
     marginTop: 2,
   },
@@ -1069,14 +1072,14 @@ const styles = StyleSheet.create({
   workerEmptyCard: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: colors.border,
     padding: 30,
   },
   workerEmptyText: {
-    color: '#64748b',
+    color: colors.textMuted,
     fontSize: 13,
     textAlign: 'center',
     marginTop: 12,

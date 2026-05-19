@@ -234,42 +234,42 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#090d16' }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#090d16" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       {/* Header section */}
-      <View style={[styles.header, { borderBottomColor: '#1e293b' }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View style={styles.headerBranding}>
-          <Text style={[styles.headerSubtitle, { color: userRole === 'client' ? '#6366f1' : '#10b981' }]}>
+          <Text style={[styles.headerSubtitle, { color: userRole === 'client' ? colors.primary : colors.success }]}>
             {userRole === 'client' ? t.homeSubtitleClient : t.homeSubtitleWorker}
           </Text>
-          <Text style={[styles.headerTitle, { color: '#fff' }]}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
             KaamGraph
           </Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity 
-            style={[styles.themeBtn, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}
+            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
             onPress={toggleLanguage}
             activeOpacity={0.7}
           >
-            <Text style={{ fontSize: 11, fontWeight: 'bold', color: '#6366f1' }}>
+            <Text style={{ fontSize: 11, fontWeight: 'bold', color: colors.primary }}>
               {language === 'en' ? 'اردو' : 'EN'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.themeBtn, { backgroundColor: '#0f172a', borderColor: '#1e293b', marginLeft: 8 }]}
+            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginLeft: 8 }]}
             onPress={toggleTheme}
             activeOpacity={0.7}
           >
-            <Ionicons name="sunny-outline" size={20} color="#6366f1" />
+            <Ionicons name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'} size={20} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.themeBtn, { backgroundColor: '#0f172a', borderColor: '#1e293b', marginLeft: 8 }]}
+            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginLeft: 8 }]}
             onPress={toggleUserRole}
             activeOpacity={0.7}
           >
-            <Ionicons name={userRole === 'client' ? 'person-outline' : 'construct-outline'} size={18} color="#6366f1" />
+            <Ionicons name={userRole === 'client' ? 'person-outline' : 'construct-outline'} size={18} color={colors.primary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -279,18 +279,18 @@ export default function HomeScreen() {
         {userRole === 'client' ? (
           <>
             {/* Hero Card */}
-            <View style={[styles.heroCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}>
+            <View style={[styles.heroCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
               <View style={styles.heroTextContent}>
                 <Text style={styles.heroBadge}>{t.heroBadgeText}</Text>
-                <Text style={[styles.heroTitle, { color: '#fff' }]}>{t.heroTitleText}</Text>
-                <Text style={[styles.heroDescription, { color: '#94a3b8' }]}>{t.heroDescText}</Text>
+                <Text style={[styles.heroTitle, { color: colors.text }]}>{t.heroTitleText}</Text>
+                <Text style={[styles.heroDescription, { color: colors.textMuted }]}>{t.heroDescText}</Text>
               </View>
               <View style={styles.heroGlowDot} />
             </View>
 
             {/* AI Search Prompt Trigger */}
             <TouchableOpacity 
-              style={[styles.searchBarTrigger, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}
+              style={[styles.searchBarTrigger, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
               onPress={() => navigation.navigate('Search')}
               activeOpacity={0.8}
             >
@@ -302,55 +302,55 @@ export default function HomeScreen() {
             </TouchableOpacity>
 
             {/* Grid 1: Daily Essentials */}
-            <Text style={styles.groupTitle}>{t.groupEssentials}</Text>
+            <Text style={[styles.groupTitle, { color: colors.textMuted }]}>{t.groupEssentials}</Text>
             <View style={styles.categoryGrid}>
               {DAILY_ESSENTIALS.map((c) => (
                 <TouchableOpacity
                   key={c.id}
-                  style={[styles.categoryCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}
+                  style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
                   onPress={() => handleCategoryPress(c.id)}
                 >
-                  <View style={[styles.iconWrapper, { backgroundColor: 'rgba(99, 102, 241, 0.1)' }]}>
-                    <Ionicons name={c.icon as any} size={22} color="#6366f1" />
+                  <View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight }]}>
+                    <Ionicons name={c.icon as any} size={22} color={colors.primary} />
                   </View>
-                  <Text style={styles.categoryName}>{language === 'en' ? c.name : c.urdu}</Text>
-                  <Text style={styles.categoryDesc}>{language === 'en' ? c.description : c.descUrdu}</Text>
+                  <Text style={[styles.categoryName, { color: colors.text }]}>{language === 'en' ? c.name : c.urdu}</Text>
+                  <Text style={[styles.categoryDesc, { color: colors.textMuted }]}>{language === 'en' ? c.description : c.descUrdu}</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             {/* Grid 2: Home Services */}
-            <Text style={styles.groupTitle}>{t.groupHomeServices}</Text>
+            <Text style={[styles.groupTitle, { color: colors.textMuted }]}>{t.groupHomeServices}</Text>
             <View style={styles.categoryGrid}>
               {HOME_SERVICES.map((c) => (
                 <TouchableOpacity
                   key={c.id}
-                  style={[styles.categoryCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}
+                  style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
                   onPress={() => handleCategoryPress(c.id)}
                 >
                   <View style={[styles.iconWrapper, { backgroundColor: 'rgba(249, 115, 22, 0.1)' }]}>
                     <Ionicons name={c.icon as any} size={22} color="#f97316" />
                   </View>
-                  <Text style={styles.categoryName}>{language === 'en' ? c.name : c.urdu}</Text>
-                  <Text style={styles.categoryDesc}>{language === 'en' ? c.description : c.descUrdu}</Text>
+                  <Text style={[styles.categoryName, { color: colors.text }]}>{language === 'en' ? c.name : c.urdu}</Text>
+                  <Text style={[styles.categoryDesc, { color: colors.textMuted }]}>{language === 'en' ? c.description : c.descUrdu}</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             {/* Grid 3: Health Care */}
-            <Text style={styles.groupTitle}>{t.groupHealthCare}</Text>
+            <Text style={[styles.groupTitle, { color: colors.textMuted }]}>{t.groupHealthCare}</Text>
             <View style={styles.categoryGrid}>
               {HEALTH_CARE.map((c) => (
                 <TouchableOpacity
                   key={c.id}
-                  style={[styles.categoryCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}
+                  style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
                   onPress={() => handleCategoryPress(c.id)}
                 >
                   <View style={[styles.iconWrapper, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
                     <Ionicons name={c.icon as any} size={22} color="#10b981" />
                   </View>
-                  <Text style={styles.categoryName}>{language === 'en' ? c.name : c.urdu}</Text>
-                  <Text style={styles.categoryDesc}>{language === 'en' ? c.description : c.descUrdu}</Text>
+                  <Text style={[styles.categoryName, { color: colors.text }]}>{language === 'en' ? c.name : c.urdu}</Text>
+                  <Text style={[styles.categoryDesc, { color: colors.textMuted }]}>{language === 'en' ? c.description : c.descUrdu}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -359,21 +359,21 @@ export default function HomeScreen() {
           <>
             {/* WORKER DASHBOARD */}
             <View style={[styles.onlineStatusRow, {
-              backgroundColor: isOnline ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239,68,68,0.08)',
-              borderColor: isOnline ? '#10b981' : '#ef4444',
+              backgroundColor: isOnline ? colors.successLight : colors.dangerLight,
+              borderColor: isOnline ? colors.success : colors.danger,
               borderWidth: 1
             }]}>
               <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                <View style={[styles.statusDot, { backgroundColor: isOnline ? '#10b981' : '#ef4444' }]} />
-                <Text style={{ color: '#fff', fontSize: 13, fontWeight: 'bold' }}>
+                <View style={[styles.statusDot, { backgroundColor: isOnline ? colors.success : colors.danger }]} />
+                <Text style={{ color: colors.text, fontSize: 13, fontWeight: 'bold' }}>
                   {isOnline ? `${t.workerOnline} ${locName}` : (language === 'en' ? 'OFFLINE • Paused' : 'آف لائن • موقوف')}
                 </Text>
               </View>
               <TouchableOpacity
-                style={[styles.onlineToggleBtn, { backgroundColor: isOnline ? '#10b981' : '#334155' }]}
+                style={[styles.onlineToggleBtn, { backgroundColor: isOnline ? colors.success : colors.border }]}
                 onPress={() => setIsOnline(!isOnline)}
               >
-                <Text style={styles.onlineToggleBtnText}>
+                <Text style={[styles.onlineToggleBtnText, { color: colors.text }]}>
                   {isOnline ? (language === 'en' ? 'PAUSE' : 'روکیں') : (language === 'en' ? 'GO LIVE' : 'شروع')}
                 </Text>
               </TouchableOpacity>
@@ -381,66 +381,66 @@ export default function HomeScreen() {
 
             {/* Earnings */}
             <View style={styles.earningsDashboardRow}>
-              <View style={[styles.earningMiniCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}>
-                <Text style={{ color: '#94a3b8', fontSize: 10 }}>{t.workerWallet}</Text>
-                <Text style={{ color: '#10b981', fontSize: 18, fontWeight: 'bold', marginTop: 4 }}>
+              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+                <Text style={{ color: colors.textMuted, fontSize: 10 }}>{t.workerWallet}</Text>
+                <Text style={{ color: colors.success, fontSize: 18, fontWeight: 'bold', marginTop: 4 }}>
                   {escrowBalance.toLocaleString()} PKR
                 </Text>
               </View>
-              <View style={[styles.earningMiniCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}>
-                <Text style={{ color: '#94a3b8', fontSize: 10 }}>{t.workerGigs}</Text>
-                <Text style={{ color: '#6366f1', fontSize: 18, fontWeight: 'bold', marginTop: 4 }}>34</Text>
+              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+                <Text style={{ color: colors.textMuted, fontSize: 10 }}>{t.workerGigs}</Text>
+                <Text style={{ color: colors.primary, fontSize: 18, fontWeight: 'bold', marginTop: 4 }}>34</Text>
               </View>
             </View>
 
             {/* Leads Feed */}
-            <Text style={styles.groupTitle}>{t.workerLeadsFeed}</Text>
+            <Text style={[styles.groupTitle, { color: colors.textMuted }]}>{t.workerLeadsFeed}</Text>
             {!isOnline ? (
-              <View style={[styles.inDriveCard, { backgroundColor: '#0f172a', borderColor: '#1e293b', alignItems: 'center', paddingVertical: 30 }]}>
-                <Ionicons name="eye-off-outline" size={36} color="#334155" />
-                <Text style={{ color: '#64748b', marginTop: 10 }}>
+              <View style={[styles.inDriveCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, alignItems: 'center', paddingVertical: 30 }]}>
+                <Ionicons name="eye-off-outline" size={36} color={colors.textMuted} />
+                <Text style={{ color: colors.textMuted, marginTop: 10 }}>
                   {language === 'en' ? 'You are offline. Go live to see requests.' : 'آپ آف لائن ہیں۔ شروع کریں۔'}
                 </Text>
               </View>
             ) : activeLeads.length === 0 ? (
-              <View style={[styles.inDriveCard, { backgroundColor: '#0f172a', borderColor: '#1e293b', alignItems: 'center', paddingVertical: 30 }]}>
-                <Ionicons name="checkmark-circle-outline" size={36} color="#10b981" />
-                <Text style={{ color: '#64748b', marginTop: 10 }}>
+              <View style={[styles.inDriveCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, alignItems: 'center', paddingVertical: 30 }]}>
+                <Ionicons name="checkmark-circle-outline" size={36} color={colors.success} />
+                <Text style={{ color: colors.textMuted, marginTop: 10 }}>
                   {language === 'en' ? 'All caught up! New leads appear here live.' : 'سب ٹھیک ہے! نئی جابز جلد آئیں گی۔'}
                 </Text>
               </View>
             ) : activeLeads.map((lead) => (
-              <View key={lead.id} style={[styles.inDriveCard, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}>
+              <View key={lead.id} style={[styles.inDriveCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
                 <View style={styles.leadHeaderRow}>
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <View style={[styles.statusDot, { backgroundColor: '#f59e0b', marginRight: 8 }]} />
-                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>{lead.category}</Text>
+                    <View style={[styles.statusDot, { backgroundColor: colors.warning, marginRight: 8 }]} />
+                    <Text style={{ color: colors.text, fontWeight: 'bold' }}>{lead.category}</Text>
                   </View>
-                  <Text style={{ color: '#94a3b8', fontSize: 12 }}>{lead.distance}</Text>
+                  <Text style={{ color: colors.textMuted, fontSize: 12 }}>{lead.distance}</Text>
                 </View>
-                <Text style={{ color: '#cbd5e1', fontStyle: 'italic', marginVertical: 10, lineHeight: 20 }}>
+                <Text style={{ color: colors.text, fontStyle: 'italic', marginVertical: 10, lineHeight: 20 }}>
                   "{lead.description}"
                 </Text>
                 <View style={styles.leadPricingRow}>
                   <View>
-                    <Text style={{ color: '#64748b', fontSize: 10, fontWeight: 'bold' }}>
+                    <Text style={{ color: colors.textMuted, fontSize: 10, fontWeight: 'bold' }}>
                       {language === 'en' ? 'CLIENT BUDGET' : 'گاہک کا بجٹ'}
                     </Text>
-                    <Text style={{ color: '#10b981', fontSize: 18, fontWeight: 'bold' }}>
+                    <Text style={{ color: colors.success, fontSize: 18, fontWeight: 'bold' }}>
                       {lead.price.toLocaleString()} PKR
                     </Text>
                   </View>
                   <View style={{ flexDirection: 'row' }}>
                     <TouchableOpacity
-                      style={[styles.negotiateBtn, { backgroundColor: '#1e293b', marginRight: 8 }]}
+                      style={[styles.negotiateBtn, { backgroundColor: colors.border, marginRight: 8 }]}
                       onPress={() => handleIgnoreLead(lead.id)}
                     >
-                      <Text style={[styles.negotiateBtnText, { color: '#64748b' }]}>
+                      <Text style={[styles.negotiateBtnText, { color: colors.textMuted }]}>
                         {language === 'en' ? 'Skip' : 'چھوڑیں'}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={[styles.negotiateBtn, { backgroundColor: '#10b981' }]}
+                      style={[styles.negotiateBtn, { backgroundColor: colors.success }]}
                       onPress={() => handleOpenBidOptions(lead)}
                     >
                       <Text style={styles.negotiateBtnText}>{t.workerCounterOffer}</Text>
@@ -458,39 +458,39 @@ export default function HomeScreen() {
       {selectedLead && (
         <Modal visible={showCounterModal} animationType="slide" transparent>
           <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: '#0f172a', borderColor: '#1e293b' }]}>
+            <View style={[styles.modalContent, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
               <View style={styles.dragBar} />
               
               <View style={styles.modalHeaderRow}>
-                <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Counter Offer Bargaining</Text>
+                <Text style={{ color: colors.text, fontSize: 16, fontWeight: 'bold' }}>Counter Offer Bargaining</Text>
                 <TouchableOpacity onPress={() => setShowCounterModal(false)}>
-                  <Ionicons name="close" size={24} color="#fff" />
+                  <Ionicons name="close" size={24} color={colors.text} />
                 </TouchableOpacity>
               </View>
 
               {!isBargaining && !bargainFinished ? (
                 <View>
-                  <Text style={{ color: '#94a3b8', marginBottom: 16 }}>
+                  <Text style={{ color: colors.textMuted, marginBottom: 16 }}>
                     Customer budget: {selectedLead.price} PKR. Suggest counter offer:
                   </Text>
                   <View style={styles.multipliersGrid}>
-                    <TouchableOpacity style={styles.multiplierPill} onPress={() => runBargainingNegotiation(selectedLead.price + 100)}>
-                      <Text style={{ color: '#fff' }}>+100 PKR</Text>
+                    <TouchableOpacity style={[styles.multiplierPill, { backgroundColor: colors.border, borderColor: colors.border }]} onPress={() => runBargainingNegotiation(selectedLead.price + 100)}>
+                      <Text style={{ color: colors.text }}>+100 PKR</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.multiplierPill} onPress={() => runBargainingNegotiation(selectedLead.price + 300)}>
-                      <Text style={{ color: '#fff' }}>+300 PKR</Text>
+                    <TouchableOpacity style={[styles.multiplierPill, { backgroundColor: colors.border, borderColor: colors.border }]} onPress={() => runBargainingNegotiation(selectedLead.price + 300)}>
+                      <Text style={{ color: colors.text }}>+300 PKR</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
               ) : isBargaining ? (
                 <View style={{ alignItems: 'center', paddingVertical: 20 }}>
-                  <ActivityIndicator size="large" color="#6366f1" />
-                  <Text style={{ color: '#fff', marginTop: 12 }}>ZOPA Negotiation agent Bargaining...</Text>
+                  <ActivityIndicator size="large" color={colors.primary} />
+                  <Text style={{ color: colors.text, marginTop: 12 }}>ZOPA Negotiation agent Bargaining...</Text>
                 </View>
               ) : (
                 <View style={{ alignItems: 'center', paddingVertical: 20 }}>
-                  <Ionicons name="checkmark-circle" size={48} color="#10b981" />
-                  <Text style={{ color: '#10b981', fontWeight: 'bold', marginTop: 10 }}>Bid Locked Successfully!</Text>
+                  <Ionicons name="checkmark-circle" size={48} color={colors.success} />
+                  <Text style={{ color: colors.success, fontWeight: 'bold', marginTop: 10 }}>Bid Locked Successfully!</Text>
                 </View>
               )}
             </View>

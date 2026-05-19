@@ -78,24 +78,24 @@ const Tab = createBottomTabNavigator();
 
 // ─── Bottom Tab Navigator Setup ─────────────────────────────────────────────────────
 function TabNavigator() {
-  const { t, userRole, language } = useTheme();
+  const { t, userRole, language, colors } = useTheme();
   const isWorker = userRole === 'provider';
-  const activeColor = isWorker ? '#10b981' : '#6366f1';
+  const activeColor = isWorker ? colors.success : colors.primary;
 
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#0f172a',
-          borderTopColor: isWorker ? '#10b981' : '#1e293b',
+          backgroundColor: colors.cardBackground,
+          borderTopColor: isWorker ? colors.success : colors.border,
           borderTopWidth: isWorker ? 1.5 : 1,
           paddingBottom: 8,
           paddingTop: 8,
           height: 60,
         },
         tabBarActiveTintColor: activeColor,
-        tabBarInactiveTintColor: '#475569',
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
         tabBarIcon: ({ color, focused }) => {
           let iconName = '';
@@ -183,15 +183,15 @@ function AppContent() {
   return (
     <SafeAreaProvider>
       <StatusBar 
-        barStyle="light-content" 
-        backgroundColor="#090d16" 
+        barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} 
+        backgroundColor={colors.background} 
       />
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName="Login"
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: '#090d16' },
+            contentStyle: { backgroundColor: colors.background },
           }}
         >
           {/* Authentication portal routes */}

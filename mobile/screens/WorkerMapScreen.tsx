@@ -40,7 +40,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function WorkerMapScreen() {
-  const { language, selectedLocationIndex, activeBooking } = useTheme();
+  const { language, selectedLocationIndex, activeBooking, colors, theme } = useTheme();
   const [selectedPin, setSelectedPin] = useState<JobPin | null>(JOB_PINS[0]);
   const [zoneRadius, setZoneRadius] = useState(2); // km
 
@@ -50,39 +50,39 @@ export default function WorkerMapScreen() {
   const workerCoords = { x: 160, y: 160 };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View>
           <Text style={styles.headerSub}>
             {language === 'en' ? 'MY COVERAGE ZONE' : 'میرا کوریج زون'}
           </Text>
-          <Text style={styles.headerTitle}>{activeSector.name}</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{activeSector.name}</Text>
         </View>
-        <View style={styles.radiusSelector}>
+        <View style={[styles.radiusSelector, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
           <TouchableOpacity
             onPress={() => setZoneRadius(r => Math.max(1, r - 1))}
-            style={styles.radiusBtn}
+            style={[styles.radiusBtn, { backgroundColor: colors.border }]}
           >
-            <Ionicons name="remove" size={16} color="#fff" />
+            <Ionicons name="remove" size={16} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.radiusText}>{zoneRadius} km</Text>
+          <Text style={[styles.radiusText, { color: colors.text }]}>{zoneRadius} km</Text>
           <TouchableOpacity
             onPress={() => setZoneRadius(r => Math.min(5, r + 1))}
-            style={styles.radiusBtn}
+            style={[styles.radiusBtn, { backgroundColor: colors.border }]}
           >
-            <Ionicons name="add" size={16} color="#fff" />
+            <Ionicons name="add" size={16} color={colors.text} />
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Zone Map Canvas */}
-      <View style={styles.mapViewport}>
+      <View style={[styles.mapViewport, { backgroundColor: colors.background }]}>
         <View style={styles.mapGrid} />
 
         {/* Roads */}
-        <View style={styles.road1} />
-        <View style={styles.road2} />
+        <View style={[styles.road1, { backgroundColor: colors.border }]} />
+        <View style={[styles.road2, { backgroundColor: colors.border }]} />
 
         {/* Coverage radius circle */}
         <View style={[
@@ -124,8 +124,8 @@ export default function WorkerMapScreen() {
                 <Ionicons name="person" size={10} color="#fff" />
               </View>
               {isSelected && (
-                <View style={[styles.jobTooltip, { borderColor: color }]}>
-                  <Text style={styles.jobTooltipName}>{pin.clientName}</Text>
+                <View style={[styles.jobTooltip, { backgroundColor: colors.cardBackground, borderColor: color }]}>
+                  <Text style={[styles.jobTooltipName, { color: colors.text }]}>{pin.clientName}</Text>
                   <Text style={[styles.jobTooltipStatus, { color }]}>
                     {STATUS_LABELS[pin.status]}
                   </Text>
@@ -136,29 +136,29 @@ export default function WorkerMapScreen() {
         })}
 
         {/* Map legend */}
-        <View style={styles.mapLegend}>
+        <View style={[styles.mapLegend, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
           <View style={styles.legendRow}>
             <View style={[styles.legendDot, { backgroundColor: '#f59e0b' }]} />
-            <Text style={styles.legendText}>{language === 'en' ? 'Pending' : 'زیر غور'}</Text>
+            <Text style={[styles.legendText, { color: colors.textMuted }]}>{language === 'en' ? 'Pending' : 'زیر غور'}</Text>
           </View>
           <View style={styles.legendRow}>
             <View style={[styles.legendDot, { backgroundColor: '#6366f1' }]} />
-            <Text style={styles.legendText}>{language === 'en' ? 'Accepted' : 'قبول شدہ'}</Text>
+            <Text style={[styles.legendText, { color: colors.textMuted }]}>{language === 'en' ? 'Accepted' : 'قبول شدہ'}</Text>
           </View>
           <View style={styles.legendRow}>
             <View style={[styles.legendDot, { backgroundColor: '#10b981' }]} />
-            <Text style={styles.legendText}>{language === 'en' ? 'En Route' : 'جاری'}</Text>
+            <Text style={[styles.legendText, { color: colors.textMuted }]}>{language === 'en' ? 'En Route' : 'جاری'}</Text>
           </View>
         </View>
       </View>
 
       {/* Selected job detail panel */}
       {selectedPin && (
-        <View style={styles.detailPanel}>
+        <View style={[styles.detailPanel, { backgroundColor: colors.cardBackground, borderTopColor: colors.border }]}>
           <View style={styles.detailTop}>
             <View>
-              <Text style={styles.detailClient}>{selectedPin.clientName}</Text>
-              <Text style={styles.detailService}>{selectedPin.service}</Text>
+              <Text style={[styles.detailClient, { color: colors.text }]}>{selectedPin.clientName}</Text>
+              <Text style={[styles.detailService, { color: colors.textMuted }]}>{selectedPin.service}</Text>
             </View>
             <View style={[styles.statusPill, { borderColor: STATUS_COLORS[selectedPin.status] }]}>
               <Text style={[styles.statusPillText, { color: STATUS_COLORS[selectedPin.status] }]}>
@@ -178,11 +178,11 @@ export default function WorkerMapScreen() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.callBtn}
+              style={[styles.callBtn, { backgroundColor: colors.border }]}
               onPress={() => Alert.alert('Call', `Calling ${selectedPin.clientName}...`)}
             >
-              <Ionicons name="call-outline" size={16} color="#fff" />
-              <Text style={styles.callBtnText}>
+              <Ionicons name="call-outline" size={16} color={colors.text} />
+              <Text style={[styles.callBtnText, { color: colors.text }]}>
                 {language === 'en' ? 'Call Client' : 'کال کریں'}
               </Text>
             </TouchableOpacity>

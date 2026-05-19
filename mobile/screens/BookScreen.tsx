@@ -1,4 +1,3 @@
-// GigConnect AI / screens/BookScreen.tsx
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -7,11 +6,12 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  StatusBar,
 } from 'react-native';
 import { useTheme } from '../ThemeContext';
 
 export default function BookScreen({ route, navigation }: any) {
-  const { colors } = useTheme();
+  const { colors, theme } = useTheme();
   const { provider, serviceType } = route.params || { provider: { name: 'Local Provider', distance_km: 1.2, rating: 4.8 }, serviceType: 'Plumber' };
   const [selectedDay, setSelectedDay] = useState(19);
 
@@ -29,36 +29,38 @@ export default function BookScreen({ route, navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#090d16' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backTxt}>← Back</Text>
+          <Text style={[styles.backTxt, { color: colors.textMuted }]}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>Book your service</Text>
-        <Text style={styles.subtitle}>Confirm details to schedule the visit.</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Book your service</Text>
+        <Text style={[styles.subtitle, { color: colors.textMuted }]}>Confirm details to schedule the visit.</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Provider card */}
-        <View style={styles.providerCard}>
+        <View style={[styles.providerCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
           <Text style={[styles.category, { color: colors.primary }]}>{serviceType.toUpperCase()}</Text>
-          <Text style={styles.providerName}>{provider.name}</Text>
+          <Text style={[styles.providerName, { color: colors.text }]}>{provider.name}</Text>
           <View style={styles.ratingRow}>
             <Text style={styles.ratingStar}>★</Text>
-            <Text style={styles.ratingText}>{provider.rating} • {provider.distance_km} km away</Text>
+            <Text style={[styles.ratingText, { color: colors.textMuted }]}>{provider.rating} • {provider.distance_km} km away</Text>
           </View>
         </View>
 
         {/* Date Calendar */}
-        <Text style={styles.sectionTitle}>📅 Date</Text>
-        <View style={styles.calendarCard}>
-          <Text style={styles.monthHeader}>May 2026</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>📅 Date</Text>
+        <View style={[styles.calendarCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+          <Text style={[styles.monthHeader, { color: colors.text }]}>May 2026</Text>
           
           {/* Day Names */}
           <View style={styles.weeksRow}>
             {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => (
-              <Text key={d} style={styles.weekDayName}>{d}</Text>
+              <Text key={d} style={[styles.weekDayName, { color: colors.textMuted }]}>{d}</Text>
             ))}
           </View>
 
@@ -77,13 +79,13 @@ export default function BookScreen({ route, navigation }: any) {
                   key={`day-${day}`}
                   style={[
                     styles.dayCell,
-                    isSelected && { backgroundColor: '#fff' }
+                    isSelected ? { backgroundColor: colors.primary } : null
                   ]}
                   onPress={() => setSelectedDay(day)}
                 >
                   <Text style={[
                     styles.dayText,
-                    isSelected ? { color: '#090d16', fontWeight: 'bold' } : { color: '#fff' }
+                    isSelected ? { color: '#fff', fontWeight: 'bold' } : { color: colors.text }
                   ]}>
                     {day}
                   </Text>
@@ -95,7 +97,7 @@ export default function BookScreen({ route, navigation }: any) {
       </ScrollView>
 
       {/* Footer trigger */}
-      <View style={styles.footerContainer}>
+      <View style={[styles.footerContainer, { borderTopColor: colors.border }]}>
         <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.primary }]} onPress={handleNext}>
           <Text style={styles.actionBtnText}>Pick a time slot</Text>
         </TouchableOpacity>

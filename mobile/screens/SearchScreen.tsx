@@ -30,7 +30,7 @@ interface ChatBubble {
 
 export default function SearchScreen() {
   const navigation = useNavigation<any>();
-  const { colors, language, chatHistory, setChatHistory } = useTheme();
+  const { colors, theme, language, chatHistory, setChatHistory } = useTheme();
 
   const [requestText, setRequestText] = useState('');
   const [activeAgentStep, setActiveAgentStep] = useState(-1); // -1 = idle
@@ -143,20 +143,18 @@ export default function SearchScreen() {
       setRequestText(simulatedSpeechText);
       Alert.alert('Speech Recognized', `Translated: "${simulatedSpeechText}"`);
     }, 2500);
-  };
-
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#090d16' }]}>
-      <StatusBar barStyle="light-content" backgroundColor="#090d16" />
+  };  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       {/* Header bar */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <TouchableOpacity style={styles.menuBtn} onPress={() => setDrawerVisible(true)}>
-          <Ionicons name="menu-outline" size={24} color="#fff" />
+          <Ionicons name="menu-outline" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>KaamGraph AI Chat</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>KaamGraph AI Chat</Text>
         <TouchableOpacity style={styles.clearBtn} onPress={() => setMessages([messages[0]])}>
-          <Text style={styles.clearBtnText}>Clear</Text>
+          <Text style={[styles.clearBtnText, { color: colors.primary }]}>Clear</Text>
         </TouchableOpacity>
       </View>
 
@@ -177,11 +175,11 @@ export default function SearchScreen() {
                   styles.bubble,
                   isUser
                     ? { backgroundColor: colors.primary }
-                    : { backgroundColor: '#0f172a', borderColor: '#1e293b', borderWidth: 1 },
+                    : { backgroundColor: colors.cardBackground, borderColor: colors.border, borderWidth: 1 },
                 ]}
               >
-                <Text style={styles.bubbleText}>{m.text}</Text>
-                <Text style={styles.bubbleTime}>{m.time}</Text>
+                <Text style={[styles.bubbleText, { color: isUser ? '#fff' : colors.text }]}>{m.text}</Text>
+                <Text style={[styles.bubbleTime, { color: isUser ? 'rgba(255,255,255,0.7)' : colors.textMuted }]}>{m.time}</Text>
               </View>
             </View>
           );
@@ -189,9 +187,9 @@ export default function SearchScreen() {
 
         {/* Agentic Radar Step Tracker — shows while processing */}
         {isProcessing && activeAgentStep >= 0 && (
-          <View style={styles.agentRadarCard}>
-            <Text style={styles.agentRadarTitle}>
-              {language === 'en' ? '⚡ KaamGraph AI Pipeline Running...' : '⚡ KaamGraph AI پائپ لائن جاریہے...'}
+          <View style={[styles.agentRadarCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            <Text style={[styles.agentRadarTitle, { color: colors.text }]}>
+              {language === 'en' ? '⚡ KaamGraph AI Pipeline Running...' : '⚡ KaamGraph AI پائپ لائن جاری ہے...'}
             </Text>
             {[
               { step: 1, icon: 'chatbubbles-outline', label: 'Linguistic Agent', subLabel: 'Parsing Roman Urdu intent...' },
@@ -217,7 +215,7 @@ export default function SearchScreen() {
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={[
                       styles.agentStepLabel,
-                      (done || active) && { color: '#fff' }
+                      (done || active) ? { color: colors.text } : { color: colors.textMuted }
                     ]}>{label}</Text>
                     {active && <Text style={styles.agentStepSub}>{subLabel}</Text>}
                   </View>
@@ -230,34 +228,34 @@ export default function SearchScreen() {
       </ScrollView>
 
       {/* Bottom input area */}
-      <View style={styles.inputArea}>
+      <View style={[styles.inputArea, { backgroundColor: colors.cardBackground, borderTopColor: colors.border }]}>
         <TouchableOpacity style={styles.micBtn} onPress={triggerVoiceInput}>
-          <Ionicons name="mic-outline" size={22} color="#94a3b8" />
+          <Ionicons name="mic-outline" size={22} color={colors.textMuted} />
         </TouchableOpacity>
         
         <TextInput
-          style={styles.textInput}
+          style={[styles.textInput, { color: colors.text }]}
           value={requestText}
           onChangeText={setRequestText}
           placeholder={language === 'en' ? 'Ask KaamGraph AI...' : 'KaamGraph AI سے پوچھیں...'}
-          placeholderTextColor="#475569"
+          placeholderTextColor={colors.textMuted}
         />
 
-        <TouchableOpacity style={[styles.sendBtn, { backgroundColor: '#fff' }]} onPress={() => handleSend()}>
-          <Ionicons name="arrow-up" size={20} color="#090d16" />
+        <TouchableOpacity style={[styles.sendBtn, { backgroundColor: colors.text }]} onPress={() => handleSend()}>
+          <Ionicons name="arrow-up" size={20} color={colors.background} />
         </TouchableOpacity>
       </View>
 
       {/* Mic listening overlay */}
       <Modal visible={micActive} transparent animationType="fade">
         <View style={styles.listeningBg}>
-          <View style={styles.listeningCard}>
+          <View style={[styles.listeningCard, { backgroundColor: colors.cardBackground }]}>
             <View style={styles.pulseWaves}>
               <View style={[styles.pulseCircle, { transform: [{ scale: 1.2 }] }]} />
-              <Ionicons name="mic" size={40} color="#6366f1" />
+              <Ionicons name="mic" size={40} color={colors.primary} />
             </View>
-            <Text style={styles.listeningTitle}>Listening...</Text>
-            <Text style={styles.listeningDesc}>Say something like "Electrician chahye Tulsa Road par"</Text>
+            <Text style={[styles.listeningTitle, { color: colors.text }]}>Listening...</Text>
+            <Text style={[styles.listeningDesc, { color: colors.textMuted }]}>Say something like "Electrician chahye Tulsa Road par"</Text>
           </View>
         </View>
       </Modal>
@@ -267,13 +265,13 @@ export default function SearchScreen() {
         <View style={styles.drawerBg}>
           <TouchableOpacity style={styles.drawerDismiss} onPress={() => setDrawerVisible(false)} />
           
-          <View style={styles.drawerPanel}>
+          <View style={[styles.drawerPanel, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
             <View style={styles.drawerHeader}>
-              <Text style={styles.drawerTitle}>
+              <Text style={[styles.drawerTitle, { color: colors.text }]}>
                 {language === 'en' ? 'Recent Searches' : 'حالیہ تلاشیں'}
               </Text>
               <TouchableOpacity onPress={() => setDrawerVisible(false)}>
-                <Ionicons name="close" size={24} color="#fff" />
+                <Ionicons name="close" size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
 
@@ -281,16 +279,16 @@ export default function SearchScreen() {
               {chatHistory.map((history, idx) => (
                 <TouchableOpacity
                   key={`hist-${idx}`}
-                  style={styles.historyItem}
+                  style={[styles.historyItem, { borderBottomColor: colors.border }]}
                   onPress={() => {
                     setDrawerVisible(false);
                     handleSend(history.text);
                   }}
                 >
-                  <Ionicons name="chatbubble-outline" size={16} color="#6366f1" style={{ marginRight: 10 }} />
+                  <Ionicons name="chatbubble-outline" size={16} color={colors.primary} style={{ marginRight: 10 }} />
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.historyText} numberOfLines={2}>{history.text}</Text>
-                    <Text style={styles.historyTime}>{history.time}</Text>
+                    <Text style={[styles.historyText, { color: colors.text }]} numberOfLines={2}>{history.text}</Text>
+                    <Text style={[styles.historyTime, { color: colors.textMuted }]}>{history.time}</Text>
                   </View>
                 </TouchableOpacity>
               ))}

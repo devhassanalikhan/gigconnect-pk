@@ -15,7 +15,7 @@ import {
 import { useTheme } from '../ThemeContext';
 
 export default function SignupScreen({ navigation }: any) {
-  const { colors, setUserProfile } = useTheme();
+  const { colors, setUserProfile, theme } = useTheme();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -49,40 +49,40 @@ export default function SignupScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: '#090d16' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.headerArea}>
-            <View style={styles.logoOrb}>
+            <View style={[styles.logoOrb, { borderColor: colors.primary }]}>
               <Text style={styles.logoText}>✨</Text>
             </View>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Join GigConnect AI ecosystem</Text>
+            <Text style={[styles.title, { color: colors.text }]}>Create Account</Text>
+            <Text style={[styles.subtitle, { color: colors.textMuted }]}>Join GigConnect AI ecosystem</Text>
           </View>
 
-          <View style={styles.formCard}>
+          <View style={[styles.formCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Full Name</Text>
+              <Text style={[styles.label, { color: colors.textMuted }]}>Full Name</Text>
               <TextInput
-                style={[styles.input, { borderColor: '#1e293b', color: '#fff' }]}
+                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
                 placeholder="e.g. Hassan Khan"
-                placeholderTextColor="#475569"
+                placeholderTextColor={colors.textMuted}
                 value={fullName}
                 onChangeText={setFullName}
               />
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Phone Number</Text>
+              <Text style={[styles.label, { color: colors.textMuted }]}>Phone Number</Text>
               <TextInput
-                style={[styles.input, { borderColor: '#1e293b', color: '#fff' }]}
+                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
                 placeholder="+92 300 1234567"
-                placeholderTextColor="#475569"
+                placeholderTextColor={colors.textMuted}
                 value={phone}
                 onChangeText={setPhone}
                 keyboardType="phone-pad"
@@ -90,11 +90,11 @@ export default function SignupScreen({ navigation }: any) {
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email Address</Text>
+              <Text style={[styles.label, { color: colors.textMuted }]}>Email Address</Text>
               <TextInput
-                style={[styles.input, { borderColor: '#1e293b', color: '#fff' }]}
+                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
                 placeholder="hassan@gmail.com"
-                placeholderTextColor="#475569"
+                placeholderTextColor={colors.textMuted}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -103,11 +103,11 @@ export default function SignupScreen({ navigation }: any) {
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Password</Text>
+              <Text style={[styles.label, { color: colors.textMuted }]}>Password</Text>
               <TextInput
-                style={[styles.input, { borderColor: '#1e293b', color: '#fff' }]}
+                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
                 placeholder="Create secure password"
-                placeholderTextColor="#475569"
+                placeholderTextColor={colors.textMuted}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
@@ -129,7 +129,7 @@ export default function SignupScreen({ navigation }: any) {
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have one?</Text>
+            <Text style={[styles.footerText, { color: colors.textMuted }]}>Already have one?</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
               <Text style={[styles.footerLink, { color: colors.primary }]}> Log in</Text>
             </TouchableOpacity>

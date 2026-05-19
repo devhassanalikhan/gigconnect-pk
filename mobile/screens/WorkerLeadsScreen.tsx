@@ -49,7 +49,7 @@ const MOCK_REQUESTS: IncomingRequest[] = [
 type AcceptPhase = 'idle' | 'negotiating' | 'locking' | 'done';
 
 export default function WorkerLeadsScreen() {
-  const { language, setActiveBooking } = useTheme();
+  const { language, setActiveBooking, colors, theme } = useTheme();
 
   const [requests, setRequests] = useState<IncomingRequest[]>(MOCK_REQUESTS);
   const [selectedReq, setSelectedReq] = useState<IncomingRequest | null>(null);
@@ -150,30 +150,30 @@ export default function WorkerLeadsScreen() {
     (language === 'en' ? '🟢 FLEXIBLE' : '🟢 لچکدار');
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#090d16" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
         <View>
           <Text style={styles.headerSub}>
             {language === 'en' ? 'WORKER PORTAL' : 'ورکر پورٹل'}
           </Text>
-          <Text style={styles.headerTitle}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
             {language === 'en' ? 'Live Job Requests' : 'لائیو جاب درخواستیں'}
           </Text>
         </View>
-        <View style={styles.liveTag}>
-          <Animated.View style={[styles.liveDot, { transform: [{ scale: pulseAnim }] }]} />
-          <Text style={styles.liveText}>LIVE</Text>
+        <View style={[styles.liveTag, { backgroundColor: colors.successLight, borderColor: colors.success }]}>
+          <Animated.View style={[styles.liveDot, { transform: [{ scale: pulseAnim }], backgroundColor: colors.success }]} />
+          <Text style={[styles.liveText, { color: colors.success }]}>LIVE</Text>
         </View>
       </View>
 
       {/* Escrow summary bar */}
       {escrowLocked.length > 0 && (
-        <View style={styles.escrowBar}>
-          <Ionicons name="lock-closed" size={14} color="#10b981" />
-          <Text style={styles.escrowBarText}>
+        <View style={[styles.escrowBar, { backgroundColor: colors.successLight, borderBottomColor: colors.border }]}>
+          <Ionicons name="lock-closed" size={14} color={colors.success} />
+          <Text style={[styles.escrowBarText, { color: colors.success }]}>
             {escrowLocked.length} {language === 'en' ? 'job(s) locked in Escrow' : 'کام ایسکرو میں محفوظ'} •{' '}
             {escrowLocked.reduce((s, e) => s + e.price, 0).toLocaleString()} PKR
           </Text>
@@ -182,12 +182,12 @@ export default function WorkerLeadsScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {requests.length === 0 && (
-          <View style={styles.emptyCard}>
-            <Ionicons name="checkmark-done-circle-outline" size={52} color="#10b981" />
-            <Text style={styles.emptyTitle}>
+          <View style={[styles.emptyCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            <Ionicons name="checkmark-done-circle-outline" size={52} color={colors.success} />
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
               {language === 'en' ? 'All caught up!' : 'سب مکمل!'}
             </Text>
-            <Text style={styles.emptySub}>
+            <Text style={[styles.emptySub, { color: colors.textMuted }]}>
               {language === 'en'
                 ? 'New job requests will appear here in real-time.'
                 : 'نئی جاب درخواستیں یہاں فوری نظر آئیں گی۔'}
@@ -196,12 +196,12 @@ export default function WorkerLeadsScreen() {
         )}
 
         {requests.map((req) => (
-          <View key={req.id} style={styles.requestCard}>
+          <View key={req.id} style={[styles.requestCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
             {/* Top row */}
             <View style={styles.cardTop}>
-              <View style={styles.serviceTag}>
-                <Ionicons name={req.icon as any} size={14} color="#6366f1" />
-                <Text style={styles.serviceTagText}>{req.service}</Text>
+              <View style={[styles.serviceTag, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
+                <Ionicons name={req.icon as any} size={14} color={colors.primary} />
+                <Text style={[styles.serviceTagText, { color: colors.primary }]}>{req.service}</Text>
               </View>
               <View style={[styles.urgencyBadge, { borderColor: urgencyColor(req.urgency) }]}>
                 <Text style={[styles.urgencyText, { color: urgencyColor(req.urgency) }]}>
@@ -212,30 +212,30 @@ export default function WorkerLeadsScreen() {
 
             {/* Client info */}
             <View style={styles.clientRow}>
-              <View style={styles.avatarCircle}>
+              <View style={[styles.avatarCircle, { backgroundColor: colors.primary }]}>
                 <Text style={styles.avatarText}>{req.clientName[0]}</Text>
               </View>
               <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={styles.clientName}>{req.clientName}</Text>
-                <Text style={styles.clientMeta}>📍 {req.location} • {req.distance}</Text>
+                <Text style={[styles.clientName, { color: colors.text }]}>{req.clientName}</Text>
+                <Text style={[styles.clientMeta, { color: colors.textMuted }]}>📍 {req.location} • {req.distance}</Text>
               </View>
-              <Text style={styles.postedAgo}>{req.postedAgo}</Text>
+              <Text style={[styles.postedAgo, { color: colors.textMuted }]}>{req.postedAgo}</Text>
             </View>
 
             {/* Description */}
-            <Text style={styles.description}>"{req.description}"</Text>
+            <Text style={[styles.description, { color: colors.text, backgroundColor: colors.background, borderColor: colors.border }]}>"{req.description}"</Text>
 
             {/* Budget row */}
             <View style={styles.budgetRow}>
               <View>
-                <Text style={styles.budgetLabel}>
+                <Text style={[styles.budgetLabel, { color: colors.textMuted }]}>
                   {language === 'en' ? 'CLIENT BUDGET' : 'گاہک کا بجٹ'}
                 </Text>
-                <Text style={styles.budgetValue}>{req.budget.toLocaleString()} PKR</Text>
+                <Text style={[styles.budgetValue, { color: colors.success }]}>{req.budget.toLocaleString()} PKR</Text>
               </View>
               {req.urgency === 'urgent' && (
-                <View style={styles.bonusTag}>
-                  <Text style={styles.bonusText}>
+                <View style={[styles.bonusTag, { backgroundColor: colors.dangerLight, borderColor: colors.danger }]}>
+                  <Text style={[styles.bonusText, { color: colors.danger }]}>
                     +{Math.round(req.budget * 0.12).toLocaleString()} PKR {language === 'en' ? 'AI Bonus' : 'AI بونس'}
                   </Text>
                 </View>
@@ -245,17 +245,17 @@ export default function WorkerLeadsScreen() {
             {/* Actions */}
             <View style={styles.actionRow}>
               <TouchableOpacity
-                style={styles.declineBtn}
+                style={[styles.declineBtn, { borderColor: colors.border }]}
                 onPress={() => handleDecline(req.id)}
               >
-                <Ionicons name="close" size={16} color="#64748b" />
-                <Text style={styles.declineBtnText}>
+                <Ionicons name="close" size={16} color={colors.textMuted} />
+                <Text style={[styles.declineBtnText, { color: colors.textMuted }]}>
                   {language === 'en' ? 'Decline' : 'انکار'}
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.acceptBtn}
+                style={[styles.acceptBtn, { backgroundColor: colors.success }]}
                 onPress={() => openAcceptModal(req)}
               >
                 <Ionicons name="checkmark-circle-outline" size={16} color="#fff" />
@@ -271,25 +271,25 @@ export default function WorkerLeadsScreen() {
       {/* Accept negotiation Modal */}
       <Modal visible={showModal} transparent animationType="slide">
         <View style={styles.modalBg}>
-          <View style={styles.modalCard}>
+          <View style={[styles.modalCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
             <View style={styles.modalHandle} />
 
             {acceptPhase === 'idle' && selectedReq && (
               <>
-                <Text style={styles.modalTitle}>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>
                   {language === 'en' ? 'Confirm Acceptance' : 'قبولیت کی تصدیق'}
                 </Text>
-                <Text style={styles.modalDesc}>
+                <Text style={[styles.modalDesc, { color: colors.textMuted }]}>
                   {language === 'en'
                     ? `Accept job from ${selectedReq.clientName}? AI will negotiate the best price and lock escrow automatically.`
                     : `${selectedReq.clientName} کی جاب قبول کریں؟ AI بہترین قیمت طے کر کے ایسکرو لاک کرے گا۔`}
                 </Text>
-                <View style={styles.modalBudgetRow}>
-                  <Text style={styles.modalBudgetLabel}>Budget</Text>
-                  <Text style={styles.modalBudgetVal}>{selectedReq.budget.toLocaleString()} PKR</Text>
+                <View style={[styles.modalBudgetRow, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                  <Text style={[styles.modalBudgetLabel, { color: colors.textMuted }]}>Budget</Text>
+                  <Text style={[styles.modalBudgetVal, { color: colors.text }]}>{selectedReq.budget.toLocaleString()} PKR</Text>
                 </View>
                 <TouchableOpacity
-                  style={styles.confirmAcceptBtn}
+                  style={[styles.confirmAcceptBtn, { backgroundColor: colors.success }]}
                   onPress={() => selectedReq && handleAccept(selectedReq)}
                 >
                   <Ionicons name="sparkles" size={18} color="#fff" style={{ marginRight: 8 }} />
@@ -301,7 +301,7 @@ export default function WorkerLeadsScreen() {
                   style={styles.cancelModalBtn}
                   onPress={() => setShowModal(false)}
                 >
-                  <Text style={styles.cancelModalText}>
+                  <Text style={[styles.cancelModalText, { color: colors.textMuted }]}>
                     {language === 'en' ? 'Cancel' : 'منسوخ'}
                   </Text>
                 </TouchableOpacity>
@@ -310,15 +310,15 @@ export default function WorkerLeadsScreen() {
 
             {(acceptPhase === 'negotiating' || acceptPhase === 'locking') && (
               <View style={styles.negotiatingView}>
-                <ActivityIndicator size="large" color="#6366f1" />
-                <Text style={styles.negotiatingTitle}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={[styles.negotiatingTitle, { color: colors.text }]}>
                   {acceptPhase === 'negotiating'
                     ? (language === 'en' ? 'AI Negotiating...' : 'AI مذاکرات جاری...')
                     : (language === 'en' ? 'Locking Escrow...' : 'ایسکرو لاک ہو رہا ہے...')}
                 </Text>
-                <View style={styles.traceBox}>
+                <View style={[styles.traceBox, { backgroundColor: colors.background }]}>
                   {agentTrace.map((line, i) => (
-                    <Text key={i} style={styles.traceLine}>{line}</Text>
+                    <Text key={i} style={[styles.traceLine, { color: colors.success }]}>{line}</Text>
                   ))}
                 </View>
               </View>
@@ -326,14 +326,14 @@ export default function WorkerLeadsScreen() {
 
             {acceptPhase === 'done' && (
               <View style={styles.doneView}>
-                <Ionicons name="shield-checkmark" size={60} color="#10b981" />
-                <Text style={styles.doneTitle}>
+                <Ionicons name="shield-checkmark" size={60} color={colors.success} />
+                <Text style={[styles.doneTitle, { color: colors.success }]}>
                   {language === 'en' ? 'Escrow Locked!' : 'ایسکرو لاک!'}
                 </Text>
-                <Text style={styles.donePrice}>
+                <Text style={[styles.donePrice, { color: colors.text }]}>
                   {finalPrice.toLocaleString()} PKR {language === 'en' ? 'secured' : 'محفوظ'}
                 </Text>
-                <Text style={styles.doneSub}>
+                <Text style={[styles.doneSub, { color: colors.textMuted }]}>
                   {language === 'en'
                     ? 'Check your Escrows tab for timeline & payment release.'
                     : 'ادائیگی کے لیے ایسکرو ٹیب چیک کریں۔'}

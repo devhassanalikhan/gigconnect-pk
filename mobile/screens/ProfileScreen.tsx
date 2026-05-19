@@ -96,21 +96,21 @@ export default function ProfileScreen({ navigation }: any) {
       <View style={[styles.menuContainer, { backgroundColor: colors.cardBackground, borderColor: colors.border, padding: 16 }]}>
         {isEditing ? (
           <View>
-            <Text style={styles.inputLabel}>Full Name</Text>
+            <Text style={[styles.inputLabel, { color: colors.textMuted }]}>Full Name</Text>
             <TextInput
-              style={styles.profileInput}
+              style={[styles.profileInput, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
               value={nameInput}
               onChangeText={setNameInput}
             />
-            <Text style={styles.inputLabel}>Phone</Text>
+            <Text style={[styles.inputLabel, { color: colors.textMuted }]}>Phone</Text>
             <TextInput
-              style={styles.profileInput}
+              style={[styles.profileInput, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
               value={phoneInput}
               onChangeText={setPhoneInput}
             />
-            <Text style={styles.inputLabel}>Email</Text>
+            <Text style={[styles.inputLabel, { color: colors.textMuted }]}>Email</Text>
             <TextInput
-              style={styles.profileInput}
+              style={[styles.profileInput, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
               value={emailInput}
               onChangeText={setEmailInput}
             />
@@ -118,27 +118,27 @@ export default function ProfileScreen({ navigation }: any) {
               <TouchableOpacity style={[styles.saveBtn, { backgroundColor: colors.primary }]} onPress={handleSave}>
                 <Text style={styles.btnText}>Save</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setIsEditing(false)}>
-                <Text style={styles.cancelBtnText}>Cancel</Text>
+              <TouchableOpacity style={[styles.cancelBtn, { borderColor: colors.border }]} onPress={() => setIsEditing(false)}>
+                <Text style={[styles.cancelBtnText, { color: colors.text }]}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </View>
         ) : (
           <View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Name:</Text>
-              <Text style={styles.infoValue}>{userProfile.name}</Text>
+              <Text style={[styles.infoLabel, { color: colors.textMuted }]}>Name:</Text>
+              <Text style={[styles.infoValue, { color: colors.text }]}>{userProfile.name}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Phone:</Text>
-              <Text style={styles.infoValue}>{userProfile.phone}</Text>
+              <Text style={[styles.infoLabel, { color: colors.textMuted }]}>Phone:</Text>
+              <Text style={[styles.infoValue, { color: colors.text }]}>{userProfile.phone}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Email:</Text>
-              <Text style={styles.infoValue}>{userProfile.email}</Text>
+              <Text style={[styles.infoLabel, { color: colors.textMuted }]}>Email:</Text>
+              <Text style={[styles.infoValue, { color: colors.text }]}>{userProfile.email}</Text>
             </View>
             <TouchableOpacity style={[styles.editModeBtn, { borderColor: colors.border }]} onPress={() => setIsEditing(true)}>
-              <Text style={styles.editModeBtnText}>Edit Details</Text>
+              <Text style={[styles.editModeBtnText, { color: colors.text }]}>Edit Details</Text>
             </TouchableOpacity>
           </View>
         )}

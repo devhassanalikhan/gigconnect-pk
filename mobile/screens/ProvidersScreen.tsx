@@ -17,15 +17,18 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
+import { useTheme } from '../ThemeContext';
+
+import { API_BASE_URL } from '../config';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Providers'>;
 type ProvidersRouteProp = RouteProp<RootStackParamList, 'Providers'>;
 
-import { API_BASE_URL } from '../config';
-
 export default function ProvidersScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<ProvidersRouteProp>();
+  const { colors, theme } = useTheme();
+  const styles = getStyles(colors);
 
   const params = route.params || {
     serviceType: 'Service',
@@ -96,13 +99,13 @@ export default function ProvidersScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f0f0f" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       {/* Navigation Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#ffffff" />
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle}>Matching Candidates</Text>
@@ -219,10 +222,10 @@ export default function ProvidersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f0f0f',
+    backgroundColor: colors.background,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
@@ -233,11 +236,11 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1a1a1a',
+    borderBottomColor: colors.border,
   },
   backBtn: {
     padding: 8,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.background,
     borderRadius: 8,
   },
   headerInfo: {
@@ -257,41 +260,42 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   metaCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 12,
-    padding: 14,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: colors.border,
+    padding: 16,
     marginBottom: 20,
   },
   metaBadgeRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 12,
   },
   metaBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f0f0f',
+    backgroundColor: colors.background,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#262626',
+    borderColor: colors.border,
   },
   metaBadgeText: {
-    color: '#ffffff',
+    color: colors.text,
     fontSize: 12,
     fontWeight: 'bold',
     marginLeft: 6,
   },
   metaText: {
     fontSize: 11,
-    color: '#9ca3af',
+    color: colors.textMuted,
     textAlign: 'center',
   },
   boldText: {
-    color: '#ffffff',
+    color: colors.text,
     fontWeight: 'bold',
   },
   loaderContainer: {
@@ -300,17 +304,17 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   loaderText: {
-    color: '#4f46e5',
+    color: colors.primary,
     fontSize: 13,
     fontWeight: '600',
     marginTop: 16,
     textAlign: 'center',
   },
   providerCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: colors.border,
     padding: 16,
     marginBottom: 16,
     position: 'relative',
@@ -320,7 +324,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: '#fbbf24', // Hackathon gold
+    backgroundColor: '#fbbf24',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderBottomLeftRadius: 10,
@@ -346,28 +350,28 @@ const styles = StyleSheet.create({
   providerName: {
     fontSize: 17,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: colors.text,
     marginBottom: 2,
   },
   providerType: {
     fontSize: 12,
-    color: '#4f46e5',
+    color: colors.primary,
     fontWeight: '700',
     textTransform: 'uppercase',
   },
   scoreSection: {
     alignItems: 'flex-end',
-    marginRight: 80, // Space for rank badge if active
+    marginRight: 80,
   },
   scoreLabel: {
     fontSize: 9,
-    color: '#9ca3af',
+    color: colors.textMuted,
     textTransform: 'uppercase',
   },
   scoreValue: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#059669', // Emerald success green
+    color: '#059669',
   },
   sixFactorRow: {
     flexDirection: 'row',
@@ -378,27 +382,27 @@ const styles = StyleSheet.create({
   factorBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0d1117',
+    backgroundColor: colors.background,
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 6,
     borderWidth: 0.5,
-    borderColor: '#262626',
+    borderColor: colors.border,
     width: '31%',
   },
   factorText: {
-    color: '#d1d5db',
+    color: colors.text,
     fontSize: 9,
     fontWeight: '600',
     marginLeft: 4,
   },
   reasoningBox: {
-    backgroundColor: '#1e1b4b',
+    backgroundColor: 'rgba(99, 102, 241, 0.12)',
     padding: 10,
     borderRadius: 8,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#3730a3',
+    borderColor: 'rgba(99, 102, 241, 0.3)',
   },
   reasoningText: {
     color: '#a5b4fc',
@@ -406,7 +410,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   bookBtn: {
-    backgroundColor: '#4f46e5',
+    backgroundColor: colors.primary,
     height: 44,
     borderRadius: 10,
     justifyContent: 'center',
@@ -419,16 +423,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   emptyCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 12,
     padding: 30,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#333333',
+    borderColor: colors.border,
   },
   emptyText: {
-    color: '#9ca3af',
+    color: colors.textMuted,
     fontSize: 13,
     textAlign: 'center',
     marginTop: 12,
