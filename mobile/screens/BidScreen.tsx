@@ -1,3 +1,5 @@
+// KaamGraph / Mobile / mobile/screens/BidScreen.tsx
+
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -277,6 +279,46 @@ export default function BidScreen() {
                 {zopaLabel}
               </Text>
             </View>
+
+            {/* Dynamic Price Breakdown Card */}
+            {route.params.priceBreakdown ? (
+              <View style={styles.breakdownCard}>
+                <Text style={styles.breakdownTitle}>PRICE BREAKDOWN</Text>
+                <View style={styles.breakdownRow}>
+                  <Text style={styles.breakdownLabel}>Base Service Cost</Text>
+                  <Text style={styles.breakdownValue}>{route.params.priceBreakdown.base_cost} PKR</Text>
+                </View>
+                <View style={styles.breakdownRow}>
+                  <Text style={styles.breakdownLabel}>Transport Cost</Text>
+                  <Text style={styles.breakdownValue}>{route.params.priceBreakdown.transport_cost} PKR</Text>
+                </View>
+                {route.params.priceBreakdown.urgency_surcharge > 0 && (
+                  <View style={styles.breakdownRow}>
+                    <Text style={styles.breakdownLabel}>Urgency Surcharge</Text>
+                    <Text style={[styles.breakdownValue, { color: '#f59e0b' }]}>
+                      +{route.params.priceBreakdown.urgency_surcharge} PKR
+                    </Text>
+                  </View>
+                )}
+                {route.params.priceBreakdown.complexity_surcharge > 0 && (
+                  <View style={styles.breakdownRow}>
+                    <Text style={styles.breakdownLabel}>Complexity Surcharge</Text>
+                    <Text style={[styles.breakdownValue, { color: '#f59e0b' }]}>
+                      +{route.params.priceBreakdown.complexity_surcharge} PKR
+                    </Text>
+                  </View>
+                )}
+                <View style={[styles.breakdownRow, { borderTopWidth: 1, borderTopColor: '#333', marginTop: 8, paddingTop: 8 }]}>
+                  <Text style={[styles.breakdownLabel, { color: '#fff', fontWeight: 'bold' }]}>Provider Minimum</Text>
+                  <Text style={[styles.breakdownValue, { color: '#34d399', fontWeight: 'bold' }]}>
+                    {route.params.priceBreakdown.provider_minimum} PKR
+                  </Text>
+                </View>
+                <Text style={styles.breakdownNote}>
+                  {route.params.bidReasoning}
+                </Text>
+              </View>
+            ) : null}
 
             {/* Interactive Custom Counter Input */}
             {isCounterOpen && (
@@ -675,5 +717,41 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  breakdownCard: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#333333',
+    padding: 16,
+    marginBottom: 16,
+  },
+  breakdownTitle: {
+    fontSize: 10,
+    color: '#9ca3af',
+    fontWeight: 'bold',
+    letterSpacing: 1.0,
+    marginBottom: 12,
+  },
+  breakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  breakdownLabel: {
+    fontSize: 12,
+    color: '#9ca3af',
+  },
+  breakdownValue: {
+    fontSize: 12,
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  breakdownNote: {
+    fontSize: 11,
+    color: '#9ca3af',
+    fontStyle: 'italic',
+    marginTop: 12,
+    textAlign: 'center',
   },
 });

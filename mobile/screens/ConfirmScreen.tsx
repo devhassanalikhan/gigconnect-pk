@@ -1,3 +1,5 @@
+// KaamGraph / Mobile / mobile/screens/ConfirmScreen.tsx
+
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -17,6 +19,8 @@ import { RootStackParamList } from '../App';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Confirm'>;
 type ConfirmRouteProp = RouteProp<RootStackParamList, 'Confirm'>;
+
+import { API_BASE_URL } from '../config';
 
 export default function ConfirmScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -48,6 +52,24 @@ export default function ConfirmScreen() {
     }
     setRatingSubmitted(true);
     Alert.alert('Thank You!', `You rated ${providerName} ${rating} Stars. Feedback submitted successfully!`);
+  };
+
+  const handleDispute = async (type: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/dispute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          job_id: jobId,
+          dispute_type: type,
+          description: 'Client initiated dispute from mobile UI'
+        })
+      });
+      const result = await res.json();
+      Alert.alert('Dispute Registered', `Action: ${result.resolution.action}\n\n${result.resolution.message}`);
+    } catch (e) {
+      Alert.alert('Error', 'Could not register dispute.');
+    }
   };
 
   return (
@@ -155,6 +177,29 @@ export default function ConfirmScreen() {
               <Text style={styles.ratingSuccessText}>Rating: {rating} / 5 Stars registered!</Text>
             </View>
           )}
+        </View>
+
+        {/* Dispute Resolution Actions */}
+        <View style={styles.disputeCard}>
+          <Text style={styles.sectionHeader}>REPORT AN ISSUE (DISPUTE AGENT)</Text>
+          <Text style={styles.disputeSubtitle}>Escrow is locked. If something goes wrong, you can open a dispute.</Text>
+          
+          <View style={styles.disputeBtnRow}>
+            <TouchableOpacity style={styles.disputeBtn} onPress={() => handleDispute('no_show')}>
+              <Ionicons name="person-remove-outline" size={14} color="#f87171" />
+              <Text style={styles.disputeBtnText}>No-Show</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.disputeBtn} onPress={() => handleDispute('quality_complaint')}>
+              <Ionicons name="construct-outline" size={14} color="#f87171" />
+              <Text style={styles.disputeBtnText}>Quality</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.disputeBtn} onPress={() => handleDispute('price_disagreement')}>
+              <Ionicons name="cash-outline" size={14} color="#f87171" />
+              <Text style={styles.disputeBtnText}>Pricing</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Return to Landing Dashboard */}
@@ -367,6 +412,41 @@ const styles = StyleSheet.create({
   btnHomeText: {
     color: '#ffffff',
     fontSize: 14,
+    fontWeight: 'bold',
+  },
+  disputeCard: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ef444450',
+    padding: 16,
+    marginBottom: 24,
+  },
+  disputeSubtitle: {
+    fontSize: 11,
+    color: '#9ca3af',
+    marginBottom: 12,
+  },
+  disputeBtnRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  disputeBtn: {
+    flex: 1,
+    backgroundColor: '#3f1111',
+    borderWidth: 1,
+    borderColor: '#7f1d1d',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  disputeBtnText: {
+    color: '#fca5a5',
+    fontSize: 11,
     fontWeight: 'bold',
   },
 });

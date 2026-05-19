@@ -1,3 +1,5 @@
+// KaamGraph / Mobile / mobile/screens/HomeScreen.tsx
+
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -18,7 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
-import { useTheme } from '../ThemeContext';
+import { useTheme, ISLAMABAD_SECTORS } from '../ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -56,46 +58,53 @@ const COLUMN_WIDTH = (width - 44) / 2;
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { colors, theme, toggleTheme, userRole, language, toggleLanguage, t } = useTheme();
+  const { colors, theme, toggleTheme, userRole, language, toggleLanguage, t, selectedLocationIndex } = useTheme();
+  
+  const activeLocation = ISLAMABAD_SECTORS[selectedLocationIndex];
+  const locName = language === 'en' ? activeLocation.name : activeLocation.urdu;
 
   // InDrive Worker Dashboard States
   const [isOnline, setIsOnline] = useState(true);
   const [escrowBalance, setEscrowBalance] = useState(12500);
-  const [activeLeads, setActiveLeads] = useState<InDriveLead[]>([
-    {
-      id: '1',
-      category: 'AC Technician',
-      icon: 'snow-outline',
-      color: '#06b6d4',
-      clientName: 'Hassan A.',
-      description: 'Mujhe kal subah G-13 me urgent AC lagwana hai koi technician bhejo.',
-      distance: '1.4 km away',
-      price: 2500,
-      matchRating: 98,
-    },
-    {
-      id: '2',
-      category: 'Electrician',
-      icon: 'flash-outline',
-      color: '#eab308',
-      clientName: 'Zainab M.',
-      description: 'Main board me short circuit ho rha hai urgently electrician chahye G-13.',
-      distance: '0.8 km away',
-      price: 1800,
-      matchRating: 95,
-    },
-    {
-      id: '3',
-      category: 'Plumber',
-      icon: 'water-outline',
-      color: '#3b82f6',
-      clientName: 'Bilal K.',
-      description: 'Kitchen tap leak kr rha hai, paani bohot zaya ho rha hai. Urgent help!',
-      distance: '2.1 km away',
-      price: 1200,
-      matchRating: 90,
-    }
-  ]);
+  const [activeLeads, setActiveLeads] = useState<InDriveLead[]>([]);
+
+  React.useEffect(() => {
+    setActiveLeads([
+      {
+        id: '1',
+        category: 'AC Technician',
+        icon: 'snow-outline',
+        color: '#06b6d4',
+        clientName: 'Hassan A.',
+        description: `Mujhe kal subah ${locName} me urgent AC lagwana hai koi technician bhejo.`,
+        distance: '1.4 km away',
+        price: 2500,
+        matchRating: 98,
+      },
+      {
+        id: '2',
+        category: 'Electrician',
+        icon: 'flash-outline',
+        color: '#eab308',
+        clientName: 'Zainab M.',
+        description: `Main board me short circuit ho rha hai urgently electrician chahye ${locName}.`,
+        distance: '0.8 km away',
+        price: 1800,
+        matchRating: 95,
+      },
+      {
+        id: '3',
+        category: 'Plumber',
+        icon: 'water-outline',
+        color: '#3b82f6',
+        clientName: 'Bilal K.',
+        description: `Kitchen tap leak kr rha hai, paani bohot zaya ho rha hai. Urgent help!`,
+        distance: '2.1 km away',
+        price: 1200,
+        matchRating: 90,
+      }
+    ]);
+  }, [locName]);
 
   const [selectedLead, setSelectedLead] = useState<InDriveLead | null>(null);
   const [showCounterModal, setShowCounterModal] = useState(false);
@@ -332,7 +341,7 @@ export default function HomeScreen() {
                 <View style={[styles.statusDot, { backgroundColor: isOnline ? colors.success : colors.danger }]} />
                 <Text style={[styles.onlineStatusText, { color: colors.text }]} numberOfLines={1}>
                   {isOnline 
-                    ? (language === 'en' ? 'ONLINE • Scanning G-13 for leads' : 'آن لائن • سیکٹر G-13 میں نوکریاں تلاش کی جا رہی ہیں') 
+                    ? (language === 'en' ? `ONLINE • Scanning ${activeLocation.name} for leads` : `آن لائن • ${activeLocation.urdu} میں نوکریاں تلاش کی جا رہی ہیں`) 
                     : (language === 'en' ? 'OFFLINE • Tapped to pause matches' : 'آف لائن • نئی جابز بند ہیں')
                   }
                 </Text>

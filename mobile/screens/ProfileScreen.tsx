@@ -1,3 +1,5 @@
+// KaamGraph / Mobile / mobile/screens/ProfileScreen.tsx
+
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Platform, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';

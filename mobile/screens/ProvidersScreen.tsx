@@ -1,3 +1,5 @@
+// KaamGraph / Mobile / mobile/screens/ProvidersScreen.tsx
+
 import React, { useState } from 'react';
 import {
   StyleSheet,
@@ -162,25 +164,39 @@ export default function ProvidersScreen() {
               </View>
             </View>
 
-            <View style={styles.statsRow}>
-              <View style={styles.statBox}>
-                <Ionicons name="star" size={14} color="#eab308" />
-                <Text style={styles.statValue}>{item.rating.toFixed(1)}</Text>
-                <Text style={styles.statLabel}>Rating</Text>
+            {/* 6-Factor matching display */}
+            <View style={styles.sixFactorRow}>
+              <View style={styles.factorBadge}>
+                <Ionicons name="star" size={10} color="#eab308" />
+                <Text style={styles.factorText}>{item.rating.toFixed(1)} Rating</Text>
               </View>
-              
-              <View style={styles.statBox}>
-                <Ionicons name="navigate-outline" size={14} color="#60a5fa" />
-                <Text style={styles.statValue}>{item.distance_km.toFixed(1)} km</Text>
-                <Text style={styles.statLabel}>Distance</Text>
+              <View style={styles.factorBadge}>
+                <Ionicons name="navigate-outline" size={10} color="#60a5fa" />
+                <Text style={styles.factorText}>{item.distance_km.toFixed(1)}km</Text>
               </View>
-
-              <View style={styles.statBox}>
-                <Ionicons name="wallet-outline" size={14} color="#34d399" />
-                <Text style={styles.statValue}>{item.base_cost} PKR</Text>
-                <Text style={styles.statLabel}>Base Cost</Text>
+              <View style={styles.factorBadge}>
+                <Ionicons name="checkmark-circle-outline" size={10} color="#34d399" />
+                <Text style={styles.factorText}>{((item.on_time_score ?? 0.85) * 100).toFixed(0)}% OnTime</Text>
+              </View>
+              <View style={styles.factorBadge}>
+                <Ionicons name="briefcase-outline" size={10} color="#a78bfa" />
+                <Text style={styles.factorText}>{item.experience_years ?? 3}yr Exp</Text>
+              </View>
+              <View style={styles.factorBadge}>
+                <Ionicons name="close-circle-outline" size={10} color="#f87171" />
+                <Text style={styles.factorText}>{((item.cancellation_rate ?? 0.05) * 100).toFixed(0)}% Cancel</Text>
+              </View>
+              <View style={styles.factorBadge}>
+                <Ionicons name="wallet-outline" size={10} color="#34d399" />
+                <Text style={styles.factorText}>{item.base_cost} PKR</Text>
               </View>
             </View>
+
+            {item.ranking_reason ? (
+              <View style={styles.reasoningBox}>
+                <Text style={styles.reasoningText}>🤖 {item.ranking_reason}</Text>
+              </View>
+            ) : null}
 
             <TouchableOpacity
               style={styles.bookBtn}
@@ -354,31 +370,41 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#059669', // Emerald success green
   },
-  statsRow: {
+  sixFactorRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#0d1117',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    flexWrap: 'wrap',
+    gap: 8,
     marginBottom: 16,
+  },
+  factorBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0d1117',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
     borderWidth: 0.5,
     borderColor: '#262626',
+    width: '31%',
   },
-  statBox: {
-    alignItems: 'center',
-    flex: 1,
+  factorText: {
+    color: '#d1d5db',
+    fontSize: 9,
+    fontWeight: '600',
+    marginLeft: 4,
   },
-  statValue: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginTop: 4,
+  reasoningBox: {
+    backgroundColor: '#1e1b4b',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#3730a3',
   },
-  statLabel: {
+  reasoningText: {
+    color: '#a5b4fc',
     fontSize: 10,
-    color: '#9ca3af',
-    marginTop: 2,
+    fontStyle: 'italic',
   },
   bookBtn: {
     backgroundColor: '#4f46e5',

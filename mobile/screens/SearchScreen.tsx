@@ -1,3 +1,5 @@
+// KaamGraph / Mobile / mobile/screens/SearchScreen.tsx
+
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -16,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../App';
-import { useTheme } from '../ThemeContext';
+import { useTheme, ISLAMABAD_SECTORS } from '../ThemeContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Search'>;
 type SearchRouteProp = RouteProp<RootStackParamList, 'Search'>;
@@ -29,32 +31,22 @@ interface AgentLog {
   message: string;
 }
 
-const ISLAMABAD_SECTORS = [
-  { name: 'G-13 Sector', lat: 33.6411, lng: 72.9723, urdu: 'جی-13 سیکٹر', icon: 'navigate-circle-outline' },
-  { name: 'G-11 Markaz', lat: 33.6655, lng: 72.9922, urdu: 'جی-11 مرکز', icon: 'locate-outline' },
-  { name: 'F-11 Sector', lat: 33.6841, lng: 72.9863, urdu: 'ایف-11 سیکٹر', icon: 'pin-outline' },
-  { name: 'E-11 Heights', lat: 33.6995, lng: 72.9754, urdu: 'ای-11 ہائٹس', icon: 'business-outline' },
-  { name: 'I-8 Sector', lat: 33.6702, lng: 73.0722, urdu: 'آئی-8 سیکٹر', icon: 'home-outline' },
-  { name: 'Blue Area', lat: 33.7112, lng: 73.0583, urdu: 'بلیو ایریا', icon: 'compass-outline' },
-  { name: 'Saddar RWP', lat: 33.5934, lng: 73.0531, urdu: 'صدر راولپنڈی', icon: 'trail-sign-outline' },
-];
-
 export default function SearchScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<SearchRouteProp>();
-  const { colors, theme, language } = useTheme();
+  const { colors, theme, language, selectedLocationIndex, setSelectedLocationIndex } = useTheme();
   
   const [requestText, setRequestText] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeStep, setActiveStep] = useState<number>(-1);
   const [consoleLogs, setConsoleLogs] = useState<AgentLog[]>([]);
-  const [selectedLocationIndex, setSelectedLocationIndex] = useState(0);
+  const [result, setResult] = useState<any>(null);
 
   // ─── Pre-populate text if arriving from category selection ─────────────────────────
   useEffect(() => {
     if (route.params?.category) {
       const catName = route.params.category;
-      setRequestText(`Mujhe ek experienced ${catName} chahye urgently, G-13 Islamabad mein.`);
+      setRequestText(`Mujhe ek experienced ${catName} chahye urgently.`);
     }
   }, [route.params?.category]);
 
@@ -97,10 +89,11 @@ export default function SearchScreen() {
         throw new Error(`Orchestration failed with server status: ${response.status}`);
       }
 
-      const result = await response.json();
+      const resultData = await response.json();
+      setResult(resultData);
       
       // Extract agent trace entries from backend
-      const traces = result.agent_trace || [];
+      const traces = resultData.agent_trace || [];
       
       // Simulating step-by-step rendering for clean premium agent visual feel
       for (let i = 0; i < traces.length; i++) {
@@ -126,17 +119,17 @@ export default function SearchScreen() {
       await delay(1000);
       setIsProcessing(false);
 
-      if (result.providers && result.providers.length > 0) {
+      if (resultData.providers && resultData.providers.length > 0) {
         // Automatically route to Providers Screen passing the matching payload
         navigation.navigate('Providers', {
-          serviceType: result.parsed_request?.serviceType || 'Service',
-          budget: result.parsed_request?.budget || 2000,
-          location: result.parsed_request?.location || 'Islamabad',
-          time: result.parsed_request?.time || 'flexible',
+          serviceType: resultData.parsed_request?.serviceType || 'Service',
+          budget: resultData.parsed_request?.budget || 2000,
+          location: resultData.parsed_request?.location || 'Islamabad',
+          time: resultData.parsed_request?.time || 'flexible',
           rawRequest: requestText,
-          jobId: result.job_id,
-          providersList: result.providers,
-          initialBid: result.bid,
+          jobId: resultData.job_id,
+          providersList: resultData.providers,
+          initialBid: resultData.bid,
         });
       } else {
         Alert.alert(
@@ -370,6 +363,23 @@ export default function SearchScreen() {
             </ScrollView>
           </View>
         )}
+
+        {/* Confidence Indicator — shows when LinguisticAgent confidence < 70% */}
+        {result?.parsed_request?.confidence !== undefined ? (
+          <View style={[
+            styles.confidenceBar,
+            { borderColor: result.parsed_request.confidence >= 0.7 ? '#10b981' : '#f59e0b' }
+          ]}>
+            <Text style={styles.confidenceLabel}>
+              Parse Confidence: {(result.parsed_request.confidence * 100).toFixed(0)}%
+            </Text>
+            {result.parsed_request.confirmation_needed && (
+              <Text style={styles.confirmationQuestion}>
+                ❓ {result.parsed_request.confirmation_question}
+              </Text>
+            )}
+          </View>
+        ) : null}
 
       </ScrollView>
     </SafeAreaView>
@@ -709,5 +719,23 @@ const styles = StyleSheet.create({
   mapPinIcon: {
     position: 'absolute',
     top: 45,
+  },
+  confidenceBar: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 16,
+    backgroundColor: '#1a1a1a',
+  },
+  confidenceLabel: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  confirmationQuestion: {
+    color: '#f59e0b',
+    fontSize: 12,
+    marginTop: 6,
+    fontStyle: 'italic',
   },
 });

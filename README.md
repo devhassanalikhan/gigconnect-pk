@@ -41,24 +41,35 @@ By orchestrating **5 autonomous sub-agents powered by Google Cloud & Gemini 2.5 
 
 ---
 
-## 🤖 The 5-Agent Architecture (Antigravity Engine)
+## 🤖 The Multi-Agent Architecture (Antigravity Engine)
 
 KaamGraph is powered by a state-passing sequential agentic chain. Each agent handles a specialized domain:
 
 ```mermaid
 graph TD
-    A[User Intent: 'G-13 AC leak tick krna h'] -->|1. LinguisticAgent| B[Decoded intent, location & category]
-    B -->|2. GeoMatcherAgent| C[Approved nearby workers matched]
-    C -->|3. BiddingAgent| D[Interactive ZOPA reverse-bid negotiations]
-    D -->|4. EscrowAgent| E[Milestone payout secured in digital vault]
-    E -->|5. FollowUpAgent| F[SMS Dispatch with Police Clearance Tasdeeq]
+    A[User Intent] -->|1. LinguisticAgent| B[Decoded intent, location, urgency]
+    B -->|2. SchedulingAgent| C[Double-booking conflict resolution]
+    C -->|3. GeoMatcherAgent| D[6-factor provider matching]
+    D -->|4. BiddingAgent| E[Dynamic ZOPA reverse-bid negotiations]
+    E -->|5. EscrowAgent| F[Milestone payout secured in digital vault]
+    F -->|6. FollowUpAgent| G[SMS Dispatch with checklist]
+    G -->|7. DisputeAgent| H[Post-booking mediation]
 ```
 
-1.  **LinguisticAgent (Resilient Parser)**: Parses Roman Urdu, Urdu, and English to extract service categories, timeframes, and target budgets. *Resiliency Fallback*: Auto-triggers localized heuristic keyword/regex extraction if LLM request limits or API quota outages occur.
-2.  **GeoMatcherAgent (Self-Healing Locator)**: Scans a strict 2.0 km radius in G-13 Islamabad to match police-verified, highly-rated local workers. *Resiliency Fallback*: Self-heals by dynamically expanding the scanning boundaries to a 10.0 km radius if local supply matches are empty.
-3.  **BiddingAgent (ZOPA Bargainer)**: Graphically simulates dynamic reverse-reverse price negotiations on overlapping ZOPA ranges. *Resiliency Fallback*: Falls back to the client's offered baseline price directly if numeric calculation limits fail.
-4.  **EscrowAgent (Milestone Vault)**: Locks secure milestone payouts inside secure vaults prior to dispatch to prevent transaction disputes. *Resiliency Fallback*: Persists locked transaction metadata safely inside SQLite in case of client network disconnect.
-5.  **FollowUpAgent (Dispatch Dispatcher)**: Generates SMS templates and police-clearance Tasdeeq confirmation cards. *Resiliency Fallback*: Logs background SMS reporting failures but proceeds with booking confirmations to prevent critical interface blockages.
+1.  **LinguisticAgent (Resilient Parser)**: Parses Roman Urdu/English to extract service categories, timeframes, target budgets, urgency, and complexity. *Resiliency Fallback*: Auto-triggers localized heuristic keyword/regex extraction if LLM request limits or API quota outages occur.
+2.  **SchedulingAgent (New)**: Detects double-booking conflicts and autonomously self-heals by suggesting or selecting alternative available slots/providers.
+3.  **GeoMatcherAgent (Self-Healing Locator)**: Scans nearby providers and matches them using a robust 6-factor algorithm (Distance, Rating, Reliability, Cancellation Risk, Experience, Price). *Resiliency Fallback*: Self-heals by dynamically expanding the scanning boundaries to a 10.0 km radius if local supply matches are empty.
+4.  **BiddingAgent (ZOPA Bargainer)**: Graphically simulates dynamic reverse price negotiations on overlapping ZOPA ranges utilizing complexity and urgency multipliers for dynamic pricing.
+5.  **EscrowAgent (Milestone Vault)**: Locks secure milestone payouts inside secure vaults prior to dispatch to prevent transaction disputes.
+6.  **FollowUpAgent (Dispatch Dispatcher)**: Generates SMS templates, NADRA clearance confirmations, and checklists for the job.
+7.  **DisputeAgent (New)**: Resolves post-job issues automatically based on rules, issuing partial refunds, provider penalties, and support escalations.
+
+---
+
+## 🔗 Key Endpoints Added
+- `POST /api/dispute`: Handle disputes and automate compensation/penalties.
+- `GET /api/providers/available`: Fetch 6-factor scored available workers.
+- `POST /api/stress-test`: Run extreme edge cases to demonstrate fallback and self-healing.
 
 ---
 

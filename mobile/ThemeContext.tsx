@@ -1,9 +1,21 @@
+// KaamGraph / Mobile / mobile/ThemeContext.tsx
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
 export type ThemeType = 'light' | 'dark';
 export type UserRole = 'client' | 'provider';
 export type AppLanguage = 'en' | 'ur';
+
+export const ISLAMABAD_SECTORS = [
+  { name: 'G-13 Sector', lat: 33.6411, lng: 72.9723, urdu: 'جی-13 سیکٹر', icon: 'navigate-circle-outline' },
+  { name: 'G-11 Markaz', lat: 33.6655, lng: 72.9922, urdu: 'جی-11 مرکز', icon: 'locate-outline' },
+  { name: 'F-11 Sector', lat: 33.6841, lng: 72.9863, urdu: 'ایف-11 سیکٹر', icon: 'pin-outline' },
+  { name: 'E-11 Heights', lat: 33.6995, lng: 72.9754, urdu: 'ای-11 ہائٹس', icon: 'business-outline' },
+  { name: 'I-8 Sector', lat: 33.6702, lng: 73.0722, urdu: 'آئی-8 سیکٹر', icon: 'home-outline' },
+  { name: 'Blue Area', lat: 33.7112, lng: 73.0583, urdu: 'بلیو ایریا', icon: 'compass-outline' },
+  { name: 'Saddar RWP', lat: 33.5934, lng: 73.0531, urdu: 'صدر راولپنڈی', icon: 'trail-sign-outline' },
+];
 
 export interface ThemeColors {
   background: string;
@@ -130,12 +142,12 @@ const englishTranslations: TranslationSet = {
   heroBadge: "HACKATHON EDITION",
   heroTitle: "Trusted pricing, locked with AI Escrow.",
   heroDescription: "Describe your task in Roman Urdu or English and let our 5-Agent pipeline handle matching, bidding & payments.",
-  searchPlaceholder: 'Type what you need (e.g. "Plumber chahye G-13")',
+  searchPlaceholder: 'Type what you need (e.g. "Plumber chahye")',
   selectCategory: "Select a Category",
   selectCategorySub: "Tap to auto-populate request intents",
   poweredBy: "Powered by Google Antigravity",
   howSubagentsSecure: "How our 5 sub-agents secure your job:",
-  leadHeader: "Incoming Local Leads (Sector G-13)",
+  leadHeader: "Incoming Local Leads",
   leadSub: "Real-time matching near your active coordinates",
   activeNegotiationHeader: "Active Bargaining Traces",
   activeNegotiationSub: "AI-to-AI ZOPA negotiations currently in progress",
@@ -165,8 +177,8 @@ const englishTranslations: TranslationSet = {
   logOut: "Log Out Account",
   verifiedBadgeClient: "NADRA CNIC Verified (Tasdeeq AI)",
   verifiedBadgeWorker: "NADRA & Police Clearance Approved",
-  premiumClient: "Premium Client • Islamabad",
-  topRatedProvider: "Top Rated Provider • Sector G-13",
+  premiumClient: "Premium Client",
+  topRatedProvider: "Top Rated Provider",
   tabHome: "Home",
   tabSearch: "AI Match",
   tabHistory: "Escrows",
@@ -181,12 +193,12 @@ const urduTranslations: TranslationSet = {
   heroBadge: "ہیکاتھون ایڈیشن",
   heroTitle: "بھروسہ مند قیمتیں، جو کہ AI ایسکرو کے ساتھ محفوظ ہیں",
   heroDescription: "اپنی ضرورت رومن اردو یا انگریزی میں بتائیں اور ہمارے ۵-ایجنٹ پائپ لائن کو میچنگ، بولی اور ادائیگی سنبھالنے دیں",
-  searchPlaceholder: "اپنی ضرورت ٹائپ کریں (جیسے: پلمبر چاہئے G-13)",
+  searchPlaceholder: "اپنی ضرورت ٹائپ کریں (جیسے: پلمبر چاہئے)",
   selectCategory: "زمرہ منتخب کریں",
   selectCategorySub: "رکویسٹ کو خود بخود بھرنے کے لیے کلک کریں",
   poweredBy: "گوگل اینٹی گریویٹی کے ذریعے چلنے والا",
   howSubagentsSecure: "ہمارے ۵ سب ایجنٹس آپ کے کام کو کیسے محفوظ بناتے ہیں:",
-  leadHeader: "آمدہ مقامی لیڈز (سیکٹر G-13)",
+  leadHeader: "آمدہ مقامی لیڈز",
   leadSub: "آپ کے فعال پتے کے قریب لائیو کام کے مواقع",
   activeNegotiationHeader: "لائیو بولی کی تفصیلات",
   activeNegotiationSub: "ایجنٹس کے درمیان خودکار قیمت کے مذاکرات جاری ہیں",
@@ -216,8 +228,8 @@ const urduTranslations: TranslationSet = {
   logOut: "اکاؤنٹ لاگ آؤٹ کریں",
   verifiedBadgeClient: "نادرا شناختی کارڈ تصدیق شدہ (Tasdeeq AI)",
   verifiedBadgeWorker: "نادرا اور پولیس تصدیق منظور شدہ",
-  premiumClient: "پریمیم کلائنٹ • اسلام آباد",
-  topRatedProvider: "ٹاپ ریٹیڈ فراہم کنندہ • سیکٹر G-13",
+  premiumClient: "پریمیم کلائنٹ",
+  topRatedProvider: "ٹاپ ریٹیڈ فراہم کنندہ",
   tabHome: "ہوم",
   tabSearch: "میچنگ",
   tabHistory: "ایسکرو",
@@ -233,6 +245,8 @@ interface ThemeContextProps {
   toggleUserRole: () => void;
   language: AppLanguage;
   toggleLanguage: () => void;
+  selectedLocationIndex: number;
+  setSelectedLocationIndex: (idx: number) => void;
   t: TranslationSet;
 }
 
@@ -243,6 +257,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [theme, setTheme] = useState<ThemeType>('dark');
   const [userRole, setUserRole] = useState<UserRole>('client');
   const [language, setLanguage] = useState<AppLanguage>('en');
+  const [selectedLocationIndex, setSelectedLocationIndex] = useState<number>(0);
 
   useEffect(() => {
     if (systemScheme) {
@@ -276,6 +291,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       toggleUserRole, 
       language, 
       toggleLanguage, 
+      selectedLocationIndex,
+      setSelectedLocationIndex,
       t 
     }}>
       {children}
