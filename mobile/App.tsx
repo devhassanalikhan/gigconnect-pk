@@ -5,9 +5,38 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { StatusBar } from 'react-native';
+import { StatusBar, LogBox } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider, useTheme } from './ThemeContext';
+
+// Suppress known non-critical third-party platform/web warnings
+LogBox.ignoreLogs([
+  'props.pointerEvents is deprecated',
+  'Blocked aria-hidden on an element',
+  'Slow network is detected',
+]);
+
+if (typeof window !== 'undefined') {
+  const ignoreWarns = [
+    'props.pointerEvents is deprecated',
+    'Blocked aria-hidden on an element',
+    'Slow network is detected',
+  ];
+  
+  const originalWarn = console.warn;
+  console.warn = function (...args) {
+    const msg = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+    if (ignoreWarns.some(w => msg.includes(w))) return;
+    originalWarn.apply(console, args);
+  };
+
+  const originalErr = console.error;
+  console.error = function (...args) {
+    const msg = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ');
+    if (ignoreWarns.some(w => msg.includes(w))) return;
+    originalErr.apply(console, args);
+  };
+}
 
 // ─── Import Screens ─────────────────────────────────────────────────────────────────
 import LoginScreen from './screens/LoginScreen';
