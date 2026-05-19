@@ -30,16 +30,16 @@ export default function ConfirmScreen() {
   const styles = getStyles(colors);
 
   const {
-    jobId,
-    bookingId,
-    escrowId,
-    total,
-    fee,
-    netToProvider,
-    providerName,
-    serviceType,
-    providerSms,
-  } = route.params;
+    jobId = '',
+    bookingId = '',
+    escrowId = '',
+    total = 0,
+    fee = 0,
+    netToProvider = 0,
+    providerName = '',
+    serviceType = '',
+    providerSms = '',
+  } = route.params || {};
 
   const [rating, setRating] = useState<number>(0);
   const [ratingSubmitted, setRatingSubmitted] = useState<boolean>(false);
@@ -103,7 +103,7 @@ export default function ConfirmScreen() {
 
           <View style={styles.receiptRow}>
             <Text style={[styles.receiptLabel, { color: colors.textMuted }]}>Job ID</Text>
-            <Text style={[styles.receiptMonospace, { color: colors.text }]}>#{jobId.slice(0, 10)}</Text>
+            <Text style={[styles.receiptMonospace, { color: colors.text }]}>#{(jobId || '').slice(0, 10)}</Text>
           </View>
 
           <View style={styles.receiptRow}>
@@ -120,17 +120,17 @@ export default function ConfirmScreen() {
 
           <View style={styles.receiptRow}>
             <Text style={[styles.receiptLabel, { color: colors.textMuted }]}>Total Amount Locked</Text>
-            <Text style={[styles.totalValue, { color: colors.text }]}>{total.toFixed(0)} PKR</Text>
+            <Text style={[styles.totalValue, { color: colors.text }]}>{(Number(total) || 0).toFixed(0)} PKR</Text>
           </View>
 
           <View style={styles.receiptRow}>
             <Text style={[styles.receiptLabel, { color: colors.textMuted }]}>Platform Fee (9.99%)</Text>
-            <Text style={[styles.receiptFee, { color: colors.warning }]}>-{fee.toFixed(2)} PKR</Text>
+            <Text style={[styles.receiptFee, { color: colors.warning }]}>-{((Number(fee) || 0)).toFixed(2)} PKR</Text>
           </View>
 
           <View style={styles.receiptRow}>
             <Text style={[styles.receiptLabel, { color: colors.textMuted }]}>Net Payout to Worker</Text>
-            <Text style={[styles.netValue, { color: colors.success }]}>{netToProvider.toFixed(2)} PKR</Text>
+            <Text style={[styles.netValue, { color: colors.success }]}>{(Number(netToProvider) || 0).toFixed(2)} PKR</Text>
           </View>
         </View>
 

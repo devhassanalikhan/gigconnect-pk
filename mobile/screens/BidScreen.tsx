@@ -23,7 +23,7 @@ import { useTheme } from '../ThemeContext';
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Bid'>;
 type BidRouteProp = RouteProp<RootStackParamList, 'Bid'>;
 
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, fetchWithTimeout } from '../config';
 
 export default function BidScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -32,16 +32,16 @@ export default function BidScreen() {
   const styles = getStyles(colors);
 
   const {
-    jobId,
-    providerId,
-    providerName,
-    serviceType,
-    clientBudget: initialBudget,
-    providerMin: initialMin,
-    agreedPrice: initialAgreed,
-    action: initialAction,
-    reason: initialReason,
-  } = route.params;
+    jobId = '',
+    providerId = '',
+    providerName = '',
+    serviceType = '',
+    clientBudget: initialBudget = 0,
+    providerMin: initialMin = 0,
+    agreedPrice: initialAgreed = 0,
+    action: initialAction = '',
+    reason: initialReason = '',
+  } = route.params || {};
 
   const [currentAction, setCurrentAction] = useState(initialAction);
   const [currentAgreedPrice, setCurrentAgreedPrice] = useState(initialAgreed);
@@ -58,7 +58,7 @@ export default function BidScreen() {
     setIsEscrowLocking(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/escrow/lock`, {
+      const response = await fetchWithTimeout(`${API_BASE_URL}/api/escrow/lock`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ export default function BidScreen() {
           provider_id: providerId,
           agreed_price: Number(currentAgreedPrice),
         }),
-      });
+      }, 10000); // 10 second timeout
 
       if (!response.ok) {
         throw new Error(`Escrow locking failed with status: ${response.status}`);
@@ -113,7 +113,7 @@ export default function BidScreen() {
     setIsCounterOpen(false);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/bid`, {
+      const response = await fetchWithTimeout(`${API_BASE_URL}/api/bid`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -123,7 +123,7 @@ export default function BidScreen() {
           provider_id: providerId,
           budget: enteredVal,
         }),
-      });
+      }, 10000); // 10 second timeout
 
       if (!response.ok) {
         throw new Error(`Re-negotiation failed with status: ${response.status}`);
@@ -366,7 +366,7 @@ export default function BidScreen() {
             <View style={styles.actionButtonRow}>
               {currentAction !== 'REJECT' && (
                 <TouchableOpacity style={styles.acceptActionBtn} onPress={acceptOffer}>
-                  <Ionicons name="wallet" size={18} color="#0f0f0f" />
+                  <Ionicons name="wallet" size={18} color="#ffffff" />
                   <Text style={styles.acceptActionText}>Lock & Book Offer</Text>
                 </TouchableOpacity>
               )}

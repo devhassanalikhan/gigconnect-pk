@@ -1,5 +1,5 @@
 // KaamGraph / screens/SearchScreen.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -13,12 +13,13 @@ import {
   Platform,
   Dimensions,
   Modal,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useTheme } from '../ThemeContext';
-import { API_BASE_URL } from '../config';
+import { useTheme, ThemeColors } from '../ThemeContext';
+import { API_BASE_URL, fetchWithTimeout } from '../config';
 
 const { width, height } = Dimensions.get('window');
 
@@ -31,6 +32,8 @@ interface ChatBubble {
 export default function SearchScreen() {
   const navigation = useNavigation<any>();
   const { colors, theme, language, chatHistory, setChatHistory } = useTheme();
+  const styles = getStyles(colors, theme);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const [requestText, setRequestText] = useState('');
   const [activeAgentStep, setActiveAgentStep] = useState(-1); // -1 = idle
@@ -47,6 +50,13 @@ export default function SearchScreen() {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [matchedProviders, setMatchedProviders] = useState<any[]>([]);
   const [parsedRequest, setParsedRequest] = useState<any>(null);
+
+  // Automatically scroll to bottom when messages list updates
+  useEffect(() => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, [messages]);
 
   // Trigger matching pipeline
   const handleSend = async (customText?: string) => {
@@ -77,7 +87,7 @@ export default function SearchScreen() {
       advanceStep(2, 1400);  // GeoMatcher
       advanceStep(3, 2200);  // BiddingAgent
 
-      const response = await fetch(`${API_BASE_URL}/api/match`, {
+      const response = await fetchWithTimeout(`${API_BASE_URL}/api/match`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -85,7 +95,7 @@ export default function SearchScreen() {
           user_lat: 33.642,
           user_lng: 73.076,
         }),
-      });
+      }, 15000); // 15 second timeout for LangGraph compilation
 
       if (!response.ok) {
         throw new Error(`Server error: ${response.status}`);
@@ -146,122 +156,136 @@ export default function SearchScreen() {
       Alert.alert('Speech Recognized', `Translated: "${simulatedSpeechText}"`);
     }, 2500);
   };  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
-      {/* Header bar */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <TouchableOpacity style={styles.menuBtn} onPress={() => setDrawerVisible(true)}>
-          <Ionicons name="menu-outline" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>KaamGraph AI Chat</Text>
-        <TouchableOpacity style={styles.clearBtn} onPress={() => setMessages([messages[0]])}>
-          <Text style={[styles.clearBtnText, { color: colors.primary }]}>Clear</Text>
-        </TouchableOpacity>
-      </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.select({ ios: 90, android: 0, default: 0 })}
+      >
+        {/* Header bar */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.menuBtn} onPress={() => setDrawerVisible(true)}>
+            <Ionicons name="menu-outline" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>KaamGraph AI Chat</Text>
+          <TouchableOpacity style={styles.clearBtn} onPress={() => setMessages([messages[0]])}>
+            <Text style={styles.clearBtnText}>Clear</Text>
+          </TouchableOpacity>
+        </View>
 
-      {/* Conversational Stream */}
-      <ScrollView contentContainerStyle={styles.chatArea} showsVerticalScrollIndicator={false}>
-        {messages.map((m, idx) => {
-          const isUser = m.sender === 'user';
-          return (
-            <View
-              key={`msg-${idx}`}
-              style={[
-                styles.bubbleWrapper,
-                isUser ? { alignSelf: 'flex-end' } : { alignSelf: 'flex-start' },
-              ]}
-            >
+        {/* Conversational Stream */}
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.chatArea}
+          showsVerticalScrollIndicator={false}
+        >
+          {messages.map((m, idx) => {
+            const isUser = m.sender === 'user';
+            return (
               <View
+                key={`msg-${idx}`}
                 style={[
-                  styles.bubble,
-                  isUser
-                    ? { backgroundColor: colors.primary }
-                    : { backgroundColor: colors.cardBackground, borderColor: colors.border, borderWidth: 1 },
+                  styles.bubbleWrapper,
+                  isUser ? { alignSelf: 'flex-end' } : { alignSelf: 'flex-start' },
                 ]}
               >
-                <Text style={[styles.bubbleText, { color: isUser ? '#fff' : colors.text }]}>{m.text}</Text>
-                <Text style={[styles.bubbleTime, { color: isUser ? 'rgba(255,255,255,0.7)' : colors.textMuted }]}>{m.time}</Text>
+                <View
+                  style={[
+                    styles.bubble,
+                    isUser
+                      ? { backgroundColor: colors.primary }
+                      : { backgroundColor: colors.cardBackground, borderColor: colors.border, borderWidth: 1 },
+                  ]}
+                >
+                  <Text style={[styles.bubbleText, { color: isUser ? '#fff' : colors.text }]}>{m.text}</Text>
+                  <Text style={[styles.bubbleTime, { color: isUser ? 'rgba(255,255,255,0.7)' : colors.textMuted }]}>{m.time}</Text>
+                </View>
+              </View>
+            );
+          })}
+
+          {/* Agentic Radar Step Tracker — removed as per request, using simple chat typing indicator instead */}
+          {isProcessing && (
+            <View style={[styles.bubbleWrapper, { alignSelf: 'flex-start' }]}>
+              <View style={[styles.bubble, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderWidth: 1 }]}>
+                <ActivityIndicator size="small" color={colors.primary} />
               </View>
             </View>
-          );
-        })}
+          )}
 
-        {/* Agentic Radar Step Tracker — removed as per request, using simple chat typing indicator instead */}
-        {isProcessing && (
-          <View style={[styles.bubbleWrapper, { alignSelf: 'flex-start' }]}>
-            <View style={[styles.bubble, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderWidth: 1 }]}>
-              <ActivityIndicator size="small" color={colors.primary} />
-            </View>
-          </View>
-        )}
-
-        {/* Dynamic Provider Results */}
-        {matchedProviders.length > 0 && !isProcessing && (
-          <View style={styles.resultsContainer}>
-            <Text style={[styles.resultsTitle, { color: colors.textMuted }]}>
-              {language === 'en' ? 'MATCHED PROVIDERS' : 'منتخب ورکرز'}
-            </Text>
-            {matchedProviders.map((p, pIdx) => (
-              <TouchableOpacity
-                key={`p-${pIdx}`}
-                style={[styles.providerCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-                onPress={() => navigation.navigate('Book', {
-                  provider: p,
-                  serviceType: parsedRequest?.serviceType || 'Service',
-                })}
-              >
-                <View style={styles.providerInfo}>
-                  <View style={styles.providerMain}>
-                    <Text style={[styles.providerNameText, { color: colors.text }]}>{p.name}</Text>
-                    <View style={styles.ratingRow}>
-                      <Ionicons name="star" size={12} color="#f59e0b" />
-                      <Text style={[styles.ratingText, { color: colors.text }]}> {p.rating}</Text>
-                      <Text style={[styles.distanceText, { color: colors.textMuted }]}> • {p.distance_km}km away</Text>
+          {/* Dynamic Provider Results */}
+          {matchedProviders.length > 0 && !isProcessing && (
+            <View style={styles.resultsContainer}>
+              <Text style={styles.resultsTitle}>
+                {language === 'en' ? 'MATCHED PROVIDERS' : 'منتخب ورکرز'}
+              </Text>
+              {matchedProviders.map((p, pIdx) => (
+                <TouchableOpacity
+                  key={`p-${pIdx}`}
+                  style={styles.providerCard}
+                  onPress={() => navigation.navigate('Book', {
+                    provider: p,
+                    serviceType: parsedRequest?.serviceType || 'Service',
+                  })}
+                >
+                  <View style={styles.providerInfo}>
+                    <View style={styles.providerMain}>
+                      <Text style={styles.providerNameText}>{p.name}</Text>
+                      <View style={styles.ratingRow}>
+                        <Ionicons name="star" size={12} color="#f59e0b" />
+                        <Text style={styles.ratingText}> {p.rating}</Text>
+                        <Text style={styles.distanceText}> • {p.distance_km}km away</Text>
+                      </View>
+                    </View>
+                    <View style={styles.priceTagSmall}>
+                      <Text style={styles.priceTextSmall}>{p.base_cost} PKR</Text>
                     </View>
                   </View>
-                  <View style={[styles.priceTagSmall, { backgroundColor: colors.primaryLight }]}>
-                    <Text style={[styles.priceTextSmall, { color: colors.primary }]}>{p.base_cost} PKR</Text>
+                  <View style={styles.selectBtn}>
+                    <Text style={styles.selectBtnText}>{language === 'en' ? 'Select & Bid' : 'منتخب کریں'}</Text>
                   </View>
-                </View>
-                <View style={[styles.selectBtn, { backgroundColor: colors.primary }]}>
-                  <Text style={styles.selectBtnText}>{language === 'en' ? 'Select & Bid' : 'منتخب کریں'}</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </ScrollView>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </ScrollView>
 
-      {/* Bottom input area */}
-      <View style={[styles.inputArea, { backgroundColor: colors.cardBackground, borderTopColor: colors.border }]}>
-        <TouchableOpacity style={styles.micBtn} onPress={triggerVoiceInput}>
-          <Ionicons name="mic-outline" size={22} color={colors.textMuted} />
-        </TouchableOpacity>
-        
-        <TextInput
-          style={[styles.textInput, { color: colors.text }]}
-          value={requestText}
-          onChangeText={setRequestText}
-          placeholder={language === 'en' ? 'Ask KaamGraph AI...' : 'KaamGraph AI سے پوچھیں...'}
-          placeholderTextColor={colors.textMuted}
-        />
+        {/* Bottom input area */}
+        <View style={[styles.inputArea, { backgroundColor: colors.cardBackground, borderTopColor: colors.border }]}>
+          <TouchableOpacity style={styles.micBtn} onPress={triggerVoiceInput}>
+            <Ionicons name="mic-outline" size={22} color={colors.textMuted} />
+          </TouchableOpacity>
+          
+          <TextInput
+            style={[styles.textInput, {
+              backgroundColor: theme === 'dark' ? '#1e293b' : '#f1f5f9',
+              color: theme === 'dark' ? '#ffffff' : '#0f172a',
+              borderColor: theme === 'dark' ? '#334155' : '#cbd5e1'
+            }]}
+            value={requestText}
+            onChangeText={setRequestText}
+            placeholder={language === 'en' ? 'Ask KaamGraph AI...' : 'KaamGraph AI سے پوچھیں...'}
+            placeholderTextColor={colors.textMuted}
+          />
 
-        <TouchableOpacity style={[styles.sendBtn, { backgroundColor: colors.text }]} onPress={() => handleSend()}>
-          <Ionicons name="arrow-up" size={20} color={colors.background} />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={[styles.sendBtn, { backgroundColor: theme === 'dark' ? '#6366f1' : '#4f46e5' }]} onPress={() => handleSend()}>
+            <Ionicons name="arrow-up" size={20} color="#ffffff" />
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
 
       {/* Mic listening overlay */}
       <Modal visible={micActive} transparent animationType="fade">
         <View style={styles.listeningBg}>
-          <View style={[styles.listeningCard, { backgroundColor: colors.cardBackground }]}>
+          <View style={styles.listeningCard}>
             <View style={styles.pulseWaves}>
               <View style={[styles.pulseCircle, { transform: [{ scale: 1.2 }] }]} />
               <Ionicons name="mic" size={40} color={colors.primary} />
             </View>
-            <Text style={[styles.listeningTitle, { color: colors.text }]}>Listening...</Text>
-            <Text style={[styles.listeningDesc, { color: colors.textMuted }]}>Say something like "Electrician chahye Tulsa Road par"</Text>
+            <Text style={styles.listeningTitle}>Listening...</Text>
+            <Text style={styles.listeningDesc}>Say something like "Electrician chahye Tulsa Road par"</Text>
           </View>
         </View>
       </Modal>
@@ -271,9 +295,9 @@ export default function SearchScreen() {
         <View style={styles.drawerBg}>
           <TouchableOpacity style={styles.drawerDismiss} onPress={() => setDrawerVisible(false)} />
           
-          <View style={[styles.drawerPanel, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+          <View style={styles.drawerPanel}>
             <View style={styles.drawerHeader}>
-              <Text style={[styles.drawerTitle, { color: colors.text }]}>
+              <Text style={styles.drawerTitle}>
                 {language === 'en' ? 'Recent Searches' : 'حالیہ تلاشیں'}
               </Text>
               <TouchableOpacity onPress={() => setDrawerVisible(false)}>
@@ -285,7 +309,7 @@ export default function SearchScreen() {
               {chatHistory.map((history, idx) => (
                 <TouchableOpacity
                   key={`hist-${idx}`}
-                  style={[styles.historyItem, { borderBottomColor: colors.border }]}
+                  style={styles.historyItem}
                   onPress={() => {
                     setDrawerVisible(false);
                     handleSend(history.text);
@@ -293,8 +317,8 @@ export default function SearchScreen() {
                 >
                   <Ionicons name="chatbubble-outline" size={16} color={colors.primary} style={{ marginRight: 10 }} />
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.historyText, { color: colors.text }]} numberOfLines={2}>{history.text}</Text>
-                    <Text style={[styles.historyTime, { color: colors.textMuted }]}>{history.time}</Text>
+                    <Text style={styles.historyText} numberOfLines={2}>{history.text}</Text>
+                    <Text style={styles.historyTime}>{history.time}</Text>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -310,9 +334,10 @@ export default function SearchScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: ThemeColors, theme: string) => StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -321,7 +346,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1e293b',
+    borderBottomColor: colors.border,
   },
   menuBtn: {
     padding: 4,
@@ -329,19 +354,18 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.text,
   },
   clearBtn: {
     padding: 4,
   },
   clearBtnText: {
-    color: '#94a3b8',
+    color: colors.primary,
     fontSize: 14,
   },
   chatArea: {
     flexGrow: 1,
     padding: 20,
-    justifyContent: 'flex-end',
   },
   bubbleWrapper: {
     maxWidth: '80%',
@@ -367,12 +391,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: colors.border,
     marginTop: 10,
     marginBottom: 20,
   },
@@ -380,7 +404,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   scanningText: {
-    color: '#94a3b8',
+    color: colors.textMuted,
     fontSize: 12,
   },
   inputArea: {
@@ -389,8 +413,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: '#1e293b',
-    backgroundColor: '#090d16',
+    borderTopColor: colors.border,
+    backgroundColor: colors.cardBackground,
   },
   micBtn: {
     padding: 10,
@@ -399,11 +423,11 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.inputBackground,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: colors.border,
     paddingHorizontal: 16,
-    color: '#fff',
+    color: colors.text,
     fontSize: 14,
     marginHorizontal: 10,
   },
@@ -413,6 +437,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.primary,
   },
   listeningBg: {
     flex: 1,
@@ -421,10 +446,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listeningCard: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: colors.border,
     padding: 40,
     alignItems: 'center',
     width: width * 0.8,
@@ -443,16 +468,16 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     borderRadius: 50,
     borderWidth: 1.5,
-    borderColor: '#6366f1',
+    borderColor: colors.primary,
     opacity: 0.5,
   },
   listeningTitle: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 20,
     fontWeight: 'bold',
   },
   listeningDesc: {
-    color: '#94a3b8',
+    color: colors.textMuted,
     fontSize: 13,
     textAlign: 'center',
     marginTop: 10,
@@ -468,9 +493,9 @@ const styles = StyleSheet.create({
   },
   drawerPanel: {
     width: width * 0.75,
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.cardBackground,
     borderLeftWidth: 1,
-    borderLeftColor: '#1e293b',
+    borderLeftColor: colors.border,
     padding: 20,
     height: '100%',
   },
@@ -479,12 +504,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#1e293b',
+    borderBottomColor: colors.border,
     paddingBottom: 16,
     marginBottom: 16,
   },
   drawerTitle: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -493,41 +518,41 @@ const styles = StyleSheet.create({
   },
   historyItem: {
     flexDirection: 'row',
-    backgroundColor: '#090d16',
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: colors.border,
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
   },
   historyText: {
-    color: '#fff',
+    color: colors.text,
     fontSize: 13,
     lineHeight: 18,
   },
   historyTime: {
-    color: '#475569',
+    color: colors.textMuted,
     fontSize: 10,
     marginTop: 4,
   },
   emptyHistory: {
-    color: '#475569',
+    color: colors.textMuted,
     textAlign: 'center',
     marginTop: 40,
     fontSize: 14,
   },
   // ── Agentic Radar styles ──────────────────────────────────────────────────
   agentRadarCard: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.cardBackground,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#1e293b',
+    borderColor: colors.border,
     padding: 16,
     marginTop: 12,
     marginBottom: 20,
   },
   agentRadarTitle: {
-    color: '#6366f1',
+    color: colors.primary,
     fontSize: 12,
     fontWeight: 'bold',
     letterSpacing: 0.5,
@@ -542,12 +567,12 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#1e293b',
+    backgroundColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   agentStepSub: {
-    color: '#6366f1',
+    color: colors.primary,
     fontSize: 11,
     marginTop: 2,
   },
@@ -561,12 +586,15 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     marginBottom: 12,
     paddingLeft: 4,
+    color: colors.textMuted,
   },
   providerCard: {
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
+    backgroundColor: colors.cardBackground,
+    borderColor: colors.border,
   },
   providerInfo: {
     flexDirection: 'row',
@@ -581,6 +609,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
+    color: colors.text,
   },
   ratingRow: {
     flexDirection: 'row',
@@ -589,24 +618,29 @@ const styles = StyleSheet.create({
   ratingText: {
     fontSize: 12,
     fontWeight: 'bold',
+    color: colors.text,
   },
   distanceText: {
     fontSize: 12,
+    color: colors.textMuted,
   },
   priceTagSmall: {
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 8,
+    backgroundColor: colors.primaryLight,
   },
   priceTextSmall: {
     fontSize: 12,
     fontWeight: 'bold',
+    color: colors.primary,
   },
   selectBtn: {
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.primary,
   },
   selectBtnText: {
     color: '#fff',

@@ -100,20 +100,43 @@ async def match_providers(req: MatchRequest, db: Session = Depends(get_db)):
 async def place_bid(req: BidRequest, db: Session = Depends(get_db)):
     trace = []
     job = db.query(Job).filter(Job.id == req.job_id).first()
-    if not job:
-        return {"error": "Job not found"}
-
+    
     provider = db.query(Provider).filter(Provider.id == req.provider_id).first()
-    if not provider:
-        return {"error": "Provider not found"}
+    
+    p_name = ""
+    p_dict = {}
+    
+    if provider:
+        p_name = provider.name
+        p_dict = _provider_to_dict(provider)
+        p_dict["distance_km"] = _haversine(
+            DEFAULT_USER_LAT, DEFAULT_USER_LNG, provider.lat, provider.lng
+        )
+    
+    if not job:
+        p_service_type = provider.service_type if provider else "Plumber"
+        job = Job(
+            id=req.job_id,
+            parsed={"serviceType": p_service_type, "location": "Adyala Road, Rawalpindi", "time": "flexible", "budget": req.budget},
+            providers=[p_dict] if p_dict else [],
+            status="Searching",
+        )
+        db.add(job)
+        db.commit()
 
-    p_dict = _provider_to_dict(provider)
-    p_dict["distance_km"] = _haversine(
-        DEFAULT_USER_LAT, DEFAULT_USER_LNG, provider.lat, provider.lng
-    )
+    if not p_name:
+        # Check Job providers list (e.g. for Google Places providers)
+        if job.providers:
+            for p in job.providers:
+                if p.get("id") == req.provider_id:
+                    p_dict = p
+                    p_name = p.get("name")
+                    break
+        if not p_name:
+            return {"error": "Provider not found"}
 
     trace.append(f"[BiddingAgent] Client budget: {req.budget} PKR")
-    trace.append(f"[BiddingAgent] Provider: {provider.name}, Base: {provider.base_cost} PKR")
+    trace.append(f"[BiddingAgent] Provider: {p_name}, Base: {p_dict.get('base_cost')} PKR")
 
     bid = bidding_agent(req.budget, p_dict)
     trace.append(f"[BiddingAgent] Decision: {bid['action']} at {bid.get('agreed_price')} PKR")
@@ -122,15 +145,47 @@ async def place_bid(req: BidRequest, db: Session = Depends(get_db)):
     job.status = "BidPlaced"
     db.commit()
 
-    return {"job_id": req.job_id, "provider": provider.name, "bid": bid, "trace": trace}
+    return {"job_id": req.job_id, "provider": p_name, "bid": bid, "trace": trace}
 
 
 @app.post("/api/escrow/lock")
 async def lock_escrow(req: EscrowRequest, db: Session = Depends(get_db)):
     trace = []
     provider = db.query(Provider).filter(Provider.id == req.provider_id).first()
-    if not provider:
-        return {"error": "Provider not found"}
+    
+    p_name = ""
+    p_service_type = ""
+    
+    job = db.query(Job).filter(Job.id == req.job_id).first()
+    
+    if provider:
+        p_name = provider.name
+        p_service_type = provider.service_type
+    else:
+        # Check Job providers list (e.g. for Google Places providers)
+        if job and job.providers:
+            for p in job.providers:
+                if p.get("id") == req.provider_id:
+                    p_name = p.get("name")
+                    p_service_type = p.get("service_type")
+                    break
+        if not p_name:
+            return {"error": "Provider not found"}
+
+    if not job:
+        p_dict = _provider_to_dict(provider) if provider else {}
+        if provider:
+            p_dict["distance_km"] = _haversine(
+                DEFAULT_USER_LAT, DEFAULT_USER_LNG, provider.lat, provider.lng
+            )
+        job = Job(
+            id=req.job_id,
+            parsed={"serviceType": p_service_type, "location": "Adyala Road, Rawalpindi", "time": "flexible", "budget": req.agreed_price},
+            providers=[p_dict] if p_dict else [],
+            status="Searching",
+        )
+        db.add(job)
+        db.commit()
 
     trace.append(f"[EscrowAgent] Locking {req.agreed_price} PKR...")
     escrow = escrow_agent(req.agreed_price)
@@ -138,13 +193,12 @@ async def lock_escrow(req: EscrowRequest, db: Session = Depends(get_db)):
     trace.append(f"[EscrowAgent] Net to provider: {escrow['net_to_provider']} PKR")
     trace.append(f"[EscrowAgent] Escrow ID: {escrow['escrow_id']}")
 
-    job = db.query(Job).filter(Job.id == req.job_id).first()
     parsed = job.parsed if job else {}
 
     fu = followup_agent(
         booking_id=escrow["booking_id"],
-        provider_name=provider.name,
-        service_type=provider.service_type,
+        provider_name=p_name,
+        service_type=p_service_type,
         agreed_price=req.agreed_price,
         time_pref=parsed.get("time", "flexible"),
     )
