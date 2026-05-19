@@ -123,7 +123,7 @@ function TabNavigator() {
     },
     tabBarActiveTintColor: activeColor,
     tabBarInactiveTintColor: colors.textMuted,
-    tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
+    tabBarLabelStyle: { fontSize: 10, fontWeight: 'bold' as const },
     tabBarIcon: ({ color, focused }: any) => {
       let iconName = '';
       if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';

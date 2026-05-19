@@ -51,18 +51,6 @@ const HEALTH_CARE: Category[] = [
   { id: 'Physiotherapy', name: 'Physiotherapist', urdu: 'فزیو تھیرپی', icon: 'fitness-outline', color: '#a855f7', description: 'Muscle rehab sessions', descUrdu: 'مسل ریہیب سیشنز' },
 ];
 
-interface InDriveLead {
-  id: string;
-  category: string;
-  icon: string;
-  color: string;
-  clientName: string;
-  description: string;
-  distance: string;
-  price: number;
-  matchRating: number;
-}
-
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const { colors, theme, toggleTheme, userRole, toggleUserRole, language, toggleLanguage, t, selectedLocationIndex } = useTheme();
@@ -70,167 +58,12 @@ export default function HomeScreen() {
   const activeLocation = ISLAMABAD_SECTORS[selectedLocationIndex];
   const locName = language === 'en' ? activeLocation.name : activeLocation.urdu;
 
-  const [isOnline, setIsOnline] = useState(true);
-  const [escrowBalance, setEscrowBalance] = useState(12500);
-  const [activeLeads, setActiveLeads] = useState<InDriveLead[]>([]);
-
-  const fetchJobs = React.useCallback(async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/jobs`);
-      const data = await res.json();
-      
-      const mockLeads = [
-        {
-          id: '1',
-          category: 'AC Technician',
-          icon: 'snow-outline',
-          color: '#06b6d4',
-          clientName: 'Hassan A.',
-          description: `Mujhe kal subah ${locName} me urgent AC lagwana hai koi technician bhejo.`,
-          distance: '1.4 km away',
-          price: 2500,
-          matchRating: 98,
-        },
-        {
-          id: '2',
-          category: 'Electrician',
-          icon: 'flash-outline',
-          color: '#eab308',
-          clientName: 'Zainab M.',
-          description: `Main board me short circuit ho rha hai urgently electrician chahye ${locName}.`,
-          distance: '0.8 km away',
-          price: 1800,
-          matchRating: 95,
-        },
-        {
-          id: '3',
-          category: 'Plumber',
-          icon: 'water-outline',
-          color: '#3b82f6',
-          clientName: 'Bilal K.',
-          description: `Kitchen tap leak kr rha hai, paani bohot zaya ho rha hai. Urgent help!`,
-          distance: '2.1 km away',
-          price: 1200,
-          matchRating: 90,
-        }
-      ];
-
-      if (data && data.jobs) {
-        const mapped = data.jobs.map((job: any) => {
-          const serviceType = job.parsed?.serviceType || 'Plumber';
-          const budget = job.parsed?.budget || 2000;
-          const location = job.parsed?.location || 'G-13';
-          const confidence = job.parsed?.confidence ?? 1.0;
-          
-          let icon = 'construct-outline';
-          let color = '#a78bfa';
-          if (serviceType === 'Plumber') { icon = 'water-outline'; color = '#3b82f6'; }
-          else if (serviceType === 'Electrician') { icon = 'flash-outline'; color = '#eab308'; }
-          else if (serviceType === 'AC Technician') { icon = 'snow-outline'; color = '#06b6d4'; }
-          else if (serviceType === 'Painter') { icon = 'brush-outline'; color = '#ec4899'; }
-          else if (serviceType === 'Tutor') { icon = 'book-outline'; color = '#10b981'; }
-          else if (serviceType === 'Carpenter') { icon = 'hammer-outline'; color = '#f97316'; }
-
-          const shortId = job.id.startsWith('JOB-') ? job.id.slice(4, 9) : job.id.slice(0, 5);
-          return {
-            id: job.id,
-            category: serviceType,
-            icon: icon,
-            color: color,
-            clientName: `Client ${shortId}`,
-            description: job.parsed?.text || `Requires experienced ${serviceType} at ${location}. Urgent: ${job.parsed?.time || 'yes'}.`,
-            distance: '1.2 km away',
-            price: budget,
-            matchRating: Math.round(confidence * 100),
-            status: job.status,
-            fullJob: job
-          };
-        });
-
-        const activeOnly = mapped.filter((j: any) => j.status === 'Searching' || j.status === 'Pending Clarification' || j.status === 'BidPlaced');
-        setActiveLeads([...activeOnly, ...mockLeads]);
-      } else {
-        setActiveLeads(mockLeads);
-      }
-    } catch (e) {
-      console.log('Error fetching jobs:', e);
-    }
-  }, [locName]);
-
-  React.useEffect(() => {
-    fetchJobs();
-    const interval = setInterval(fetchJobs, 5000);
-    return () => clearInterval(interval);
-  }, [fetchJobs]);
-
-  const [selectedLead, setSelectedLead] = useState<InDriveLead | null>(null);
-  const [showCounterModal, setShowCounterModal] = useState(false);
-  const [customCounter, setCustomCounter] = useState('');
-  const [isBargaining, setIsBargaining] = useState(false);
-  const [bargainTrace, setBargainTrace] = useState<string[]>([]);
-  const [bargainFinished, setBargainFinished] = useState(false);
+  // Worker Dashboard state
+  const [isOnline, setIsOnline] = useState(false);
+  const [escrowBalance, setEscrowBalance] = useState(14500);
 
   const handleCategoryPress = (category: string) => {
     navigation.navigate('Search', { category });
-  };
-
-  const handleIgnoreLead = (id: string) => {
-    setActiveLeads(prev => prev.filter(lead => lead.id !== id));
-  };
-
-  const handleOpenBidOptions = (lead: InDriveLead) => {
-    setSelectedLead(lead);
-    setCustomCounter(lead.price.toString());
-    setBargainFinished(false);
-    setBargainTrace([]);
-    setShowCounterModal(true);
-  };
-
-  const runBargainingNegotiation = async (targetPrice: number) => {
-    if (!selectedLead) return;
-    setIsBargaining(true);
-    setBargainTrace([]);
-
-    const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
-    try {
-      setBargainTrace(['[LinguisticAgent] Parsing driver counter-offer...']);
-      await delay(800);
-      
-      setBargainTrace(prev => [...prev, `[BiddingAgent] Offering ${targetPrice} PKR to Client ${selectedLead.clientName}'s representative...`]);
-      await delay(1000);
-
-      const clientTarget = selectedLead.price;
-      const proposedDiff = targetPrice - clientTarget;
-      let finalPrice = targetPrice;
-
-      if (proposedDiff > 0) {
-        finalPrice = Math.round(clientTarget + (proposedDiff * 0.6));
-        setBargainTrace(prev => [...prev, `[ZOPA Engine] Client representative counter-proposed. Compromise found...`]);
-        await delay(800);
-        setBargainTrace(prev => [...prev, `[ZOPA Engine] Compromise agreed at: ${finalPrice} PKR!`]);
-      } else {
-        setBargainTrace(prev => [...prev, `[ZOPA Engine] Client accepted offered baseline directly: ${finalPrice} PKR!`]);
-      }
-      
-      await delay(900);
-      setBargainTrace(prev => [...prev, `[EscrowAgent] Locked: ${finalPrice} PKR placed successfully inside secure AI Escrow! 🔒`]);
-      await delay(700);
-
-      setIsBargaining(false);
-      setBargainFinished(true);
-      setEscrowBalance(prev => prev + finalPrice);
-
-      setTimeout(() => {
-        setActiveLeads(prev => prev.filter(lead => lead.id !== selectedLead.id));
-        setShowCounterModal(false);
-        setSelectedLead(null);
-      }, 1500);
-
-    } catch (err) {
-      setIsBargaining(false);
-      Alert.alert('Negotiation Timeout', 'AI bargaining system busy. Please try again.');
-    }
   };
 
   return (
@@ -393,110 +226,50 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            {/* Leads Feed */}
-            <Text style={[styles.groupTitle, { color: colors.textMuted }]}>{t.workerLeadsFeed}</Text>
+            {/* Active Task & Performance Dashboard */}
+            <Text style={[styles.groupTitle, { color: colors.textMuted }]}>
+              {language === 'en' ? 'Performance Overview' : 'کارکردگی کا جائزہ'}
+            </Text>
+            
+            <View style={{ flexDirection: 'row', marginBottom: 20 }}>
+              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+                <Text style={{ color: colors.textMuted, fontSize: 10 }}>RATING</Text>
+                <Text style={{ color: colors.warning, fontSize: 18, fontWeight: 'bold', marginTop: 4 }}>⭐ 4.8</Text>
+              </View>
+              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+                <Text style={{ color: colors.textMuted, fontSize: 10 }}>ON-TIME SCORE</Text>
+                <Text style={{ color: colors.success, fontSize: 18, fontWeight: 'bold', marginTop: 4 }}>96%</Text>
+              </View>
+            </View>
+
+            <Text style={[styles.groupTitle, { color: colors.textMuted }]}>
+              {language === 'en' ? 'Active Jobs' : 'موجودہ کام'}
+            </Text>
+            
             {!isOnline ? (
               <View style={[styles.inDriveCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, alignItems: 'center', paddingVertical: 30 }]}>
-                <Ionicons name="eye-off-outline" size={36} color={colors.textMuted} />
+                <Ionicons name="moon-outline" size={36} color={colors.textMuted} />
                 <Text style={{ color: colors.textMuted, marginTop: 10 }}>
-                  {language === 'en' ? 'You are offline. Go live to see requests.' : 'آپ آف لائن ہیں۔ شروع کریں۔'}
+                  {language === 'en' ? 'Go online to see AI Dispatch heatmaps.' : 'کام شروع کرنے کے لیے آن لائن ہوں۔'}
                 </Text>
               </View>
-            ) : activeLeads.length === 0 ? (
-              <View style={[styles.inDriveCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, alignItems: 'center', paddingVertical: 30 }]}>
-                <Ionicons name="checkmark-circle-outline" size={36} color={colors.success} />
-                <Text style={{ color: colors.textMuted, marginTop: 10 }}>
-                  {language === 'en' ? 'All caught up! New leads appear here live.' : 'سب ٹھیک ہے! نئی جابز جلد آئیں گی۔'}
+            ) : (
+              <View style={[styles.inDriveCard, { backgroundColor: colors.primaryLight, borderColor: colors.primary, alignItems: 'center', paddingVertical: 30 }]}>
+                <Ionicons name="flame-outline" size={36} color={colors.primary} />
+                <Text style={{ color: colors.primary, marginTop: 10, fontWeight: 'bold' }}>
+                  {language === 'en' ? '🔥 High Demand in F-11 Sector!' : '🔥 سیکٹر F-11 میں زیادہ ڈیمانڈ!'}
+                </Text>
+                <Text style={{ color: colors.textMuted, marginTop: 4, fontSize: 12 }}>
+                  {language === 'en' ? 'Check the Leads tab for live incoming jobs.' : 'نئی جابز کے لیے لیڈز ٹیب دیکھیں۔'}
                 </Text>
               </View>
-            ) : activeLeads.map((lead) => (
-              <View key={lead.id} style={[styles.inDriveCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                <View style={styles.leadHeaderRow}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <View style={[styles.statusDot, { backgroundColor: colors.warning, marginRight: 8 }]} />
-                    <Text style={{ color: colors.text, fontWeight: 'bold' }}>{lead.category}</Text>
-                  </View>
-                  <Text style={{ color: colors.textMuted, fontSize: 12 }}>{lead.distance}</Text>
-                </View>
-                <Text style={{ color: colors.text, fontStyle: 'italic', marginVertical: 10, lineHeight: 20 }}>
-                  "{lead.description}"
-                </Text>
-                <View style={styles.leadPricingRow}>
-                  <View>
-                    <Text style={{ color: colors.textMuted, fontSize: 10, fontWeight: 'bold' }}>
-                      {language === 'en' ? 'CLIENT BUDGET' : 'گاہک کا بجٹ'}
-                    </Text>
-                    <Text style={{ color: colors.success, fontSize: 18, fontWeight: 'bold' }}>
-                      {lead.price.toLocaleString()} PKR
-                    </Text>
-                  </View>
-                  <View style={{ flexDirection: 'row' }}>
-                    <TouchableOpacity
-                      style={[styles.negotiateBtn, { backgroundColor: colors.border, marginRight: 8 }]}
-                      onPress={() => handleIgnoreLead(lead.id)}
-                    >
-                      <Text style={[styles.negotiateBtnText, { color: colors.textMuted }]}>
-                        {language === 'en' ? 'Skip' : 'چھوڑیں'}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.negotiateBtn, { backgroundColor: colors.success }]}
-                      onPress={() => handleOpenBidOptions(lead)}
-                    >
-                      <Text style={styles.negotiateBtnText}>{t.workerCounterOffer}</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            ))}
+            )}
           </>
         )}
 
       </ScrollView>
 
-      {/* Counter bid negotiation Modal */}
-      {selectedLead && (
-        <Modal visible={showCounterModal} animationType="slide" transparent>
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-              <View style={styles.dragBar} />
-              
-              <View style={styles.modalHeaderRow}>
-                <Text style={{ color: colors.text, fontSize: 16, fontWeight: 'bold' }}>Counter Offer Bargaining</Text>
-                <TouchableOpacity onPress={() => setShowCounterModal(false)}>
-                  <Ionicons name="close" size={24} color={colors.text} />
-                </TouchableOpacity>
-              </View>
 
-              {!isBargaining && !bargainFinished ? (
-                <View>
-                  <Text style={{ color: colors.textMuted, marginBottom: 16 }}>
-                    Customer budget: {selectedLead.price} PKR. Suggest counter offer:
-                  </Text>
-                  <View style={styles.multipliersGrid}>
-                    <TouchableOpacity style={[styles.multiplierPill, { backgroundColor: colors.border, borderColor: colors.border }]} onPress={() => runBargainingNegotiation(selectedLead.price + 100)}>
-                      <Text style={{ color: colors.text }}>+100 PKR</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.multiplierPill, { backgroundColor: colors.border, borderColor: colors.border }]} onPress={() => runBargainingNegotiation(selectedLead.price + 300)}>
-                      <Text style={{ color: colors.text }}>+300 PKR</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : isBargaining ? (
-                <View style={{ alignItems: 'center', paddingVertical: 20 }}>
-                  <ActivityIndicator size="large" color={colors.primary} />
-                  <Text style={{ color: colors.text, marginTop: 12 }}>ZOPA Negotiation agent Bargaining...</Text>
-                </View>
-              ) : (
-                <View style={{ alignItems: 'center', paddingVertical: 20 }}>
-                  <Ionicons name="checkmark-circle" size={48} color={colors.success} />
-                  <Text style={{ color: colors.success, fontWeight: 'bold', marginTop: 10 }}>Bid Locked Successfully!</Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </Modal>
-      )}
     </SafeAreaView>
   );
 }

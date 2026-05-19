@@ -46,7 +46,7 @@ const MOCK_REQUESTS: IncomingRequest[] = [
   },
 ];
 
-type AcceptPhase = 'idle' | 'negotiating' | 'locking' | 'done';
+type AcceptPhase = 'idle' | 'negotiating' | 'locking' | 'done' | 'counter_input' | 'bargaining';
 
 export default function WorkerLeadsScreen() {
   const { language, setActiveBooking, colors, theme } = useTheme();
@@ -58,6 +58,56 @@ export default function WorkerLeadsScreen() {
   const [agentTrace, setAgentTrace] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [escrowLocked, setEscrowLocked] = useState<{ reqId: string; price: number }[]>([]);
+  const [customCounter, setCustomCounter] = useState('');
+
+  // Fetch real jobs from backend
+  const fetchJobs = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/jobs`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.jobs) {
+          const mapped = data.jobs.map((job: any) => {
+            const serviceType = job.parsed?.serviceType || 'Plumber';
+            const budget = job.parsed?.budget || 2000;
+            const location = job.parsed?.location || 'Islamabad';
+            
+            let icon = 'construct-outline';
+            if (serviceType === 'Plumber') icon = 'water-outline';
+            else if (serviceType === 'Electrician') icon = 'flash-outline';
+            else if (serviceType === 'AC Technician') icon = 'snow-outline';
+            else if (serviceType === 'Painter') icon = 'brush-outline';
+            else if (serviceType === 'Tutor') icon = 'book-outline';
+            else if (serviceType === 'Carpenter') icon = 'hammer-outline';
+
+            return {
+              id: job.id,
+              clientName: `Client ${job.id.slice(4, 9)}`,
+              service: serviceType,
+              icon: icon,
+              location: location,
+              budget: budget,
+              urgency: job.parsed?.time === 'urgent' ? 'urgent' : 'normal',
+              description: job.parsed?.text || `Requires ${serviceType}.`,
+              distance: '1.2 km',
+              postedAgo: 'Live',
+            };
+          });
+          const activeOnly = data.jobs.filter((j: any) => j.status === 'Searching' || j.status === 'Pending Clarification' || j.status === 'BidPlaced');
+          const merged = [...activeOnly.map((j:any) => mapped.find((m:any) => m.id === j.id)), ...MOCK_REQUESTS];
+          setRequests(merged.filter(Boolean));
+        }
+      }
+    } catch (e) {
+      // Fallback to mocks if offline
+    }
+  };
+
+  useEffect(() => {
+    fetchJobs();
+    const interval = setInterval(fetchJobs, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Pulse animation for urgent badge
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -132,6 +182,74 @@ export default function WorkerLeadsScreen() {
     // Remove from feed after 2s
     setTimeout(() => {
       setRequests(prev => prev.filter(r => r.id !== req.id));
+      setShowModal(false);
+      setSelectedReq(null);
+      setAcceptPhase('idle');
+    }, 2000);
+  };
+
+  const openCounterModal = (req: IncomingRequest) => {
+    setSelectedReq(req);
+    setAcceptPhase('counter_input');
+    setAgentTrace([]);
+    setFinalPrice(req.budget);
+    setShowModal(true);
+  };
+
+  const runBargainingNegotiation = async (targetPrice: number) => {
+    if (!selectedReq) return;
+    setAcceptPhase('bargaining');
+    setAgentTrace([]);
+
+    const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+    setAgentTrace(['[LinguisticAgent] Parsing driver counter-offer...']);
+    await delay(800);
+    setAgentTrace(prev => [...prev, `[BiddingAgent] Offering ${targetPrice} PKR to Client ${selectedReq.clientName}...`]);
+    await delay(1000);
+
+    const clientTarget = selectedReq.budget;
+    const proposedDiff = targetPrice - clientTarget;
+    let settledPrice = targetPrice;
+
+    if (proposedDiff > 0) {
+      settledPrice = Math.round(clientTarget + (proposedDiff * 0.6));
+      setAgentTrace(prev => [...prev, `[ZOPA Engine] Client representative counter-proposed. Compromise found...`]);
+      await delay(800);
+      setAgentTrace(prev => [...prev, `[ZOPA Engine] Compromise agreed at: ${settledPrice} PKR!`]);
+    } else {
+      setAgentTrace(prev => [...prev, `[ZOPA Engine] Client accepted offered baseline directly: ${settledPrice} PKR!`]);
+    }
+    
+    setFinalPrice(settledPrice);
+    await delay(900);
+    setAgentTrace(prev => [...prev, `[EscrowAgent] Locked: ${settledPrice} PKR placed successfully inside secure AI Escrow! 🔒`]);
+    await delay(700);
+
+    const bookingId = `BK-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    setActiveBooking({
+      id: bookingId,
+      provider: { name: 'You (Worker)', id: 'self' },
+      service: selectedReq.service,
+      date: new Date().toLocaleDateString(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      address: selectedReq.location,
+      issue: selectedReq.description,
+      status: 'Accepted',
+      timelineLogs: [
+        { title: 'Job request received', time: selectedReq.postedAgo, done: true },
+        { title: 'Bargained bid accepted', time: 'Just now', done: true },
+        { title: 'En route to client', time: '--:--', done: false },
+        { title: 'Job completed', time: '--:--', done: false },
+      ],
+      escrowReleased: false,
+    });
+    
+    setEscrowLocked(p => [...p, { reqId: selectedReq.id, price: settledPrice }]);
+    setAcceptPhase('done');
+
+    setTimeout(() => {
+      setRequests(prev => prev.filter(r => r.id !== selectedReq.id));
       setShowModal(false);
       setSelectedReq(null);
       setAcceptPhase('idle');
@@ -246,11 +364,10 @@ export default function WorkerLeadsScreen() {
             <View style={styles.actionRow}>
               <TouchableOpacity
                 style={[styles.declineBtn, { borderColor: colors.border }]}
-                onPress={() => handleDecline(req.id)}
+                onPress={() => openCounterModal(req)}
               >
-                <Ionicons name="close" size={16} color={colors.textMuted} />
-                <Text style={[styles.declineBtnText, { color: colors.textMuted }]}>
-                  {language === 'en' ? 'Decline' : 'انکار'}
+                <Text style={[styles.declineBtnText, { color: colors.text }]}>
+                  {language === 'en' ? 'Counter Offer' : 'جوابی پیشکش'}
                 </Text>
               </TouchableOpacity>
 
@@ -308,12 +425,43 @@ export default function WorkerLeadsScreen() {
               </>
             )}
 
-            {(acceptPhase === 'negotiating' || acceptPhase === 'locking') && (
+            {acceptPhase === 'counter_input' && selectedReq && (
+              <>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>
+                  {language === 'en' ? 'Counter Offer Bargaining' : 'جوابی پیشکش'}
+                </Text>
+                <Text style={[styles.modalDesc, { color: colors.textMuted }]}>
+                  {language === 'en' ? 'Client budget is ' : 'گاہک کا بجٹ: '}{selectedReq.budget} PKR.
+                </Text>
+                
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: 20 }}>
+                  <TouchableOpacity style={[styles.confirmAcceptBtn, { backgroundColor: colors.border, flex: 0.45 }]} onPress={() => runBargainingNegotiation(selectedReq.budget + 100)}>
+                    <Text style={{ color: colors.text, fontWeight: 'bold' }}>+100 PKR</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.confirmAcceptBtn, { backgroundColor: colors.border, flex: 0.45 }]} onPress={() => runBargainingNegotiation(selectedReq.budget + 300)}>
+                    <Text style={{ color: colors.text, fontWeight: 'bold' }}>+300 PKR</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.cancelModalBtn}
+                  onPress={() => setShowModal(false)}
+                >
+                  <Text style={[styles.cancelModalText, { color: colors.textMuted }]}>
+                    {language === 'en' ? 'Cancel' : 'منسوخ'}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
+
+            {(acceptPhase === 'negotiating' || acceptPhase === 'locking' || acceptPhase === 'bargaining') && (
               <View style={styles.negotiatingView}>
                 <ActivityIndicator size="large" color={colors.primary} />
                 <Text style={[styles.negotiatingTitle, { color: colors.text }]}>
                   {acceptPhase === 'negotiating'
                     ? (language === 'en' ? 'AI Negotiating...' : 'AI مذاکرات جاری...')
+                    : acceptPhase === 'bargaining'
+                    ? (language === 'en' ? 'ZOPA Bargaining...' : 'ZOPA مذاکرات...')
                     : (language === 'en' ? 'Locking Escrow...' : 'ایسکرو لاک ہو رہا ہے...')}
                 </Text>
                 <View style={[styles.traceBox, { backgroundColor: colors.background }]}>
