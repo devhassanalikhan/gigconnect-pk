@@ -111,97 +111,51 @@ function TabNavigator() {
   const isWorker = userRole === 'provider';
   const activeColor = isWorker ? colors.success : colors.primary;
 
+  const screenOptions = ({ route }: any) => ({
+    headerShown: false,
+    tabBarStyle: {
+      backgroundColor: colors.cardBackground,
+      borderTopColor: isWorker ? colors.success : colors.border,
+      borderTopWidth: isWorker ? 1.5 : 1,
+      paddingBottom: 8,
+      paddingTop: 8,
+      height: 60,
+    },
+    tabBarActiveTintColor: activeColor,
+    tabBarInactiveTintColor: colors.textMuted,
+    tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
+    tabBarIcon: ({ color, focused }: any) => {
+      let iconName = '';
+      if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';
+      else if (route.name === 'Search') iconName = focused ? 'sparkles' : 'sparkles-outline';
+      else if (route.name === 'Leads') iconName = focused ? 'briefcase' : 'briefcase-outline';
+      else if (route.name === 'Map') iconName = focused ? 'map' : 'map-outline';
+      else if (route.name === 'Zone') iconName = focused ? 'radio' : 'radio-outline';
+      else if (route.name === 'History') iconName = focused ? 'time' : 'time-outline';
+      else if (route.name === 'Profile') iconName = focused ? 'person' : 'person-outline';
+      return <Ionicons name={iconName as any} size={20} color={color} />;
+    },
+  });
+
+  if (isWorker) {
+    return (
+      <Tab.Navigator screenOptions={screenOptions}>
+        <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t.tabHome }} />
+        <Tab.Screen name="Leads" component={WorkerLeadsScreen} options={{ tabBarLabel: language === 'en' ? 'Leads' : 'جابز' }} />
+        <Tab.Screen name="Zone" component={WorkerMapScreen} options={{ tabBarLabel: language === 'en' ? 'My Zone' : 'میرا زون' }} />
+        <Tab.Screen name="History" component={HistoryScreen} options={{ tabBarLabel: t.tabHistory }} />
+        <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: t.tabProfile }} />
+      </Tab.Navigator>
+    );
+  }
+
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: colors.cardBackground,
-          borderTopColor: isWorker ? colors.success : colors.border,
-          borderTopWidth: isWorker ? 1.5 : 1,
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 60,
-        },
-        tabBarActiveTintColor: activeColor,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
-        tabBarIcon: ({ color, focused }) => {
-          let iconName = '';
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Search') {
-            // client: sparkles; worker: briefcase
-            iconName = focused ? 'sparkles' : 'sparkles-outline';
-          } else if (route.name === 'Leads') {
-            iconName = focused ? 'briefcase' : 'briefcase-outline';
-          } else if (route.name === 'Map') {
-            iconName = focused ? 'map' : 'map-outline';
-          } else if (route.name === 'Zone') {
-            iconName = focused ? 'radio' : 'radio-outline';
-          } else if (route.name === 'History') {
-            iconName = focused ? 'time' : 'time-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          }
-          return <Ionicons name={iconName as any} size={20} color={color} />;
-        },
-      })}
-    >
-      {/* Home is shared — but content switches via userRole inside HomeScreen */}
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ tabBarLabel: t.tabHome }}
-      />
-
-      {/* AI Match (client) vs Live Leads (worker) */}
-      {isWorker ? (
-        <Tab.Screen
-          name="Leads"
-          component={WorkerLeadsScreen}
-          options={{
-            tabBarLabel: language === 'en' ? 'Leads' : 'جابز',
-          }}
-        />
-      ) : (
-        <Tab.Screen
-          name="Search"
-          component={SearchScreen}
-          options={{ tabBarLabel: t.tabSearch }}
-        />
-      )}
-
-      {/* Map (client) vs Zone (worker) */}
-      {isWorker ? (
-        <Tab.Screen
-          name="Zone"
-          component={WorkerMapScreen}
-          options={{
-            tabBarLabel: language === 'en' ? 'My Zone' : 'میرا زون',
-          }}
-        />
-      ) : (
-        <Tab.Screen
-          name="Map"
-          component={MapScreen}
-          options={{ tabBarLabel: language === 'en' ? 'Map' : 'نقشہ' }}
-        />
-      )}
-
-      {/* Escrows — shared but shows worker earnings vs client booking history */}
-      <Tab.Screen
-        name="History"
-        component={HistoryScreen}
-        options={{ tabBarLabel: t.tabHistory }}
-      />
-
-      {/* Profile — shared, role-switch button inside */}
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{ tabBarLabel: t.tabProfile }}
-      />
+    <Tab.Navigator screenOptions={screenOptions}>
+      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t.tabHome }} />
+      <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarLabel: t.tabSearch }} />
+      <Tab.Screen name="Map" component={MapScreen} options={{ tabBarLabel: language === 'en' ? 'Map' : 'نقشہ' }} />
+      <Tab.Screen name="History" component={HistoryScreen} options={{ tabBarLabel: t.tabHistory }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: t.tabProfile }} />
     </Tab.Navigator>
   );
 }
