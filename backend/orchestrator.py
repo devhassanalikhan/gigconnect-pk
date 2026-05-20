@@ -207,6 +207,33 @@ def _haversine(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     return round(R * 2 * math.asin(math.sqrt(a)), 2)
 
 
+def _get_fallback_address(lat: float, lng: float) -> str:
+    """
+    Calculates the closest sector/neighborhood in LOCAL_GEO_DIRECTORY
+    using haversine formula and maps it to a highly realistic city-specific 
+    address format.
+    """
+    import re
+    closest_area = None
+    min_dist = float('inf')
+    for area_name, coords in LOCAL_GEO_DIRECTORY.items():
+        if area_name in ("ISLAMABAD", "RAWALPINDI"):
+            continue
+        dist = _haversine(lat, lng, coords["lat"], coords["lng"])
+        if dist < min_dist:
+            min_dist = dist
+            closest_area = area_name
+    if not closest_area:
+        return "Islamabad, Pakistan"
+    
+    area_display = closest_area.title()
+    is_pindi = any(kw in closest_area for kw in ("SADDAR", "TULSA ROAD", "LALAZAR", "ADYALA ROAD", "RAWALPINDI"))
+    city = "Rawalpindi" if is_pindi else "Islamabad"
+    if re.match(r"^[A-Z]-\d+$", closest_area):
+        return f"{area_display} Markaz, {city}"
+    return f"{area_display}, {city}"
+
+
 def _trace_entry(agent: str, status: str, **kwargs) -> dict:
     emoji = "⚙️"
     if agent == "LinguisticAgent": emoji = "🗣️"
@@ -790,7 +817,10 @@ def geo_node(state: AgentState) -> AgentState:
                             "service_type":      service_type,
                             "rating":            rating,
                             "distance_km":       dist,
+                            "distance":          dist,
                             "base_cost":         max(800, min(3000, base_cost)),
+                            "base_rate":         max(800, min(3000, base_cost)),
+                            "address":           place.get("formattedAddress") or _get_fallback_address(lat, lng),
                             "on_time_score":     0.88,
                             "cancellation_rate": 0.03,
                             "experience_years":  4,
@@ -820,7 +850,10 @@ def geo_node(state: AgentState) -> AgentState:
                 "service_type":          p.service_type,
                 "rating":                p.rating,
                 "distance_km":           dist,
+                "distance":              dist,
                 "base_cost":             p.base_cost,
+                "base_rate":             p.base_cost,
+                "address":               _get_fallback_address(p.lat, p.lng),
                 "on_time_score":         p.on_time_score,
                 "cancellation_rate":     p.cancellation_rate,
                 "experience_years":      p.experience_years,
@@ -851,7 +884,9 @@ def geo_node(state: AgentState) -> AgentState:
                     continue
                 provider_data = {
                     "id": p.id, "name": p.name, "service_type": p.service_type,
-                    "rating": p.rating, "distance_km": dist, "base_cost": p.base_cost,
+                    "rating": p.rating, "distance_km": dist, "distance": dist,
+                    "base_cost": p.base_cost, "base_rate": p.base_cost,
+                    "address": _get_fallback_address(p.lat, p.lng),
                     "on_time_score": p.on_time_score, "cancellation_rate": p.cancellation_rate,
                     "experience_years": p.experience_years, "review_recency_score": p.review_recency_score,
                     "specializations": p.specializations or [], "risk_score": p.risk_score
@@ -908,7 +943,10 @@ def geo_node(state: AgentState) -> AgentState:
                             "service_type":      service_type,
                             "rating":            rating,
                             "distance_km":       dist,
+                            "distance":          dist,
                             "base_cost":         max(800, min(3000, base_cost)),
+                            "base_rate":         max(800, min(3000, base_cost)),
+                            "address":           place.get("formattedAddress") or _get_fallback_address(lat, lng),
                             "on_time_score":     0.88,
                             "cancellation_rate": 0.03,
                             "experience_years":  4,

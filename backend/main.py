@@ -20,6 +20,7 @@ from orchestrator import (
     escrow_agent,
     followup_agent,
     _haversine,
+    _get_fallback_address,
 )
 from config import DEFAULT_USER_LAT, DEFAULT_USER_LNG
 
@@ -69,7 +70,8 @@ def _provider_to_dict(p: Provider) -> dict:
     return {
         "id": p.id, "name": p.name, "service_type": p.service_type,
         "rating": p.rating, "lat": p.lat, "lng": p.lng,
-        "base_cost": p.base_cost, "is_available": p.is_available,
+        "base_cost": p.base_cost, "base_rate": p.base_cost,
+        "address": _get_fallback_address(p.lat, p.lng), "is_available": p.is_available,
     }
 
 
@@ -117,9 +119,11 @@ async def place_bid(req: BidRequest, db: Session = Depends(get_db)):
     if provider:
         p_name = provider.name
         p_dict = _provider_to_dict(provider)
-        p_dict["distance_km"] = _haversine(
+        dist = _haversine(
             DEFAULT_USER_LAT, DEFAULT_USER_LNG, provider.lat, provider.lng
         )
+        p_dict["distance_km"] = dist
+        p_dict["distance"] = dist
     
     if not job:
         p_service_type = "Unknown"
@@ -191,9 +195,11 @@ async def lock_escrow(req: EscrowRequest, db: Session = Depends(get_db)):
     if not job:
         p_dict = _provider_to_dict(provider) if provider else {}
         if provider:
-            p_dict["distance_km"] = _haversine(
+            dist = _haversine(
                 DEFAULT_USER_LAT, DEFAULT_USER_LNG, provider.lat, provider.lng
             )
+            p_dict["distance_km"] = dist
+            p_dict["distance"] = dist
         job = Job(
             id=req.job_id,
             parsed={"serviceType": p_service_type, "location": "Adyala Road, Rawalpindi", "time": "flexible", "budget": req.agreed_price},

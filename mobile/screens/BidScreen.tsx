@@ -74,7 +74,7 @@ export default function BidScreen() {
             provider_id: providerId,
             agreed_price: Number(currentAgreedPrice),
           }),
-        }, 10000); // 10 second timeout
+        }, 25000); // 25 second timeout
 
         if (!response.ok) {
           throw new Error(`Escrow locking failed with status: ${response.status}`);
@@ -135,7 +135,7 @@ export default function BidScreen() {
             provider_id: providerId,
             budget: enteredVal,
           }),
-        }, 10000); // 10 second timeout
+        }, 25000); // 25 second timeout
 
         if (!response.ok) {
           throw new Error(`Re-negotiation failed with status: ${response.status}`);

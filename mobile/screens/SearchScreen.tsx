@@ -77,6 +77,10 @@ export default function SearchScreen() {
     const textToSend = customText || requestText;
     if (!textToSend.trim()) return;
 
+    // Reset matched providers and previous request state to prevent old card data from persisting
+    setMatchedProviders([]);
+    setParsedRequest(null);
+
     // Append client message
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const userMsg: ChatBubble = { sender: 'user', text: textToSend, time: timestamp };
@@ -113,7 +117,7 @@ export default function SearchScreen() {
             user_lat: 33.642,
             user_lng: 73.076,
           }),
-        }, 15000); // 15 second timeout for LangGraph compilation
+        }, 25000); // 25 second timeout for LangGraph compilation
 
         if (!response.ok) {
           throw new Error(`Server error: ${response.status}`);

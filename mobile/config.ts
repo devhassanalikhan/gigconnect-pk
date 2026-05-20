@@ -45,7 +45,7 @@ export const MOCK_DELAY_MS = Number(process.env.EXPO_PUBLIC_MOCK_DELAY_MS) || 70
 /**
  * Robust fetch wrapper with an integrated timeout to prevent infinite loader hangs.
  */
-export async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 10000) {
+export async function fetchWithTimeout(url: string, options: any = {}, timeoutMs = 25000) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
