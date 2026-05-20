@@ -67,12 +67,35 @@ class EscrowRequest(BaseModel):
 
 # ─── Helpers ───────────────────────────────────────────────
 def _provider_to_dict(p: Provider) -> dict:
+    phone_map = {
+        "p1": "0300-5551111",
+        "p2": "0300-5552222",
+        "p3": "0321-5553333",
+        "p4": "0333-5554444",
+        "p5": "0345-5555555",
+        "p6": "0301-5556666",
+        "p7": "0300-5557777",
+        "p8": "0312-5558888",
+        "p9": "0322-5559999",
+        "p10": "0331-5550000",
+        "p11": "0334-5551212",
+        "p12": "0346-5553434",
+        "p13": "0300-9876543",
+        "p14": "0321-1234567",
+        "p15": "0333-7654321",
+        "p16": "0345-1112223",
+        "p17": "0301-4445556",
+        "p18": "0322-9998887",
+    }
+    phone_num = phone_map.get(p.id, "0300-1234567")
     return {
         "id": p.id, "name": p.name, "service_type": p.service_type,
         "rating": p.rating, "lat": p.lat, "lng": p.lng,
         "base_cost": p.base_cost, "base_rate": p.base_cost,
         "address": _get_fallback_address(p.lat, p.lng), "is_available": p.is_available,
+        "phone_number": phone_num,
     }
+
 
 
 # ══════════════════════════════════════════════════════════
@@ -249,8 +272,22 @@ def get_job(job_id: str, db: Session = Depends(get_db)):
 
 
 @app.get("/api/providers")
-def get_providers(db: Session = Depends(get_db)):
-    return {"providers": [_provider_to_dict(p) for p in db.query(Provider).all()]}
+def get_providers(lat: float = None, lng: float = None, db: Session = Depends(get_db)):
+    providers = db.query(Provider).all()
+    providers_list = []
+    for p in providers:
+        p_dict = _provider_to_dict(p)
+        if lat is not None and lng is not None:
+            dist = _haversine(lat, lng, p.lat, p.lng)
+            p_dict["distance_km"] = dist
+            p_dict["distance_in_meters"] = round(dist * 1000, 1)
+        providers_list.append(p_dict)
+        
+    if lat is not None and lng is not None:
+        providers_list.sort(key=lambda x: x.get("distance_km", 9999.0))
+        
+    return {"providers": providers_list}
+
 
 
 @app.get("/api/jobs")

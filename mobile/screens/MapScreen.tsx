@@ -12,6 +12,8 @@ import {
   StatusBar,
   Platform,
   ActivityIndicator,
+  FlatList,
+  Linking,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,29 +46,56 @@ interface MapProvider {
   id: string;
   name: string;
   address: string;
-  distance: string;
-  distanceVal: number;
+  phone_number?: string;
+  distance_in_meters?: number;
+  distanceVal?: number;
+  distance?: string;
   rating: number;
   category: string;
+  latitude: number;
+  longitude: number;
   lat: number;
   lng: number;
   base_cost: number;
 }
 
+const LOCAL_GEO_DIRECTORY: { [key: string]: { lat: number; lng: number } } = {
+  "G-13": { lat: 33.6420, lng: 72.9700 },
+  "G-11": { lat: 33.6655, lng: 72.9922 },
+  "F-11": { lat: 33.6841, lng: 72.9863 },
+  "E-11": { lat: 33.6995, lng: 72.9754 },
+  "I-8":  { lat: 33.6702, lng: 73.0722 },
+  "F-6":  { lat: 33.7297, lng: 73.0745 },
+  "F-7":  { lat: 33.7208, lng: 73.0561 },
+  "G-9":  { lat: 33.6826, lng: 73.0289 },
+  "H-13": { lat: 33.6300, lng: 72.9500 },
+  "G-15": { lat: 33.6212, lng: 72.9150 },
+  "BLUE AREA": { lat: 33.7112, lng: 73.0583 },
+  "SADDAR": { lat: 33.5934, lng: 73.0531 },
+  "TULSA ROAD": { lat: 33.5786, lng: 73.0441 },
+  "LALAZAR": { lat: 33.5701, lng: 73.0385 },
+  "BAHRIA TOWN": { lat: 33.5231, lng: 73.1042 },
+  "DHA": { lat: 33.5186, lng: 73.1415 },
+  "ISLAMABAD": { lat: 33.6844, lng: 73.0479 },
+  "ADYALA ROAD": { lat: 33.5500, lng: 73.0200 },
+  "RAWALPINDI": { lat: 33.5973, lng: 73.0479 },
+};
+
 const LOCAL_SEED_PROVIDERS = [
-  { id: 'p1', name: 'Khan Plumbing', category: 'Plumber', rating: 4.7, lat: 33.6350, lng: 72.9810, address: 'G-13 Sector, Islamabad', base_cost: 1500 },
-  { id: 'p2', name: 'G13 Leak Fixers', category: 'Plumber', rating: 4.3, lat: 33.6420, lng: 72.9700, address: 'G-13 Markaz, Islamabad', base_cost: 1200 },
-  { id: 'p3', name: 'City Plumbers', category: 'Plumber', rating: 4.5, lat: 33.6480, lng: 72.9750, address: 'F-11 Markaz, Islamabad', base_cost: 1400 },
-  { id: 'p4', name: 'Ahmed Electric', category: 'Electrician', rating: 4.8, lat: 33.6411, lng: 72.9723, address: 'G-13 Sector, Islamabad', base_cost: 1800 },
-  { id: 'p5', name: 'FastFix Electric', category: 'Electrician', rating: 4.6, lat: 33.6290, lng: 72.9650, address: 'G-13 Main Rd, Islamabad', base_cost: 1600 },
-  { id: 'p6', name: 'Power Solutions', category: 'Electrician', rating: 4.4, lat: 33.6500, lng: 72.9900, address: 'F-11 Sector, Islamabad', base_cost: 1700 },
-  { id: 'p7', name: 'Ali AC Services', category: 'AC Technician', rating: 4.9, lat: 33.6380, lng: 72.9680, address: 'G-13/4 Sector, Islamabad', base_cost: 2000 },
-  { id: 'p8', name: 'CoolTech AC', category: 'AC Technician', rating: 4.4, lat: 33.6440, lng: 72.9760, address: 'G-13 Markaz, Islamabad', base_cost: 1800 },
-  { id: 'p9', name: 'Arctic Cool', category: 'AC Technician', rating: 4.6, lat: 33.6350, lng: 72.9810, address: 'F-11 Sector, Islamabad', base_cost: 2200 },
-  { id: 'p10', name: 'HomeGlow Painters', category: 'Painter', rating: 4.8, lat: 33.6411, lng: 72.9723, address: 'G-13 Sector, Islamabad', base_cost: 2500 },
-  { id: 'p11', name: 'Islamabad Painters', category: 'Painter', rating: 4.2, lat: 33.6290, lng: 72.9650, address: 'I-8 Sector, Islamabad', base_cost: 2000 },
-  { id: 'p12', name: 'ColorPro Painters', category: 'Painter', rating: 4.5, lat: 33.6500, lng: 72.9900, address: 'E-11 Sector, Islamabad', base_cost: 2300 },
+  { id: 'p1', name: 'Khan Plumbing', category: 'Plumber', rating: 4.7, lat: 33.6350, lng: 72.9810, address: 'G-13 Sector, Islamabad', base_cost: 1500, phone_number: '0300-5551111' },
+  { id: 'p2', name: 'G13 Leak Fixers', category: 'Plumber', rating: 4.3, lat: 33.6420, lng: 72.9700, address: 'G-13 Markaz, Islamabad', base_cost: 1200, phone_number: '0300-5552222' },
+  { id: 'p3', name: 'City Plumbers', category: 'Plumber', rating: 4.5, lat: 33.6480, lng: 72.9750, address: 'F-11 Markaz, Islamabad', base_cost: 1400, phone_number: '0321-5553333' },
+  { id: 'p4', name: 'Ahmed Electric', category: 'Electrician', rating: 4.8, lat: 33.6411, lng: 72.9723, address: 'G-13 Sector, Islamabad', base_cost: 1800, phone_number: '0333-5554444' },
+  { id: 'p5', name: 'FastFix Electric', category: 'Electrician', rating: 4.6, lat: 33.6290, lng: 72.9650, address: 'G-13 Main Rd, Islamabad', base_cost: 1600, phone_number: '0345-5555555' },
+  { id: 'p6', name: 'Power Solutions', category: 'Electrician', rating: 4.4, lat: 33.6500, lng: 72.9900, address: 'F-11 Sector, Islamabad', base_cost: 1700, phone_number: '0301-5556666' },
+  { id: 'p7', name: 'Ali AC Services', category: 'AC Technician', rating: 4.9, lat: 33.6380, lng: 72.9680, address: 'G-13/4 Sector, Islamabad', base_cost: 2000, phone_number: '0300-5557777' },
+  { id: 'p8', name: 'CoolTech AC', category: 'AC Technician', rating: 4.4, lat: 33.6440, lng: 72.9760, address: 'G-13 Markaz, Islamabad', base_cost: 1800, phone_number: '0312-5558888' },
+  { id: 'p9', name: 'Arctic Cool', category: 'AC Technician', rating: 4.6, lat: 33.6350, lng: 72.9810, address: 'F-11 Sector, Islamabad', base_cost: 2200, phone_number: '0322-5559999' },
+  { id: 'p10', name: 'HomeGlow Painters', category: 'Painter', rating: 4.8, lat: 33.6411, lng: 72.9723, address: 'G-13 Sector, Islamabad', base_cost: 2500, phone_number: '0331-5550000' },
+  { id: 'p11', name: 'Islamabad Painters', category: 'Painter', rating: 4.2, lat: 33.6290, lng: 72.9650, address: 'I-8 Sector, Islamabad', base_cost: 2000, phone_number: '0334-5551212' },
+  { id: 'p12', name: 'ColorPro Painters', category: 'Painter', rating: 4.5, lat: 33.6500, lng: 72.9900, address: 'E-11 Sector, Islamabad', base_cost: 2300, phone_number: '0346-5553434' },
 ];
+
 
 export default function MapScreen({ navigation }: any) {
   const { colors, selectedLocationIndex, theme, language } = useTheme();
@@ -156,22 +185,52 @@ export default function MapScreen({ navigation }: any) {
         const res = await getProvidersMock(centerLat, centerLng);
         data = res;
       } else {
-        const response = await fetchWithTimeout(`${API_BASE_URL}/api/providers`, {}, 8000);
+        const response = await fetchWithTimeout(`${API_BASE_URL}/api/providers?lat=${centerLat}&lng=${centerLng}`, {}, 8000);
         data = await response.json();
       }
 
       let providerList = LOCAL_SEED_PROVIDERS;
       if (data && Array.isArray(data.providers) && data.providers.length > 0) {
-        providerList = data.providers.map((p: any) => ({
-          id: p.id || '',
-          name: p.name || 'Unknown',
-          category: p.service_type || p.category || 'Service',
-          rating: Math.min(5, Math.max(0, Number(p.rating) || 0)),
-          lat: Number(p.lat) || centerLat,
-          lng: Number(p.lng) || centerLng,
-          address: p.address || 'Islamabad',
-          base_cost: Number(p.base_cost) || 0,
-        }));
+        providerList = data.providers.map((p: any) => {
+          const id = p.id || String(Math.random());
+          const name = p.name || p.displayName?.text || 'Unknown Provider';
+          const address = p.address || p.formattedAddress || p.formatted_address || 'Islamabad, Pakistan';
+          const phone_number = p.phone_number || p.phoneNumber || p.phone || p.internationalPhoneNumber || p.nationalPhoneNumber || p.formatted_phone_number || '0300-1234567';
+          
+          let lat = centerLat;
+          let lng = centerLng;
+          if (p.lat !== undefined && p.lng !== undefined) {
+            lat = Number(p.lat);
+            lng = Number(p.lng);
+          } else if (p.latitude !== undefined && p.longitude !== undefined) {
+            lat = Number(p.latitude);
+            lng = Number(p.longitude);
+          } else if (p.location?.latitude !== undefined && p.location?.longitude !== undefined) {
+            lat = Number(p.location.latitude);
+            lng = Number(p.location.longitude);
+          } else if (p.geometry?.location) {
+            lat = typeof p.geometry.location.lat === 'function' ? p.geometry.location.lat() : Number(p.geometry.location.lat);
+            lng = typeof p.geometry.location.lng === 'function' ? p.geometry.location.lng() : Number(p.geometry.location.lng);
+          }
+
+          const category = p.service_type || p.category || 'Service';
+          const rating = Math.min(5, Math.max(0, Number(p.rating) || 0));
+          const base_cost = Number(p.base_cost) || Number(p.base_rate) || 0;
+
+          return {
+            id,
+            name,
+            address,
+            phone_number,
+            latitude: lat,
+            longitude: lng,
+            lat,
+            lng,
+            category,
+            rating,
+            base_cost,
+          };
+        });
       }
 
       setRawProviders(providerList);
@@ -200,13 +259,27 @@ export default function MapScreen({ navigation }: any) {
     }
 
     const calculated: MapProvider[] = filtered
-      .filter(p => isValidCoordinate(p.lat, p.lng))
-      .map((p) => ({
-        ...p,
-        distanceVal: getHaversineDistance(centerLat, centerLng, p.lat, p.lng),
-        distance: `${getHaversineDistance(centerLat, centerLng, p.lat, p.lng).toFixed(1)} km`,
-      }))
-      .sort((a, b) => a.distanceVal - b.distanceVal);
+      .filter((p) => {
+        const plat = p.latitude !== undefined ? p.latitude : p.lat;
+        const plng = p.longitude !== undefined ? p.longitude : p.lng;
+        return isValidCoordinate(plat, plng);
+      })
+      .map((p) => {
+        const plat = p.latitude !== undefined ? p.latitude : p.lat;
+        const plng = p.longitude !== undefined ? p.longitude : p.lng;
+        const distanceVal = getHaversineDistance(centerLat, centerLng, plat, plng);
+        return {
+          ...p,
+          latitude: plat,
+          longitude: plng,
+          lat: plat,
+          lng: plng,
+          distanceVal,
+          distance_in_meters: Math.round(distanceVal * 1000),
+          distance: `${distanceVal.toFixed(1)} km`,
+        };
+      })
+      .sort((a, b) => (a.distanceVal || 0) - (b.distanceVal || 0));
 
     setProviders(calculated);
     if (calculated.length > 0) {
@@ -215,7 +288,6 @@ export default function MapScreen({ navigation }: any) {
   };
 
   const handleSearchTextChange = (text: string) => {
-    // FIXED: Allow spaces, don't strip input
     setSearchQuery(text);
     filterAndSortProviders(mapRegion.latitude, mapRegion.longitude, text, rawProviders);
 
@@ -304,7 +376,7 @@ export default function MapScreen({ navigation }: any) {
           const lng = Number(data.location.longitude);
           if (isValidCoordinate(lat, lng)) {
             updateMapViewport(lat, lng);
-            filterAndSortProviders(lat, lng, '', rawProviders);
+            await fetchAndSetProviders(lat, lng);
             return;
           }
         }
@@ -325,13 +397,64 @@ export default function MapScreen({ navigation }: any) {
         const { lat, lng } = data.result.geometry.location;
         if (isValidCoordinate(lat, lng)) {
           updateMapViewport(lat, lng);
-          filterAndSortProviders(lat, lng, '', rawProviders);
+          await fetchAndSetProviders(lat, lng);
         }
       }
     } catch (error) {
       Alert.alert('Error', 'Could not load location details');
     }
   };
+
+  const handleSearchSubmit = async () => {
+    if (!searchQuery.trim()) return;
+
+    setIsLoading(true);
+    try {
+      const queryUpper = searchQuery.toUpperCase().trim();
+      let matchedLat = 0;
+      let matchedLng = 0;
+
+      for (const [area, coords] of Object.entries(LOCAL_GEO_DIRECTORY)) {
+        if (queryUpper.includes(area)) {
+          matchedLat = coords.lat;
+          matchedLng = coords.lng;
+          break;
+        }
+      }
+
+      if (!matchedLat && !matchedLng && GOOGLE_MAPS_API_KEY) {
+        try {
+          const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+            searchQuery + ', Islamabad'
+          )}&key=${GOOGLE_MAPS_API_KEY}`;
+          const response = await fetchWithTimeout(url, {}, 6000);
+          const data = await response.json();
+          if (data?.results?.[0]?.geometry?.location) {
+            matchedLat = Number(data.results[0].geometry.location.lat);
+            matchedLng = Number(data.results[0].geometry.location.lng);
+          }
+        } catch (e) {
+          console.warn('[KaamGraph] Geocoding API failed, trying offline/local search', e);
+        }
+      }
+
+      if (isValidCoordinate(matchedLat, matchedLng)) {
+        updateMapViewport(matchedLat, matchedLng);
+        await fetchAndSetProviders(matchedLat, matchedLng);
+      } else {
+        Alert.alert(
+          'Location Not Found',
+          'Could not find the specified location. Please select from the dropdown or try again.'
+        );
+      }
+    } catch (error) {
+      console.error('[KaamGraph] Search submission error:', error);
+      Alert.alert('Error', 'An error occurred during search.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   const handleGPSCenter = async () => {
     try {
@@ -363,15 +486,26 @@ export default function MapScreen({ navigation }: any) {
           <Ionicons name="location-outline" size={rIconSize(20)} color={colors.primary} style={{ marginRight: rMargin(10) }} />
           <TextInput
             style={[styles.searchInput, { color: colors.text, fontSize: rFontSize(14) }]}
-            placeholder="Search city, area or service..."
+            placeholder="Enter location or area..."
             placeholderTextColor={colors.textMuted}
             value={searchQuery}
             onChangeText={handleSearchTextChange}
+            onSubmitEditing={handleSearchSubmit}
+            returnKeyType="search"
             maxLength={150}
           />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => { setSearchQuery(''); setSuggestions([]); }} style={styles.clearBtn}>
-              <Ionicons name="close-circle" size={rIconSize(18)} color={colors.textMuted} />
+          {searchQuery.length > 0 ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity onPress={() => { setSearchQuery(''); setSuggestions([]); }} style={styles.clearBtn}>
+                <Ionicons name="close-circle" size={rIconSize(18)} color={colors.textMuted} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSearchSubmit} style={{ padding: 6 }}>
+                <Ionicons name="search" size={rIconSize(20)} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity onPress={handleSearchSubmit} style={{ padding: 6 }}>
+              <Ionicons name="search" size={rIconSize(20)} color={colors.textMuted} />
             </TouchableOpacity>
           )}
         </View>
@@ -429,11 +563,14 @@ export default function MapScreen({ navigation }: any) {
             {providers.slice(0, 15).map((p) => (
               <Marker
                 key={p.id}
-                coordinate={{ latitude: p.lat, longitude: p.lng }}
+                coordinate={{ latitude: p.latitude, longitude: p.longitude }}
                 title={p.name}
-                onPress={() => setSelectedProviderId(p.id)}
+                onPress={() => {
+                  setSelectedProviderId(p.id);
+                  updateMapViewport(p.latitude, p.longitude);
+                }}
               >
-                <View style={styles.markerDot} />
+                <View style={[styles.markerDot, p.id === selectedProviderId && { backgroundColor: colors.primary, transform: [{ scale: 1.25 }] }]} />
               </Marker>
             ))}
           </MapView>
@@ -441,6 +578,29 @@ export default function MapScreen({ navigation }: any) {
           <View style={styles.mapPlaceholder}>
             <Ionicons name="map-outline" size={50} color={colors.textMuted} />
             <Text style={[styles.placeholderText, { color: colors.textMuted }]}>Map not available</Text>
+          </View>
+        )}
+
+        {/* Absolute Loading Overlay */}
+        {isLoading && (
+          <View style={[styles.loadingOverlay, { backgroundColor: 'rgba(0,0,0,0.4)' }]}>
+            <View style={[styles.loadingBox, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={[styles.loadingOverlayText, { color: colors.text }]}>Finding verified providers...</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Empty State Callout overlay */}
+        {!isLoading && providers.length === 0 && (
+          <View style={[styles.noProvidersCallout, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            <Ionicons name="warning" size={24} color="#f59e0b" style={{ marginRight: 10 }} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.noProvidersCalloutTitle, { color: colors.text }]}>No Providers Found</Text>
+              <Text style={[styles.noProvidersCalloutText, { color: colors.textMuted }]}>
+                No verified providers found in this area. Try searching for a different area (e.g., G-11, F-11, DHA).
+              </Text>
+            </View>
           </View>
         )}
 
@@ -457,66 +617,109 @@ export default function MapScreen({ navigation }: any) {
       <View style={[styles.bottomList, { backgroundColor: colors.cardBackground, borderTopColor: colors.border }]}>
         <View style={styles.listTop}>
           <Text style={[styles.listHeader, { color: colors.text }]}>
-            {isLoading ? 'Loading...' : `${providers.length} Providers Found`}
+            {isLoading ? 'Searching...' : `${providers.length} Verified Providers Available`}
           </Text>
           {isLoading && <ActivityIndicator size="small" color={colors.primary} />}
         </View>
 
-        <ScrollView
+        <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
+          data={providers}
+          keyExtractor={(item) => item.id}
           contentContainerStyle={styles.carouselContainer}
-        >
-          {providers.length > 0 ? (
-            providers.map((p) => {
-              const isSelected = p.id === selectedProviderId;
-              return (
-                <TouchableOpacity
-                  key={p.id}
-                  style={[
-                    styles.providerCard,
-                    {
-                      backgroundColor: colors.background,
-                      borderColor: isSelected ? colors.primary : colors.border,
-                      borderWidth: isSelected ? 2 : 1,
-                    },
-                  ]}
-                  onPress={() => setSelectedProviderId(p.id)}
-                >
-                  <Text style={[styles.cardName, { color: colors.text }]}>{p.name}</Text>
-                  <Text style={[styles.cardCategory, { color: colors.textMuted }]}>{p.category}</Text>
-
-                  <View style={styles.ratingRow}>
-                    <Text style={styles.cardRating}>⭐ {p.rating.toFixed(1)}</Text>
-                    <Text style={[styles.cardDistance, { color: colors.textMuted }]}>{p.distance}</Text>
-                  </View>
-
-                  <Text style={[styles.cardCost, { color: colors.primary }]}>₨{p.base_cost}</Text>
-
-                  <View style={styles.actionRow}>
-                    <TouchableOpacity style={[styles.smallBtn, { backgroundColor: colors.primary }]}>
-                      <Ionicons name="call" size={16} color="#fff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.smallBtn, { backgroundColor: colors.primary }]}>
-                      <Ionicons name="chatbubble" size={16} color="#fff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.smallBtn, { backgroundColor: colors.primary, flex: 1 }]}
-                      onPress={() => navigation.navigate('Book', { provider: p })}
-                    >
-                      <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 12 }}>Book</Text>
-                    </TouchableOpacity>
-                  </View>
-                </TouchableOpacity>
-              );
-            })
-          ) : (
+          ListEmptyComponent={
             <View style={[styles.emptyCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
               <Ionicons name="search-outline" size={32} color={colors.textMuted} />
-              <Text style={[styles.emptyText, { color: colors.textMuted }]}>No providers found</Text>
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>No providers found in this area</Text>
             </View>
-          )}
-        </ScrollView>
+          }
+          renderItem={({ item }) => {
+            const isSelected = item.id === selectedProviderId;
+            return (
+              <TouchableOpacity
+                style={[
+                  styles.providerCard,
+                  {
+                    backgroundColor: colors.background,
+                    borderColor: isSelected ? colors.primary : colors.border,
+                    borderWidth: isSelected ? 2 : 1,
+                  },
+                ]}
+                onPress={() => {
+                  setSelectedProviderId(item.id);
+                  updateMapViewport(item.latitude, item.longitude);
+                }}
+              >
+                {/* Header Tag and Rating */}
+                <View style={styles.cardHeader}>
+                  <Text style={[styles.cardCategory, { color: colors.primary, backgroundColor: colors.primary + '15', paddingHorizontal: rPadding(8), paddingVertical: rPadding(2), borderRadius: rBorderRadius(4) }]}>
+                    {item.category}
+                  </Text>
+                  <View style={styles.ratingBadge}>
+                    <Ionicons name="star" size={14} color="#fbbf24" />
+                    <Text style={[styles.cardRating, { color: colors.text, marginLeft: 4 }]}>
+                      {item.rating.toFixed(1)}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Name */}
+                <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={1}>
+                  {item.name}
+                </Text>
+
+                {/* Distance */}
+                <Text style={[styles.cardDistance, { color: colors.textMuted }]}>
+                  {item.distance_in_meters ? `${(item.distance_in_meters / 1000).toFixed(1)} km away` : 'Nearby'}
+                </Text>
+
+                {/* Address Row */}
+                <View style={styles.addressRow}>
+                  <Text style={[styles.cardAddress, { color: colors.textMuted }]} numberOfLines={1} ellipsizeMode="tail">
+                    📍 {item.address}
+                  </Text>
+                </View>
+
+                {/* Base Cost */}
+                <Text style={[styles.cardCost, { color: colors.text, marginTop: rMargin(4) }]}>
+                  Base Rate: <Text style={{ color: colors.primary, fontWeight: '700' }}>₨{item.base_cost}</Text>
+                </Text>
+
+                {/* Action Row */}
+                <View style={styles.actionRow}>
+                  {item.phone_number ? (
+                    <TouchableOpacity
+                      style={[styles.callBtn, { borderColor: colors.primary, borderWidth: 1 }]}
+                      onPress={() => {
+                        const url = `tel:${item.phone_number}`;
+                        Linking.canOpenURL(url)
+                          .then((supported) => {
+                            if (supported) {
+                              Linking.openURL(url);
+                            } else {
+                              Alert.alert('Error', 'Calling is not supported on this device');
+                            }
+                          })
+                          .catch((err) => console.error('An error occurred calling provider:', err));
+                      }}
+                    >
+                      <Ionicons name="call-outline" size={16} color={colors.primary} />
+                      <Text style={[styles.callBtnText, { color: colors.primary }]}>Call Provider</Text>
+                    </TouchableOpacity>
+                  ) : null}
+
+                  <TouchableOpacity
+                    style={[styles.bookBtn, { backgroundColor: colors.primary }]}
+                    onPress={() => navigation.navigate('Book', { provider: item })}
+                  >
+                    <Text style={styles.bookBtnText}>Book Now</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            );
+          }}
+        />
       </View>
     </SafeAreaView>
   );
@@ -576,7 +779,7 @@ const styles = StyleSheet.create({
   markerDot: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#6366f1', borderWidth: 2, borderColor: '#fff' },
   gpsButton: {
     position: 'absolute',
-    bottom: 90,
+    bottom: 24,
     right: 16,
     width: 48,
     height: 48,
@@ -590,6 +793,53 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 4,
   },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  loadingBox: {
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  loadingOverlayText: {
+    marginTop: 12,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  noProvidersCallout: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    right: 20,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 6,
+  },
+  noProvidersCalloutTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  noProvidersCalloutText: {
+    fontSize: 12,
+  },
   bottomList: { borderTopWidth: 1, paddingVertical: 12, paddingHorizontal: 12 },
   listTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   listHeader: { fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.5 },
@@ -597,21 +847,65 @@ const styles = StyleSheet.create({
   providerCard: {
     borderRadius: 14,
     padding: 14,
-    width: 280,
+    width: 290,
     marginHorizontal: 6,
     marginBottom: 8,
   },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  ratingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   cardName: { fontSize: 14, fontWeight: 'bold', marginBottom: 4 },
-  cardCategory: { fontSize: 12, marginBottom: 8 },
-  ratingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  cardRating: { fontSize: 13, fontWeight: 'bold' },
-  cardDistance: { fontSize: 12 },
+  cardCategory: { fontSize: 11, fontWeight: '600' },
+  cardRating: { fontSize: 12, fontWeight: 'bold' },
+  cardDistance: { fontSize: 12, marginBottom: 4 },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  cardAddress: {
+    fontSize: 12,
+    flex: 1,
+  },
   cardCost: { fontSize: 13, fontWeight: 'bold', marginBottom: 10 },
-  actionRow: { flexDirection: 'row', gap: 6 },
-  smallBtn: { width: 36, height: 36, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  actionRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  callBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: rPadding(8),
+    paddingHorizontal: rPadding(10),
+    borderRadius: 8,
+    flex: 1,
+    gap: 4,
+  },
+  callBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  bookBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: rPadding(8),
+    paddingHorizontal: rPadding(10),
+    borderRadius: 8,
+    flex: 1,
+  },
+  bookBtnText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   emptyCard: {
-    width: 280,
-    height: 140,
+    width: 290,
+    height: 160,
     borderRadius: 14,
     borderWidth: 1,
     alignItems: 'center',
