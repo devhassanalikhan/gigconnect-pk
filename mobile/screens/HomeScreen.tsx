@@ -15,6 +15,7 @@ import {
   Alert,
   Animated,
   Easing,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -34,12 +35,13 @@ interface Category {
   color: string;
   description: string;
   descUrdu: string;
+  onlineBadge?: string;
 }
 
 const DAILY_ESSENTIALS: Category[] = [
-  { id: 'Plumber', name: 'Plumber', urdu: 'پلمبر', icon: 'water-outline', color: '#3b82f6', description: 'Pipes, nalka & leaks', descUrdu: 'نلکہ، پائپ اور لیکس' },
-  { id: 'Electrician', name: 'Electrician', urdu: 'الیکٹریشین', icon: 'flash-outline', color: '#eab308', description: 'Wiring & short circuits', descUrdu: 'وائرنگ اور شارٹ سرکٹ' },
-  { id: 'AC Technician', name: 'AC Tech', urdu: 'اے سی ٹیکنیشین', icon: 'snow-outline', color: '#06b6d4', description: 'Cooling & gas refill', descUrdu: 'کولنگ اور گیس ریفل' },
+  { id: 'Plumber', name: 'Plumber', urdu: 'پلمبر', icon: 'water-outline', color: '#3b82f6', description: 'Pipes, nalka & leaks', descUrdu: 'نلکہ، پائپ اور لیکس', onlineBadge: '12 Active' },
+  { id: 'Electrician', name: 'Electrician', urdu: 'الیکٹریشین', icon: 'flash-outline', color: '#eab308', description: 'Wiring & short circuits', descUrdu: 'وائرنگ اور شارٹ سرکٹ', onlineBadge: '9 Online' },
+  { id: 'AC Technician', name: 'AC Tech', urdu: 'اے سی ٹیکنیشین', icon: 'snow-outline', color: '#06b6d4', description: 'Cooling & gas refill', descUrdu: 'کولنگ اور گیس ریفل', onlineBadge: '15 Online' },
 ];
 
 const HOME_SERVICES: Category[] = [
@@ -64,6 +66,50 @@ export default function HomeScreen() {
   // Worker Dashboard state
   const [isOnline, setIsOnline] = useState(false);
   const [escrowBalance, setEscrowBalance] = useState(14500);
+
+  // Animated placeholders sequence
+  const PLACEHOLDERS = [
+    "Toti kharab ho gai ha...",
+    "Sofa repair karwana ha...",
+    "G-11 mein plumber chahye...",
+    "Ghar ki deep cleaning krni ha...",
+    "Bijli ka short circuit check karein...",
+    "Mujhe AC wala chahye Tulsa road par...",
+  ];
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % PLACEHOLDERS.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Live Escrow Activity Ticker Scrolling
+  const ESCROW_TRANSACTIONS = [
+    { id: '1', text: "🟢 Booking BK-788C42: Deep Cleaning Escrow Secured (3,000 PKR)" },
+    { id: '2', text: "🟢 Booking BK-1092: Plumber Dispatched to F-11 (1,500 PKR)" },
+    { id: '3', text: "🟢 Booking BK-9051: Electrician Job Completed in G-13 (1,800 PKR)" },
+    { id: '4', text: "🟢 Booking BK-4112: AC Maintenance Escrow Released (2,000 PKR)" },
+    { id: '5', text: "🟢 Booking BK-3329: Carpenter Assigned to DHA Phase II (2,200 PKR)" },
+    { id: '6', text: "🟢 Booking BK-8172: Painter Material Cost Escrow Locked (4,500 PKR)" },
+  ];
+  const tickerRef = React.useRef<FlatList>(null);
+  const scrollIndex = React.useRef(0);
+
+  React.useEffect(() => {
+    const tickerInterval = setInterval(() => {
+      if (tickerRef.current && ESCROW_TRANSACTIONS.length > 0) {
+        scrollIndex.current = (scrollIndex.current + 1) % ESCROW_TRANSACTIONS.length;
+        tickerRef.current.scrollToIndex({
+          index: scrollIndex.current,
+          animated: true,
+          viewPosition: 0,
+        });
+      }
+    }, 4000);
+    return () => clearInterval(tickerInterval);
+  }, []);
 
   // Pulsing animation for icons
   const pulseAnim = React.useRef(new Animated.Value(1)).current;
@@ -156,7 +202,7 @@ export default function HomeScreen() {
         {userRole === 'client' ? (
           <>
             {/* Hero Card */}
-            <View style={[styles.heroCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(24), padding: rPadding(24), marginBottom: rMargin(24), ...getShadow(5) }]}>
+            <View style={[styles.heroCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(24), padding: rPadding(24), marginBottom: rMargin(16), ...getShadow(5) }]}>
               <View style={styles.heroTextContent}>
                 <Text style={[styles.heroBadge, { fontSize: rFontSize(9), paddingHorizontal: rPadding(8), paddingVertical: rPadding(4), borderRadius: rBorderRadius(6) }]}>{t.heroBadgeText}</Text>
                 <Text style={[styles.heroTitle, { color: colors.text, fontSize: rFontSize(18), marginBottom: rMargin(6) }]}>{t.heroTitleText}</Text>
@@ -165,19 +211,51 @@ export default function HomeScreen() {
               <View style={styles.heroGlowDot} />
             </View>
 
+            {/* Live Escrow Activity Ticker */}
+            <View style={[styles.tickerWrapper, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(12) }]}>
+              <View style={styles.tickerHeader}>
+                <Ionicons name="stats-chart-outline" size={rIconSize(12)} color={colors.primary} />
+                <Text style={[styles.tickerTitle, { color: colors.text }]}>LIVE AGENTIC ESCROW FEED</Text>
+              </View>
+              <FlatList
+                ref={tickerRef}
+                horizontal
+                data={ESCROW_TRANSACTIONS}
+                keyExtractor={(item) => item.id}
+                showsHorizontalScrollIndicator={false}
+                onScrollToIndexFailed={() => {}}
+                renderItem={({ item }) => (
+                  <View style={styles.tickerItem}>
+                    <Text style={[styles.tickerItemText, { color: colors.textMuted }]}>
+                      {item.text}
+                    </Text>
+                    <Text style={[styles.tickerDivider, { color: colors.border }]}>•</Text>
+                  </View>
+                )}
+              />
+            </View>
+
             {/* AI Search Prompt Trigger */}
             <TouchableOpacity 
-              style={[styles.searchBarTrigger, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(16), paddingHorizontal: rPadding(20), paddingVertical: rPadding(14), marginBottom: rMargin(28), ...getShadow(2) }]}
+              style={[styles.searchBarTrigger, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(16), paddingHorizontal: rPadding(18), paddingVertical: rPadding(14), marginBottom: rMargin(28), ...getShadow(2) }]}
               onPress={() => navigation.navigate('AI Match')}
               activeOpacity={0.8}
             >
-              <Ionicons name="sparkles-outline" size={rIconSize(18)} color="#6366f1" style={{ marginRight: rMargin(10) }} />
+              <Ionicons name="sparkles-outline" size={rIconSize(18)} color="#6366f1" style={{ marginRight: rMargin(8) }} />
               <TextInput
                 style={[styles.searchPlaceholder, { color: colors.text, fontSize: rFontSize(13), flex: 1 }]}
-                placeholder={t.searchHint}
+                placeholder={PLACEHOLDERS[placeholderIndex]}
                 placeholderTextColor="#94a3b8"
                 editable={false}
               />
+              <TouchableOpacity
+                style={{ padding: rPadding(4), marginRight: rMargin(8) }}
+                onPress={() => {
+                  Alert.alert("Voice Search", "Listening... Speak your Roman Urdu query now.");
+                }}
+              >
+                <Ionicons name="mic" size={rIconSize(20)} color="#6366f1" />
+              </TouchableOpacity>
               <View style={[styles.arrowIconWrapper, { backgroundColor: '#6366f1', width: rSpacing(24), height: rSpacing(24), borderRadius: rBorderRadius(12) }]}>
                 <Ionicons name="arrow-forward" size={rIconSize(14)} color="#ffffff" />
               </View>
@@ -213,6 +291,25 @@ export default function HomeScreen() {
               <View style={styles.progressBarBg}>
                 <View style={[styles.progressBarFill, { backgroundColor: colors.primary, width: '65%' }]} />
               </View>
+
+              {/* Agent Nodes Horizontal Tracking */}
+              <View style={styles.agentNodesWrapper}>
+                <View style={styles.agentNode}>
+                  <View style={[styles.nodeDot, { backgroundColor: colors.primary }]} />
+                  <Text style={[styles.nodeText, { color: colors.text, fontWeight: '600' }]}>Matched</Text>
+                </View>
+                <View style={styles.nodeLine} />
+                <View style={styles.agentNode}>
+                  <View style={[styles.nodeDot, { backgroundColor: colors.primary }]} />
+                  <Text style={[styles.nodeText, { color: colors.text, fontWeight: '600' }]}>Escrow Locked</Text>
+                </View>
+                <View style={styles.nodeLine} />
+                <View style={styles.agentNode}>
+                  <View style={[styles.nodeDot, styles.glowingNodeDot, { backgroundColor: colors.primary }]} />
+                  <Text style={[styles.nodeText, { color: colors.primary, fontWeight: '700' }]}>Arriving</Text>
+                </View>
+              </View>
+
               <Text style={[styles.progressLabel, { color: colors.textMuted }]}>
                 {language === 'en' ? 'Provider is arriving' : 'ورکر آ رہا ہے'} • 12 mins away
               </Text>
@@ -224,9 +321,17 @@ export default function HomeScreen() {
               {DAILY_ESSENTIALS.map((c) => (
                 <TouchableOpacity
                   key={c.id}
-                  style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, width: COLUMN_WIDTH, borderRadius: rBorderRadius(20), padding: rPadding(18), marginBottom: rMargin(16), ...getShadow(3) }]}
+                  style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, width: COLUMN_WIDTH, borderRadius: rBorderRadius(20), padding: rPadding(18), marginBottom: rMargin(16), position: 'relative', ...getShadow(3) }]}
                   onPress={() => handleCategoryPress(c.id)}
                 >
+                  {c.onlineBadge && (
+                    <View style={[styles.onlineBadge, { backgroundColor: colors.successLight, borderColor: colors.success + '20' }]}>
+                      <View style={[styles.onlineBadgeDot, { backgroundColor: colors.success }]} />
+                      <Text style={[styles.onlineBadgeText, { color: colors.success }]}>
+                        {c.onlineBadge}
+                      </Text>
+                    </View>
+                  )}
                   <Animated.View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight, transform: [{ scale: pulseAnim }], width: rSpacing(48), height: rSpacing(48), borderRadius: rBorderRadius(12) }]}>
                     <Ionicons name={c.icon as any} size={rIconSize(22)} color={colors.primary} />
                   </Animated.View>
@@ -730,5 +835,95 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     marginHorizontal: 4,
+  },
+  tickerWrapper: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 20,
+  },
+  tickerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  tickerTitle: {
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
+  tickerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 16,
+  },
+  tickerItemText: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  tickerDivider: {
+    marginLeft: 12,
+    marginRight: 12,
+    fontSize: 12,
+  },
+  agentNodesWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    marginBottom: 12,
+  },
+  agentNode: {
+    alignItems: 'center',
+    flex: 1.2,
+  },
+  nodeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  glowingNodeDot: {
+    shadowColor: '#6366f1',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 4,
+    borderWidth: 2,
+    borderColor: '#ffffff',
+  },
+  nodeText: {
+    fontSize: 9,
+    textAlign: 'center',
+  },
+  nodeLine: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    flex: 0.5,
+    marginTop: -14,
+  },
+  onlineBadge: {
+    position: 'absolute',
+    top: rPadding(10),
+    right: rPadding(10),
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: rPadding(6),
+    paddingVertical: rPadding(3),
+    borderRadius: rBorderRadius(6),
+    borderWidth: 1,
+    zIndex: 2,
+  },
+  onlineBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 4,
+  },
+  onlineBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
   },
 });
