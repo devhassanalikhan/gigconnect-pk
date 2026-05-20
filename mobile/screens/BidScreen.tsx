@@ -23,7 +23,8 @@ import { useTheme } from '../ThemeContext';
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Bid'>;
 type BidRouteProp = RouteProp<RootStackParamList, 'Bid'>;
 
-import { API_BASE_URL, fetchWithTimeout } from '../config';
+import { API_BASE_URL, fetchWithTimeout, USE_MOCK } from '../config';
+import { lockEscrowMock, submitBidMock } from '../mock/mockApi';
 
 export default function BidScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -58,23 +59,29 @@ export default function BidScreen() {
     setIsEscrowLocking(true);
 
     try {
-      const response = await fetchWithTimeout(`${API_BASE_URL}/api/escrow/lock`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          job_id: jobId,
-          provider_id: providerId,
-          agreed_price: Number(currentAgreedPrice),
-        }),
-      }, 10000); // 10 second timeout
+      let result: any;
 
-      if (!response.ok) {
-        throw new Error(`Escrow locking failed with status: ${response.status}`);
+      if (USE_MOCK) {
+        result = await lockEscrowMock(jobId, providerId, Number(currentAgreedPrice));
+      } else {
+        const response = await fetchWithTimeout(`${API_BASE_URL}/api/escrow/lock`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            job_id: jobId,
+            provider_id: providerId,
+            agreed_price: Number(currentAgreedPrice),
+          }),
+        }, 10000); // 10 second timeout
+
+        if (!response.ok) {
+          throw new Error(`Escrow locking failed with status: ${response.status}`);
+        }
+
+        result = await response.json();
       }
-
-      const result = await response.json();
 
       if (result.error) {
         throw new Error(result.error);
@@ -113,23 +120,29 @@ export default function BidScreen() {
     setIsCounterOpen(false);
 
     try {
-      const response = await fetchWithTimeout(`${API_BASE_URL}/api/bid`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          job_id: jobId,
-          provider_id: providerId,
-          budget: enteredVal,
-        }),
-      }, 10000); // 10 second timeout
+      let result: any;
 
-      if (!response.ok) {
-        throw new Error(`Re-negotiation failed with status: ${response.status}`);
+      if (USE_MOCK) {
+        result = await submitBidMock(jobId, providerId, enteredVal);
+      } else {
+        const response = await fetchWithTimeout(`${API_BASE_URL}/api/bid`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            job_id: jobId,
+            provider_id: providerId,
+            budget: enteredVal,
+          }),
+        }, 10000); // 10 second timeout
+
+        if (!response.ok) {
+          throw new Error(`Re-negotiation failed with status: ${response.status}`);
+        }
+
+        result = await response.json();
       }
-
-      const result = await response.json();
 
       if (result.error) {
         throw new Error(result.error);

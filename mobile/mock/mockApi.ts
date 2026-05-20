@@ -35,3 +35,45 @@ export async function matchMock(text: string) {
     providers: matched.length ? matched.map(p => ({ ...p })) : [],
   };
 }
+
+export async function lockEscrowMock(jobId: string, providerId: string, agreedPrice: number) {
+  await delay(MOCK_DELAY_MS + 100);
+  const fee = Math.round(agreedPrice * 0.0999);
+  const total = agreedPrice + fee;
+  const netToProvider = agreedPrice - fee;
+
+  return {
+    escrow: {
+      booking_id: `MOCK-BK-${jobId.slice(-6).toUpperCase()}`,
+      escrow_id: `MOCK-ESC-${providerId.slice(-6).toUpperCase()}`,
+      total,
+      fee,
+      net_to_provider: netToProvider,
+    },
+    followup: {
+      provider_sms: `Dear provider, a mock booking has been created for ${agreedPrice} PKR. Please confirm arrival asap.`,
+    },
+  };
+}
+
+export async function submitBidMock(jobId: string, providerId: string, budget: number) {
+  await delay(MOCK_DELAY_MS + 100);
+  const action = budget < 1300 ? 'REJECT' : budget <= 1800 ? 'COUNTER' : 'ACCEPT';
+  const agreedPrice = action === 'REJECT' ? budget : action === 'COUNTER' ? Math.max(budget + 150, 1400) : budget;
+
+  return {
+    bid: {
+      action,
+      agreed_price: agreedPrice,
+      provider_min: 1200,
+    },
+    trace: [
+      `Mock agent evaluated ${budget} PKR input for ${providerId}.`,
+      action === 'REJECT'
+        ? 'Offer was below the minimum confidence threshold.'
+        : action === 'COUNTER'
+        ? 'Agent prefers a slightly higher offer to meet provider expectations.'
+        : 'Agreement reached directly inside ZOPA range.',
+    ],
+  };
+}
