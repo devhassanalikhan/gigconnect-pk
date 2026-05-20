@@ -8,8 +8,8 @@ load_dotenv()
 
 # ─── AI Configuration ──────────────────────────────────────
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-# FIX: Updated to gemini-2.5-flash (gemini-2.0-flash is DEPRECATED as of March 2026)
-GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+# FIX: Updated to gemini-2.5-flash-lite (gemini-2.5-flash exceeded free-tier quota)
+GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
 
 # ─── Maps / Apify Configuration ───────────────────────────
 # FIX: This MUST be a separate API key from your Gemini key.
