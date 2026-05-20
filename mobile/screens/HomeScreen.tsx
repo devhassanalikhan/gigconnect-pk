@@ -23,7 +23,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme, ISLAMABAD_SECTORS } from '../ThemeContext';
 import { API_BASE_URL } from '../config';
 import { rPadding, rFontSize, rSpacing, rMargin, getGridColumnWidth, rBorderRadius, getShadow, rCardHeight, rIconSize } from '../utils/responsive';
-import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = getGridColumnWidth(2, rPadding(12));
@@ -83,131 +82,21 @@ export default function HomeScreen() {
   ];
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
-  // Register native speech recognition listeners
-  useSpeechRecognitionEvent("start", () => {
+  const handleMicPress = () => {
+    if (isListening) return;
     setIsListening(true);
-  });
-  useSpeechRecognitionEvent("end", () => {
-    setIsListening(false);
-  });
-  useSpeechRecognitionEvent("result", (event) => {
-    const text = event.results[0]?.transcript || "";
-    setSearchInputText(text);
-  });
-  useSpeechRecognitionEvent("error", (event) => {
-    console.warn("Speech recognition error:", event.error, event.message);
-    setIsListening(false);
-  });
-
-  // Web Speech API fallback for browsers
-  const startWebSpeech = () => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
-
-        recognition.onstart = () => {
-          setIsListening(true);
-        };
-
-        recognition.onresult = (event: any) => {
-          const text = event.results[0][0]?.transcript || "";
-          setSearchInputText(text);
-        };
-
-        recognition.onerror = (event: any) => {
-          console.warn("Web Speech error:", event.error);
-          setIsListening(false);
-        };
-
-        recognition.onend = () => {
-          setIsListening(false);
-        };
-
-        recognition.start();
-        (window as any)._activeSpeechRecognition = recognition;
-      } else {
-        simulateVoiceInput();
-      }
-    } else {
-      simulateVoiceInput();
-    }
-  };
-
-  const stopWebSpeech = () => {
-    if (typeof window !== 'undefined' && (window as any)._activeSpeechRecognition) {
-      (window as any)._activeSpeechRecognition.stop();
-      setIsListening(false);
-    }
-  };
-
-  // High-fidelity typing simulation for standard Expo Go or unsupported contexts
-  const simulateVoiceInput = () => {
-    setIsListening(true);
+    setSearchInputText('Listening...');
+    
     setTimeout(() => {
-      const randomQuery = PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)];
-      let currentText = "";
-      let i = 0;
-      const interval = setInterval(() => {
-        if (i < randomQuery.length) {
-          currentText += randomQuery[i];
-          setSearchInputText(currentText);
-          i++;
-        } else {
-          clearInterval(interval);
-          setIsListening(false);
-          // Auto-submit after simulation to make the demo feel fully automated and magical!
-          setTimeout(() => {
-            navigation.navigate('AI Match', { initialMessage: randomQuery });
-          }, 800);
-        }
-      }, 60);
-    }, 1200);
-  };
-
-  const handleVoiceSearchToggle = async () => {
-    if (isListening) {
-      try {
-        setIsListening(false);
-        if (Platform.OS === 'web') {
-          stopWebSpeech();
-        } else {
-          try {
-            await ExpoSpeechRecognitionModule.stop();
-          } catch (e) {
-            stopWebSpeech();
-          }
-        }
-      } catch (err) {
-        console.warn("Error stopping voice engine:", err);
-      }
-    } else {
-      setSearchInputText('');
-      try {
-        if (Platform.OS === 'web') {
-          startWebSpeech();
-        } else {
-          try {
-            const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-            if (result.granted) {
-              setIsListening(true);
-              await ExpoSpeechRecognitionModule.start({ lang: "en-US" });
-            } else {
-              simulateVoiceInput();
-            }
-          } catch (e) {
-            simulateVoiceInput();
-          }
-        }
-      } catch (err) {
-        setIsListening(false);
-        console.error("Voice recognition failed to initialize:", err);
-        simulateVoiceInput();
-      }
-    }
+      setIsListening(false);
+      const query = "Mujhe AC wala chahye urgent g-11 mein";
+      setSearchInputText(query);
+      
+      // Auto-submit after simulation to make the demo feel fully automated and magical!
+      setTimeout(() => {
+        navigation.navigate('AI Match', { initialMessage: query });
+      }, 500);
+    }, 2000);
   };
 
   React.useEffect(() => {
@@ -385,13 +274,13 @@ export default function HomeScreen() {
               />
               <TouchableOpacity
                 style={{ padding: rPadding(4), marginRight: rMargin(8) }}
-                onPress={handleVoiceSearchToggle}
+                onPress={handleMicPress}
                 activeOpacity={0.7}
               >
                 <Ionicons 
-                  name={isListening ? "mic-off-outline" : "mic"} 
+                  name="mic" 
                   size={rIconSize(20)} 
-                  color={isListening ? colors.danger : "#6366f1"} 
+                  color={isListening ? "#ec4899" : "#6366f1"} 
                 />
               </TouchableOpacity>
               <TouchableOpacity

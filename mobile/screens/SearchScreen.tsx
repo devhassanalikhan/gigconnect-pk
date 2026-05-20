@@ -39,6 +39,7 @@ export default function SearchScreen({ route, navigation: propNavigation }: any)
   const scrollViewRef = useRef<ScrollView>(null);
 
   const [requestText, setRequestText] = useState('');
+  const [isChatListening, setIsChatListening] = useState(false);
   const [activeAgentStep, setActiveAgentStep] = useState(-1); // -1 = idle
   const [messages, setMessages] = useState<ChatBubble[]>([
     {
@@ -229,14 +230,21 @@ export default function SearchScreen({ route, navigation: propNavigation }: any)
   };
 
   // Simulate speech recognition mic input
-  const triggerVoiceInput = () => {
-    setMicActive(true);
+  const handleChatMicPress = () => {
+    if (isChatListening) return;
+    setIsChatListening(true);
+    setRequestText('Listening...');
+    
     setTimeout(() => {
-      setMicActive(false);
-      const simulatedSpeechText = 'Mujhe AC technician chahye Tulsa Road Lalazar k liye urgently';
-      setRequestText(simulatedSpeechText);
-      Alert.alert('Speech Recognized', `Translated: "${simulatedSpeechText}"`);
-    }, 2500);
+      setIsChatListening(false);
+      const query = 'Ghar ki deep cleaning krni ha';
+      setRequestText(query);
+      
+      // Auto-submit after simulation to run matchmaking pipeline instantly
+      setTimeout(() => {
+        handleSend(query);
+      }, 500);
+    }, 2000);
   };  return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
@@ -346,8 +354,12 @@ export default function SearchScreen({ route, navigation: propNavigation }: any)
 
         {/* Bottom input area */}
         <View style={[styles.inputArea, { backgroundColor: colors.cardBackground, borderTopColor: colors.border }]}>
-          <TouchableOpacity style={styles.micBtn} onPress={triggerVoiceInput}>
-            <Ionicons name="mic-outline" size={22} color={colors.textMuted} />
+          <TouchableOpacity style={styles.micBtn} onPress={handleChatMicPress}>
+            <Ionicons 
+              name={isChatListening ? "mic" : "mic-outline"} 
+              size={22} 
+              color={isChatListening ? "#ec4899" : colors.textMuted} 
+            />
           </TouchableOpacity>
           
           <TextInput
