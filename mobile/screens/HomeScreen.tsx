@@ -83,18 +83,20 @@ export default function HomeScreen() {
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
 
   const handleMicPress = () => {
-    if (isListening) return;
-    setIsListening(true);
-    setSearchInputText('Listening...');
+    if (isListening) return; // Block multiple spam clicks
     
+    setIsListening(true);
+    setSearchInputText('Listening...'); // Phase 1: Set immediate visual indicator
+    
+    // Phase 2: Wait exactly 2000ms before typing the simulated voice prompt string
     setTimeout(() => {
       setIsListening(false);
-      const query = "Mujhe AC wala chahye urgent g-11 mein";
-      setSearchInputText(query);
+      const targetQuery = "Mujhe AC wala chahye urgent g-11 mein";
+      setSearchInputText(targetQuery);
       
-      // Auto-submit after simulation to make the demo feel fully automated and magical!
+      // Trigger redirect / auto-send flow if active in project layout
       setTimeout(() => {
-        navigation.navigate('AI Match', { initialMessage: query });
+        navigation.navigate('AI Match', { initialMessage: targetQuery });
       }, 500);
     }, 2000);
   };
@@ -273,14 +275,17 @@ export default function HomeScreen() {
                 }}
               />
               <TouchableOpacity
-                style={{ padding: rPadding(4), marginRight: rMargin(8) }}
+                style={[
+                  { padding: rPadding(6), marginRight: rMargin(8), borderRadius: rBorderRadius(8) },
+                  isListening && { backgroundColor: '#dc2626' }
+                ]}
                 onPress={handleMicPress}
                 activeOpacity={0.7}
               >
                 <Ionicons 
                   name="mic" 
                   size={rIconSize(20)} 
-                  color={isListening ? "#ec4899" : "#6366f1"} 
+                  color={isListening ? "#ffffff" : "#6366f1"} 
                 />
               </TouchableOpacity>
               <TouchableOpacity

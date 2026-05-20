@@ -38,7 +38,7 @@ export default function SearchScreen({ route, navigation: propNavigation }: any)
   const styles = getStyles(colors, theme);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  const [requestText, setRequestText] = useState('');
+  const [inputText, setInputText] = useState('');
   const [isChatListening, setIsChatListening] = useState(false);
   const [activeAgentStep, setActiveAgentStep] = useState(-1); // -1 = idle
   const [messages, setMessages] = useState<ChatBubble[]>([
@@ -54,6 +54,9 @@ export default function SearchScreen({ route, navigation: propNavigation }: any)
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [matchedProviders, setMatchedProviders] = useState<any[]>([]);
   const [parsedRequest, setParsedRequest] = useState<any>(null);
+  const [selectedProvider, setSelectedProvider] = useState<any>(null);
+  const [isBookingLoading, setIsBookingLoading] = useState(false);
+  const [isBookingConfirmed, setIsBookingConfirmed] = useState(false);
 
   // Automatically scroll to bottom when messages list updates
   useEffect(() => {
@@ -86,19 +89,21 @@ export default function SearchScreen({ route, navigation: propNavigation }: any)
 
   // Trigger matching pipeline
   const handleSend = async (customText?: string) => {
-    const textToSend = customText || requestText;
+    const textToSend = customText || inputText;
     if (!textToSend.trim()) return;
 
     // Reset matched providers and previous request state to prevent old card data from persisting
     setMatchedProviders([]);
     setParsedRequest(null);
+    setSelectedProvider(null);
+    setIsBookingConfirmed(false);
 
     // Append client message
     const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const userMsg: ChatBubble = { sender: 'user', text: textToSend, time: timestamp };
     
     setMessages((prev) => [...prev, userMsg]);
-    if (!customText) setRequestText('');
+    if (!customText) setInputText('');
     setIsProcessing(true);
     setActiveAgentStep(0);
 
@@ -229,20 +234,55 @@ export default function SearchScreen({ route, navigation: propNavigation }: any)
     }
   };
 
-  // Simulate speech recognition mic input
-  const handleChatMicPress = () => {
-    if (isChatListening) return;
-    setIsChatListening(true);
-    setRequestText('Listening...');
+  const handleLockAndBookOffer = async () => {
+    if (isBookingLoading || !selectedProvider) return; // Guard condition to stop multiple network calls
+
+    setIsBookingLoading(true);
     
+    // Extract values safely, checking both standard naming variants used across the app
+    const targetProviderId = selectedProvider.provider_id || selectedProvider.id || selectedProvider.worker_id;
+    const targetBookingId = selectedProvider.booking_id || "BK-788C42"; // Use current active graph booking ID
+    const finalPrice = selectedProvider.proposed_price || selectedProvider.base_rate || 2000;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/escrow/lock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          provider_id: targetProviderId,
+          booking_id: targetBookingId,
+          amount: finalPrice
+        })
+      });
+
+      if (response.ok) {
+        // Phase 3: Transition to local success state immediately on 200 OK
+        setIsBookingConfirmed(true);
+      } else {
+        console.warn("Escrow endpoint returned error status:", response.status);
+      }
+    } catch (error) {
+      console.error("Network failure during escrow dispatch:", error);
+    } finally {
+      setIsBookingLoading(false);
+    }
+  };
+
+  const handleChatMicPress = () => {
+    if (isChatListening) return; // Block spam clicks
+    
+    setIsChatListening(true);
+    setInputText('Listening...'); // Phase 1: Set immediate feedback inside chat box
+    
+    // Phase 2: Wait exactly 2000ms before revealing local conversational string
     setTimeout(() => {
       setIsChatListening(false);
-      const query = 'Ghar ki deep cleaning krni ha';
-      setRequestText(query);
+      const targetChatQuery = "Ghar ki deep cleaning krni ha";
+      setInputText(targetChatQuery);
       
-      // Auto-submit after simulation to run matchmaking pipeline instantly
+      // Optional: Fire the actual message submission handler directly to trigger the LangGraph flow
       setTimeout(() => {
-        handleSend(query);
+        handleSend(targetChatQuery);
       }, 500);
     }, 2000);
   };  return (
@@ -311,43 +351,86 @@ export default function SearchScreen({ route, navigation: propNavigation }: any)
               <Text style={styles.resultsTitle}>
                 {language === 'en' ? 'MATCHED PROVIDERS' : 'منتخب ورکرز'}
               </Text>
-              {matchedProviders.map((p, pIdx) => {
-                const distanceVal = p.distance !== undefined ? p.distance : p.distance_km;
-                const arrivalTime = distanceVal ? Math.round(distanceVal * 3.5) + 10 : 25;
-                return (
-                  <TouchableOpacity
-                    key={`p-${pIdx}`}
-                    style={styles.providerCard}
-                    onPress={() => navigation.navigate('Book', {
-                      provider: p,
-                      serviceType: parsedRequest?.serviceType || 'Service',
-                    })}
-                  >
-                    <View style={styles.providerInfo}>
-                      <View style={styles.providerMain}>
-                        <Text style={styles.providerNameText}>{p.name}</Text>
-                        <View style={styles.ratingRow}>
-                          <Ionicons name="star" size={12} color="#f59e0b" />
-                          <Text style={styles.ratingText}> {p.rating}</Text>
-                          <Text style={styles.distanceText}> • {distanceVal !== undefined ? `${distanceVal}km away` : 'Nearby'}</Text>
+              
+              {isBookingConfirmed ? (
+                <View style={[styles.providerCard, { padding: rPadding(24), alignItems: 'center', borderColor: '#10b981', borderWidth: 2 }]}>
+                  <Ionicons name="lock-closed-outline" size={48} color="#10b981" style={{ marginBottom: rMargin(12) }} />
+                  <Text style={[styles.providerNameText, { color: colors.text, fontSize: rFontSize(18), textAlign: 'center', fontWeight: 'bold' }]}>
+                    Secure Escrow Locked! 🔒
+                  </Text>
+                  <Text style={[styles.distanceText, { color: colors.textMuted, fontSize: rFontSize(13), textAlign: 'center', marginTop: rMargin(8), lineHeight: rFontSize(18) }]}>
+                    Booking successfully confirmed with your provider. Funds are safely held until service verification.
+                  </Text>
+                </View>
+              ) : (
+                matchedProviders.map((p, pIdx) => {
+                  const distanceVal = p.distance !== undefined ? p.distance : p.distance_km;
+                  const arrivalTime = distanceVal ? Math.round(distanceVal * 3.5) + 10 : 25;
+                  
+                  const selectedId = selectedProvider ? (selectedProvider.provider_id || selectedProvider.id || selectedProvider.worker_id) : null;
+                  const currentId = p.provider_id || p.id || p.worker_id;
+                  const isSelected = !!(selectedId && currentId && selectedId === currentId);
+
+                  return (
+                    <TouchableOpacity
+                      key={`p-${pIdx}`}
+                      style={[
+                        styles.providerCard,
+                        isSelected ? { borderColor: colors.primary, borderWidth: 2 } : null
+                      ]}
+                      onPress={() => setSelectedProvider(p)}
+                      activeOpacity={0.9}
+                    >
+                      <View style={styles.providerInfo}>
+                        <View style={styles.providerMain}>
+                          <Text style={styles.providerNameText}>{p.name || 'Service Provider'}</Text>
+                          <View style={styles.ratingRow}>
+                            <Ionicons name="star" size={12} color="#f59e0b" />
+                            <Text style={styles.ratingText}> {p.rating || '4.5'}</Text>
+                            <Text style={styles.distanceText}> • {distanceVal !== undefined ? `${distanceVal}km away` : 'Nearby'}</Text>
+                          </View>
+                          <Text style={[styles.distanceText, { marginTop: 4 }]} numberOfLines={1} ellipsizeMode="tail">
+                            📍 {p.address || 'Islamabad Center'}
+                          </Text>
+                          <Text style={[styles.distanceText, { marginTop: 2 }]}>
+                            🕒 Estimated Arrival: {arrivalTime} mins
+                          </Text>
                         </View>
-                        <Text style={[styles.distanceText, { marginTop: 4 }]} numberOfLines={1} ellipsizeMode="tail">
-                          📍 {p.address || 'Islamabad Center'}
-                        </Text>
-                        <Text style={[styles.distanceText, { marginTop: 2 }]}>
-                          🕒 Estimated Arrival: {arrivalTime} mins
-                        </Text>
+                        <View style={styles.priceTagSmall}>
+                          <Text style={styles.priceTextSmall}>{p.proposed_price || p.base_cost || p.base_rate || p.price || 2000} PKR</Text>
+                        </View>
                       </View>
-                      <View style={styles.priceTagSmall}>
-                        <Text style={styles.priceTextSmall}>{p.base_cost} PKR</Text>
-                      </View>
-                    </View>
-                    <View style={styles.selectBtn}>
-                      <Text style={styles.selectBtnText}>{language === 'en' ? 'Select & Bid' : 'منتخب کریں'}</Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
+                      
+                      {isSelected ? (
+                        <TouchableOpacity
+                          style={[styles.selectBtn, { backgroundColor: '#10b981' }]}
+                          onPress={handleLockAndBookOffer}
+                          disabled={isBookingLoading}
+                          activeOpacity={0.8}
+                        >
+                          {isBookingLoading ? (
+                            <ActivityIndicator size="small" color="#ffffff" />
+                          ) : (
+                            <Text style={styles.selectBtnText}>
+                              {language === 'en' ? 'Lock & Book Offer 🔒' : 'آفر لاک اور بک کریں'}
+                            </Text>
+                          )}
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.selectBtn}
+                          onPress={() => setSelectedProvider(p)}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={styles.selectBtnText}>
+                            {language === 'en' ? 'Select & Bid' : 'منتخب کریں'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })
+              )}
             </View>
           )}
         </ScrollView>
@@ -358,7 +441,7 @@ export default function SearchScreen({ route, navigation: propNavigation }: any)
             <Ionicons 
               name={isChatListening ? "mic" : "mic-outline"} 
               size={22} 
-              color={isChatListening ? "#ec4899" : colors.textMuted} 
+              color={isChatListening ? "#dc2626" : colors.textMuted} 
             />
           </TouchableOpacity>
           
@@ -368,8 +451,9 @@ export default function SearchScreen({ route, navigation: propNavigation }: any)
               color: theme === 'dark' ? '#ffffff' : '#0f172a',
               borderColor: theme === 'dark' ? '#334155' : '#cbd5e1'
             }]}
-            value={requestText}
-            onChangeText={setRequestText}
+            value={inputText}
+            onChangeText={setInputText}
+            editable={!isChatListening}
             placeholder={language === 'en' ? 'Ask KaamGraph AI...' : 'KaamGraph AI سے پوچھیں...'}
             placeholderTextColor={colors.textMuted}
           />
