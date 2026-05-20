@@ -18,7 +18,7 @@ const getApiBaseUrl = (): string => {
 };
 
 const getGoogleMapsApiKey = (): string => {
-  const key = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || 'AIzaSyBcWIO_zNg49uPSzw8yv67PqhV47IUMN5Q';
+  const key = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
   return key.replace(/"/g, '');
 };
 
