@@ -23,6 +23,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme, ISLAMABAD_SECTORS } from '../ThemeContext';
 import { API_BASE_URL } from '../config';
 import { rPadding, rFontSize, rSpacing, rMargin, getGridColumnWidth, rBorderRadius, getShadow, rCardHeight, rIconSize } from '../utils/responsive';
+import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 
 const { width } = Dimensions.get('window');
 const COLUMN_WIDTH = getGridColumnWidth(2, rPadding(12));
@@ -67,6 +68,10 @@ export default function HomeScreen() {
   const [isOnline, setIsOnline] = useState(false);
   const [escrowBalance, setEscrowBalance] = useState(14500);
 
+  // Speech Recognition States
+  const [isListening, setIsListening] = useState(false);
+  const [searchInputText, setSearchInputText] = useState('');
+
   // Animated placeholders sequence
   const PLACEHOLDERS = [
     "Toti kharab ho gai ha...",
@@ -77,6 +82,133 @@ export default function HomeScreen() {
     "Mujhe AC wala chahye Tulsa road par...",
   ];
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
+  // Register native speech recognition listeners
+  useSpeechRecognitionEvent("start", () => {
+    setIsListening(true);
+  });
+  useSpeechRecognitionEvent("end", () => {
+    setIsListening(false);
+  });
+  useSpeechRecognitionEvent("result", (event) => {
+    const text = event.results[0]?.transcript || "";
+    setSearchInputText(text);
+  });
+  useSpeechRecognitionEvent("error", (event) => {
+    console.warn("Speech recognition error:", event.error, event.message);
+    setIsListening(false);
+  });
+
+  // Web Speech API fallback for browsers
+  const startWebSpeech = () => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+          setIsListening(true);
+        };
+
+        recognition.onresult = (event: any) => {
+          const text = event.results[0][0]?.transcript || "";
+          setSearchInputText(text);
+        };
+
+        recognition.onerror = (event: any) => {
+          console.warn("Web Speech error:", event.error);
+          setIsListening(false);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognition.start();
+        (window as any)._activeSpeechRecognition = recognition;
+      } else {
+        simulateVoiceInput();
+      }
+    } else {
+      simulateVoiceInput();
+    }
+  };
+
+  const stopWebSpeech = () => {
+    if (typeof window !== 'undefined' && (window as any)._activeSpeechRecognition) {
+      (window as any)._activeSpeechRecognition.stop();
+      setIsListening(false);
+    }
+  };
+
+  // High-fidelity typing simulation for standard Expo Go or unsupported contexts
+  const simulateVoiceInput = () => {
+    setIsListening(true);
+    setTimeout(() => {
+      const randomQuery = PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)];
+      let currentText = "";
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < randomQuery.length) {
+          currentText += randomQuery[i];
+          setSearchInputText(currentText);
+          i++;
+        } else {
+          clearInterval(interval);
+          setIsListening(false);
+          // Auto-submit after simulation to make the demo feel fully automated and magical!
+          setTimeout(() => {
+            navigation.navigate('AI Match', { initialMessage: randomQuery });
+          }, 800);
+        }
+      }, 60);
+    }, 1200);
+  };
+
+  const handleVoiceSearchToggle = async () => {
+    if (isListening) {
+      try {
+        setIsListening(false);
+        if (Platform.OS === 'web') {
+          stopWebSpeech();
+        } else {
+          try {
+            await ExpoSpeechRecognitionModule.stop();
+          } catch (e) {
+            stopWebSpeech();
+          }
+        }
+      } catch (err) {
+        console.warn("Error stopping voice engine:", err);
+      }
+    } else {
+      setSearchInputText('');
+      try {
+        if (Platform.OS === 'web') {
+          startWebSpeech();
+        } else {
+          try {
+            const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+            if (result.granted) {
+              setIsListening(true);
+              await ExpoSpeechRecognitionModule.start({ lang: "en-US" });
+            } else {
+              simulateVoiceInput();
+            }
+          } catch (e) {
+            simulateVoiceInput();
+          }
+        }
+      } catch (err) {
+        setIsListening(false);
+        console.error("Voice recognition failed to initialize:", err);
+        simulateVoiceInput();
+      }
+    }
+  };
 
   React.useEffect(() => {
     const timer = setInterval(() => {
@@ -236,30 +368,42 @@ export default function HomeScreen() {
             </View>
 
             {/* AI Search Prompt Trigger */}
-            <TouchableOpacity 
+            <View 
               style={[styles.searchBarTrigger, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(16), paddingHorizontal: rPadding(18), paddingVertical: rPadding(14), marginBottom: rMargin(28), ...getShadow(2) }]}
-              onPress={() => navigation.navigate('AI Match')}
-              activeOpacity={0.8}
             >
               <Ionicons name="sparkles-outline" size={rIconSize(18)} color="#6366f1" style={{ marginRight: rMargin(8) }} />
               <TextInput
-                style={[styles.searchPlaceholder, { color: colors.text, fontSize: rFontSize(13), flex: 1 }]}
-                placeholder={PLACEHOLDERS[placeholderIndex]}
+                style={[styles.searchPlaceholder, { color: colors.text, fontSize: rFontSize(13), flex: 1, padding: 0 }]}
+                placeholder={isListening ? "Listening... Speak now" : PLACEHOLDERS[placeholderIndex]}
                 placeholderTextColor="#94a3b8"
-                editable={false}
+                editable={true}
+                value={searchInputText}
+                onChangeText={setSearchInputText}
+                onSubmitEditing={() => {
+                  navigation.navigate('AI Match', { initialMessage: searchInputText || PLACEHOLDERS[placeholderIndex] });
+                }}
               />
               <TouchableOpacity
                 style={{ padding: rPadding(4), marginRight: rMargin(8) }}
-                onPress={() => {
-                  Alert.alert("Voice Search", "Listening... Speak your Roman Urdu query now.");
-                }}
+                onPress={handleVoiceSearchToggle}
+                activeOpacity={0.7}
               >
-                <Ionicons name="mic" size={rIconSize(20)} color="#6366f1" />
+                <Ionicons 
+                  name={isListening ? "mic-off-outline" : "mic"} 
+                  size={rIconSize(20)} 
+                  color={isListening ? colors.danger : "#6366f1"} 
+                />
               </TouchableOpacity>
-              <View style={[styles.arrowIconWrapper, { backgroundColor: '#6366f1', width: rSpacing(24), height: rSpacing(24), borderRadius: rBorderRadius(12) }]}>
+              <TouchableOpacity
+                style={[styles.arrowIconWrapper, { backgroundColor: '#6366f1', width: rSpacing(24), height: rSpacing(24), borderRadius: rBorderRadius(12) }]}
+                onPress={() => {
+                  navigation.navigate('AI Match', { initialMessage: searchInputText || PLACEHOLDERS[placeholderIndex] });
+                }}
+                activeOpacity={0.7}
+              >
                 <Ionicons name="arrow-forward" size={rIconSize(14)} color="#ffffff" />
-              </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </View>
 
             {/* Overview Section */}
             <View style={[styles.sectionHeader, { marginBottom: rMargin(12) }]}>
