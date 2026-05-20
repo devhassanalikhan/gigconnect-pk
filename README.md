@@ -39,6 +39,20 @@ By orchestrating **5 autonomous sub-agents powered by Google Cloud & Gemini 2.5 
 *   **On-the-fly Provider Generation**: Instantly maps real local businesses in Islamabad, ratings, and physical distances onto dynamic candidate cards.
 *   **Frictionless Local Fallback**: Seamlessly falls back to our SQLite database if API credentials are empty, ensuring a secure, always-on demonstration.
 
+### 7. 🎙️ High-Fidelity Voice UI & Speech-to-Text Simulation
+*   **Dual-Screen Voice Command Integration**: Built a cohesive, non-blocking Voice Search experience across BOTH the **Home Screen** and **AI Match / Chat Screen**.
+*   **Realistic "Listening..." Micro-Animation & Delayed Typing Simulator**: Tapping the microphone icon instantly changes its container background color to glowing Crimson (`#dc2626`) and updates the input state to `"Listening..."`. After a 2-second simulation delay (guaranteeing a frictionless, permission-free hackathon walkthrough on any hardware), the system types the Roman Urdu query (e.g. *"Mujhe AC wala chahye urgent g-11 mein"* or *"Ghar ki deep cleaning krni ha"*) and automatically dispatches it into the agentic matching pipeline.
+*   **Web Speech API Fallback**: Robust standard-compliant fallback for browser and native runtimes.
+
+### 8. 🟢 Live Escrow Activity Ticker & Market Liquidity Indicators
+*   **Proof-of-Work Marquee Ticker**: Added a horizontally auto-scrolling live transaction logs marquee ticker directly under the Home Screen Hero banner, showcasing ongoing simulated contract milestones ("🟢 Booking BK-788C42: Deep Cleaning...", etc.) in real-time.
+*   **Market Liquidity Badges**: Designed gorgeous, high-fidelity glowing count indicators (e.g. `"12 Active"`, `"9 Online"`) overlaid on Daily Essentials category cards, visualizing rich local market liquidity to end-users.
+
+### 9. 🗺️ Overhauled Proximity-Aware Map & Lazy-Loaded Carousel
+*   **Proximity-Sorted Lazy-Loaded Carousel**: Replaced standard heavy layout loops with a high-performance horizontal `<FlatList>` Carousel under the interactive map.
+*   **Direct-Calling Button Integration**: Integrates the Expo `Linking` module to allow clients to initiate direct cellular voice calls (`tel:`) to matched local providers instantly from any map card.
+*   **Manual Geocoding Address Fallbacks**: Includes a robust geocoding resolver mapping text inputs (e.g. "G-11", "G-13") to exact coordinate matrices and sorting active database providers by physical distance in real-time.
+
 ---
 
 ## 🤖 The Multi-Agent Architecture (Antigravity Engine)
@@ -111,12 +125,12 @@ graph TD
     ```bash
     npm install
     ```
-3.  Ensure your mobile configuration points to your computer's local Wi-Fi IP address inside `config.ts` (currently auto-resolved to `192.168.18.74:8000`).
-4.  Start the Expo bundle cleaner:
+3.  **Zero-Configuration IP Resolution**: The mobile app dynamically resolves your development machine's active local Wi-Fi IP address at runtime (via Expo Constants). There is **no need** to manually edit configuration files.
+4.  Start the Expo development server:
     ```bash
     npx expo start -c
     ```
-5.  Scan the QR code with your Expo Go app to launch KaamGraph live!
+5.  Scan the QR code with your Expo Go app on a physical device to launch KaamGraph live!
 
 ---
 

@@ -104,32 +104,42 @@ async def get_providers(
 
 ---
 
+## ⚡ Zero-Configuration Dynamic IP Auto-Resolution
+
+To make development and review frictionless, **KaamGraph** has been upgraded with **Automatic LAN IP Discovery**. 
+
+### How it works:
+1. Physical mobile devices running **Expo Go** must connect to the same Wi-Fi subnet as your development machine.
+2. Rather than forcing you to find your local IP and manually edit `.env` or `config.ts` files, the mobile client dynamically reads the running Expo dev server packager configuration (`Constants.expoConfig?.hostUri`).
+3. It splits this URI and constructs the API base URL dynamically (e.g. `http://<YOUR_IP>:8000`).
+4. This ensures that physical mobile devices can always synchronize and communicate with your backend FastAPI server without manual configuration.
+
+---
+
 ## 🚀 Quick Start
 
 ```bash
 # Terminal 1: Start backend
 cd backend
-python -m uvicorn main:app --host 0.0.0.0 --port 8000
+python main.py  # Bounds to 0.0.0.0:8000 with hot-reloading auto-active
 
-# Terminal 2: Add your API key
+# Terminal 2: Configure variables
 cd mobile
 cat > .env << EOF
-API_BASE_URL_WEB=http://localhost:8000
-API_BASE_URL_MOBILE=http://192.168.100.5:8000
-GOOGLE_MAPS_API_KEY=YOUR_REAL_API_KEY_HERE
+EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=YOUR_REAL_API_KEY_HERE
 DEFAULT_LATITUDE=33.6411
 DEFAULT_LONGITUDE=72.9723
 EOF
 
 # Terminal 3: Start dev server
-npm run web
+npm run web  # Or 'npx expo start' to scan the QR code on a physical phone
 ```
 
 Then:
-1. Check `console` logs for "API_BASE_URL configured as: http://localhost:8000"
-2. If you see warnings about missing API key, the key wasn't picked up—restart dev server
-3. Tap GPS icon to see if map loads
-4. Search for a location
+1. Check the terminal/console logs. You will see a log stating `[KaamGraph] API_BASE_URL configured as: http://<YOUR_IP>:8000` (on mobile) or `http://localhost:8000` (on web).
+2. If you see warnings about a missing API key, restart your dev server with `npx expo start -c`.
+3. Tap the GPS icon to verify if the map loads.
+4. Search for a location or query an AI Match.
 
 ---
 

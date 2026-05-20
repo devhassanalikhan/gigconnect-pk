@@ -158,20 +158,19 @@ It will show:
 ```bash
 # Terminal 1: Backend with real data
 cd backend
-python -m uvicorn main:app --host 0.0.0.0 --port 8000
+python main.py  # Autostarts and binds to 0.0.0.0:8000 cleanly
 
 # Terminal 2: Update .env with your Google Maps key
 cd mobile
 cat > .env << 'EOF'
-API_BASE_URL_WEB=http://localhost:8000
-API_BASE_URL_MOBILE=http://192.168.100.5:8000
-GOOGLE_MAPS_API_KEY=AIzaSy...YOUR_ACTUAL_KEY_HERE
+EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSy...YOUR_ACTUAL_KEY_HERE
 DEFAULT_LATITUDE=33.6411
 DEFAULT_LONGITUDE=72.9723
 EOF
 
-# Restart dev server
-npm run web
+# Restart dev server (clearing the cache)
+npx expo start -c
+
 
 # Terminal 3: Add real providers to database (one-time)
 python << 'EOF'

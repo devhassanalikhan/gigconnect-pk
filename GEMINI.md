@@ -105,7 +105,7 @@ You are **Hassan**, the Lead Agentic Developer for **GigConnect PK**—Pakistan'
 - **Backend Stack**: FastAPI (Python) + SQLite (SQLAlchemy) + Gemini 2.5 Flash + Google Agent Platform Orchestrator.
 - **Orchestration Concept**: State-Passing Sequential Multi-Agent Chain. The pipeline sequentially pipes state across 5 agents natively (Linguistic Agent 🤖 ➔ Geo Agent 📍 ➔ Bidding Agent 💰 ➔ Escrow Agent 🔒 ➔ Follow-up Agent ✉️) to achieve maximum performance and detailed execution traces.
 - **Mobile Stack**: React Native (Expo SDK 54) + TypeScript + React Navigation.
-- **Primary API Target**: `http://192.168.100.6:8000` (Local Network IP) and fallback endpoints.
+- **Primary API Target**: Dynamically auto-resolved at runtime to your development machine's active local Wi-Fi IP address (with backup fallbacks like `localhost`), ensuring physical mobile devices run flawlessly out of the box.
 
 ---
 
