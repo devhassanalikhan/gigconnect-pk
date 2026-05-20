@@ -1,6 +1,7 @@
 // Diagnostic check for real backend & map issues
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { API_BASE_URL, GOOGLE_MAPS_API_KEY, fetchWithTimeout } from '../config';
 
 export default function DiagnosticScreen() {
   const [diagnostics, setDiagnostics] = useState<string[]>([]);
@@ -9,11 +10,9 @@ export default function DiagnosticScreen() {
     (async () => {
       const logs: string[] = [];
 
-      // Check 1: Backend connectivity
+      // Check 1: Backend connectivity (uses configured API_BASE_URL)
       try {
-        const response = await fetch('http://localhost:8000/api/providers', {
-          method: 'GET',
-        });
+        const response = await fetchWithTimeout(`${API_BASE_URL}/api/providers`, {}, 8000);
         logs.push(`✓ Backend reachable (${response.status})`);
         const data = await response.json();
         logs.push(`✓ Backend returned: ${JSON.stringify(data).slice(0, 100)}...`);
@@ -22,11 +21,11 @@ export default function DiagnosticScreen() {
       }
 
       // Check 2: Google Maps API key
-      const key = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
-      if (key && key !== 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+      const key = GOOGLE_MAPS_API_KEY;
+      if (key && key !== 'YOUR_GOOGLE_MAPS_API_KEY_HERE' && key.length > 5) {
         logs.push(`✓ Google Maps API key configured`);
       } else {
-        logs.push(`✗ Google Maps API key NOT configured (${key})`);
+        logs.push(`✗ Google Maps API key NOT configured (${String(key)})`);
       }
 
       // Check 3: Places API (New & Legacy fallback)

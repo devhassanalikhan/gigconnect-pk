@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar, LogBox } from 'react-native';
+import type { TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider, useTheme } from './ThemeContext';
 
@@ -123,7 +124,7 @@ function TabNavigator() {
     },
     tabBarActiveTintColor: activeColor,
     tabBarInactiveTintColor: colors.textMuted,
-    tabBarLabelStyle: { fontSize: 10, fontWeight: 'bold' as const },
+    tabBarLabelStyle: { fontSize: 10, fontWeight: '700' } as TextStyle,
     tabBarIcon: ({ color, focused }: any) => {
       let iconName = '';
       if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';

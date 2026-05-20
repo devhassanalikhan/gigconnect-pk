@@ -80,15 +80,17 @@ def root():
 async def match_providers(req: MatchRequest, db: Session = Depends(get_db)):
     """
     Full orchestrator endpoint.
-    Runs LinguisticAgent → GeoAgent → BiddingAgent → EscrowAgent → FollowUpAgent.
+    Step 0: Intent Classification — greetings get a natural response, no pipeline.
+    Step 1+: LinguisticAgent → GeoAgent → BiddingAgent → EscrowAgent → FollowUpAgent.
     Returns complete agent_trace and booking result.
     """
-    return await run_pipeline(
+    result = await run_pipeline(
         text=req.text,
         db=db,
         user_lat=req.user_lat,
         user_lng=req.user_lng
     )
+    return result
 
 
 # ══════════════════════════════════════════════════════════
@@ -396,3 +398,16 @@ def get_available_providers(service_type: str = None, db: Session = Depends(get_
             for p in providers
         ]
     }
+
+
+# ══════════════════════════════════════════════════════════
+# LOCAL DEVELOPMENT SERVER
+# Binds to 0.0.0.0 so mobile devices on LAN can connect.
+# Usage: python main.py
+# ══════════════════════════════════════════════════════════
+if __name__ == "__main__":
+    import uvicorn
+    print("\n🚀 Starting KaamGraph API on http://0.0.0.0:8000")
+    print("📱 Mobile devices on same WiFi can connect via your LAN IP.")
+    print("   Find your IP: ipconfig (Windows) or ifconfig (Mac/Linux)\n")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

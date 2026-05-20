@@ -127,3 +127,47 @@ When recording your video demo (using **Loom** or **OBS**):
 2.  **0:45 - 2:00**: Request an Electrician in Roman Urdu. Show off the **pulsing Concentric Radar Scanner** and the monospace **Terminal logs** executing step-by-step.
 3.  **2:00 - 3:15**: Switch to **Worker Mode** inside profile. Toggle to `GO LIVE` and accept the job. Slide the **dynamic ZOPA slider** and watch the color tracks shift, showing automated Reverse-Bidding negotiations!
 4.  **3:15 - 4:00**: Showcase the final secure **AI Escrow receipt** and NADRA clearance status card.
+
+---
+
+## 📦 Submission & Delivery Checklist
+
+Follow these mandatory submission requirements exactly. Provide only the requested links/files where indicated.
+
+Mandatory Submissions (provide ONLY the link where requested):
+
+1. Mobile App Link: Upload the built app (APK / Expo share link) to an online drive and paste the public link below. ONLY SHARE THE LINK.
+    - Mobile App Link: <PASTE_PUBLIC_LINK_HERE>
+
+2. GitHub Repository: Ensure the repository is public or team-accessible. Paste the repository link below. ONLY SHARE THE LINK.
+    - GitHub Repo Link: <PASTE_GITHUB_REPO_LINK_HERE>
+
+3. Demo Video (3-5 minutes): A short walkthrough showing the overall workflow, agent pipeline, and innovations.
+    - Demo Video Link: <PASTE_DEMO_VIDEO_LINK_HERE>
+
+4. Antigravity Usage Video (2-3 minutes): Screen recording showing how Antigravity was used during development.
+    - Antigravity Video Link: <PASTE_ANTIGRAVITY_VIDEO_LINK_HERE>
+
+5. README / Documentation: This file must explain architecture, agents developed, APIs used (mock/real), and integration notes. Ensure this README is up to date.
+    - Documentation: This README (updated). See repository root.
+
+6. Antigravity Trace / Logs (compressed): A zipped archive containing development logs, task lists, Antigravity traces and walkthroughs for all team members.
+    - Antigravity Trace ZIP Link: <PASTE_TRACE_ZIP_LINK_HERE>
+
+Optional Submissions:
+
+1. Web App Link: If you deployed a web app, provide the public URL and credentials if required. ONLY SHARE THE LINK.
+    - Web App Link: <PASTE_WEB_APP_LINK_HERE>
+    - Credentials (if needed): <USERNAME / PASSWORD or leave empty>
+
+2. Additional Supporting Files: PDF / MD / PPTX you want to include.
+    - Extra Files Link: <PASTE_LINK_TO_SUPPORTING_FILES>
+
+Checklist before final submission:
+- Verify mobile link is accessible without login (or include access instructions).
+- Confirm GitHub repo contains build instructions and a working `mobile` and `backend` folder.
+- Ensure demo and Antigravity videos are publicly viewable or set to 'anyone with link'.
+- Compress and upload Antigravity trace/logs (include `.agent` workflows and task lists).
+- Update this README with final links (replace placeholders above).
+
+If you want, I can populate the placeholders with the links you provide, commit the changes, and create a release archive for submission.

@@ -14,6 +14,7 @@ import {
   Dimensions,
   Modal,
   KeyboardAvoidingView,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -57,6 +58,17 @@ export default function SearchScreen() {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
   }, [messages]);
+
+  // Scroll to bottom when keyboard opens (fixes overlap on physical devices)
+  useEffect(() => {
+    const keyboardShowEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const sub = Keyboard.addListener(keyboardShowEvent, () => {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 200);
+    });
+    return () => sub.remove();
+  }, []);
 
   // Trigger matching pipeline
   const handleSend = async (customText?: string) => {
@@ -102,7 +114,21 @@ export default function SearchScreen() {
       }
 
       const resultData = await response.json();
-      
+
+      // ─── Handle Greeting Intent (no pipeline needed) ───────────────
+      if (resultData.pipeline_status === 'greeting' && resultData.greeting_response) {
+        setIsProcessing(false);
+        setActiveAgentStep(-1);
+        const greetingMsg: ChatBubble = {
+          sender: 'agent',
+          text: resultData.greeting_response,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prev) => [...prev, greetingMsg]);
+        return; // Skip provider display logic
+      }
+
+      // ─── Handle Service Request (full pipeline) ────────────────────
       advanceStep(4, 400); // EscrowAgent
 
       setTimeout(async () => {
@@ -160,9 +186,9 @@ export default function SearchScreen() {
       <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={'padding'}
         style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.select({ ios: 90, android: 0, default: 0 })}
+        keyboardVerticalOffset={Platform.select({ ios: 90, android: 60, default: 0 })}
       >
         {/* Header bar */}
         <View style={styles.header}>

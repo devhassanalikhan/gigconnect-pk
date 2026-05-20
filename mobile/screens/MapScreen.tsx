@@ -13,7 +13,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useTheme, ISLAMABAD_SECTORS } from '../ThemeContext';
@@ -68,6 +68,7 @@ const LOCAL_SEED_PROVIDERS = [
 
 export default function MapScreen({ navigation }: any) {
   const { colors, selectedLocationIndex, theme, language } = useTheme();
+  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [rawProviders, setRawProviders] = useState<any[]>(LOCAL_SEED_PROVIDERS);
@@ -347,7 +348,7 @@ export default function MapScreen({ navigation }: any) {
       <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       {/* Search Bar */}
-      <View style={[styles.searchBarWrapper, { zIndex: 999 }]}>
+      <View style={[styles.searchBarWrapper, { zIndex: 999, top: insets.top + 8 }]}>
         <View style={[styles.searchBar, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
           <Ionicons name="location-outline" size={20} color={colors.primary} style={{ marginRight: 10 }} />
           <TextInput
@@ -515,7 +516,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   searchBarWrapper: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 12,
+    top: 12, // overridden dynamically via inline style using useSafeAreaInsets
     left: 12,
     right: 12,
     shadowColor: '#000',
