@@ -20,7 +20,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme, ThemeColors } from '../ThemeContext';
-import { API_BASE_URL, fetchWithTimeout } from '../config';
+import { API_BASE_URL, fetchWithTimeout, USE_MOCK } from '../config';
+import { matchMock } from '../mock/mockApi';
+import { rPadding, rFontSize, rMargin, rBorderRadius, getShadow, rIconSize, rSpacing } from '../utils/responsive';
 
 const { width, height } = Dimensions.get('window');
 
@@ -99,21 +101,26 @@ export default function SearchScreen() {
       advanceStep(2, 1400);  // GeoMatcher
       advanceStep(3, 2200);  // BiddingAgent
 
-      const response = await fetchWithTimeout(`${API_BASE_URL}/api/match`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: textToSend,
-          user_lat: 33.642,
-          user_lng: 73.076,
-        }),
-      }, 15000); // 15 second timeout for LangGraph compilation
+      let resultData: any = null;
+      if (USE_MOCK) {
+        resultData = await matchMock(textToSend);
+      } else {
+        const response = await fetchWithTimeout(`${API_BASE_URL}/api/match`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: textToSend,
+            user_lat: 33.642,
+            user_lng: 73.076,
+          }),
+        }, 15000); // 15 second timeout for LangGraph compilation
 
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
+        }
+
+        resultData = await response.json();
       }
-
-      const resultData = await response.json();
 
       // ─── Handle Greeting Intent (no pipeline needed) ───────────────
       if (resultData.pipeline_status === 'greeting' && resultData.greeting_response) {
@@ -191,13 +198,13 @@ export default function SearchScreen() {
         keyboardVerticalOffset={Platform.select({ ios: 90, android: 60, default: 0 })}
       >
         {/* Header bar */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: colors.cardBackground, borderBottomColor: colors.border, paddingHorizontal: rPadding(16), paddingVertical: rPadding(12) }]}>
           <TouchableOpacity style={styles.menuBtn} onPress={() => setDrawerVisible(true)}>
-            <Ionicons name="menu-outline" size={24} color={colors.text} />
+            <Ionicons name="menu-outline" size={rIconSize(24)} color={colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>KaamGraph AI Chat</Text>
+          <Text style={[styles.headerTitle, { fontSize: rFontSize(18), fontWeight: 'bold', color: colors.text }]}>KaamGraph AI Chat</Text>
           <TouchableOpacity style={styles.clearBtn} onPress={() => setMessages([messages[0]])}>
-            <Text style={styles.clearBtnText}>Clear</Text>
+            <Text style={[styles.clearBtnText, { color: colors.primary, fontSize: rFontSize(14) }]}>Clear</Text>
           </TouchableOpacity>
         </View>
 

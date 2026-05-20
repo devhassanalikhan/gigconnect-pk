@@ -171,3 +171,16 @@ Checklist before final submission:
 - Update this README with final links (replace placeholders above).
 
 If you want, I can populate the placeholders with the links you provide, commit the changes, and create a release archive for submission.
+
+---
+
+## Demo Mode (Mock Data)
+
+For recording stable demos or when the backend isn't accessible, enable mock/demo mode by setting the following environment variables in `mobile/.env` before starting the app:
+
+```
+EXPO_PUBLIC_USE_MOCK=true
+EXPO_PUBLIC_MOCK_DELAY_MS=700
+```
+
+When `EXPO_PUBLIC_USE_MOCK` is `true`, the mobile app will use deterministic mock providers and match responses suitable for screen recordings and offline demos.

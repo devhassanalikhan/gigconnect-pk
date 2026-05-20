@@ -21,9 +21,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme, ISLAMABAD_SECTORS } from '../ThemeContext';
 import { API_BASE_URL } from '../config';
+import { rPadding, rFontSize, rSpacing, rMargin, getGridColumnWidth, rBorderRadius, getShadow, rCardHeight, rIconSize } from '../utils/responsive';
 
 const { width } = Dimensions.get('window');
-const COLUMN_WIDTH = (width - 44) / 2;
+const COLUMN_WIDTH = getGridColumnWidth(2, rPadding(12));
 
 interface Category {
   id: string;
@@ -95,79 +96,79 @@ export default function HomeScreen() {
       <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       {/* Header section */}
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border, paddingHorizontal: rPadding(20), paddingVertical: rPadding(12) }]}>
         <View style={styles.headerBranding}>
-          <Text style={[styles.headerSubtitle, { color: userRole === 'client' ? colors.primary : colors.success }]}>
+          <Text style={[styles.headerSubtitle, { color: userRole === 'client' ? colors.primary : colors.success, fontSize: rFontSize(9) }]}>
             {userRole === 'client' ? t.homeSubtitleClient : t.homeSubtitleWorker}
           </Text>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>
+          <Text style={[styles.headerTitle, { color: colors.text, fontSize: rFontSize(20) }]}>
             KaamGraph
           </Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <TouchableOpacity 
-            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border, padding: rPadding(8), marginLeft: rPadding(4) }]}
             onPress={toggleLanguage}
             activeOpacity={0.7}
           >
-            <Text style={{ fontSize: 11, fontWeight: 'bold', color: colors.primary }}>
+            <Text style={{ fontSize: rFontSize(11), fontWeight: 'bold', color: colors.primary }}>
               {language === 'en' ? 'اردو' : 'EN'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginLeft: 8 }]}
+            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginLeft: rPadding(8), padding: rPadding(8) }]}
             onPress={toggleTheme}
             activeOpacity={0.7}
           >
-            <Ionicons name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'} size={20} color={colors.primary} />
+            <Ionicons name={theme === 'dark' ? 'sunny-outline' : 'moon-outline'} size={rIconSize(20)} color={colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginLeft: 8 }]}
+            style={[styles.themeBtn, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginLeft: rPadding(8), padding: rPadding(8) }]}
             onPress={toggleUserRole}
             activeOpacity={0.7}
           >
-            <Ionicons name={userRole === 'client' ? 'person-outline' : 'construct-outline'} size={18} color={colors.primary} />
+            <Ionicons name={userRole === 'client' ? 'person-outline' : 'construct-outline'} size={rIconSize(18)} color={colors.primary} />
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { padding: rPadding(20) }]} showsVerticalScrollIndicator={false}>
         
         {userRole === 'client' ? (
           <>
             {/* Hero Card */}
-            <View style={[styles.heroCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            <View style={[styles.heroCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(24), padding: rPadding(24), marginBottom: rMargin(24), ...getShadow(5) }]}>
               <View style={styles.heroTextContent}>
-                <Text style={styles.heroBadge}>{t.heroBadgeText}</Text>
-                <Text style={[styles.heroTitle, { color: colors.text }]}>{t.heroTitleText}</Text>
-                <Text style={[styles.heroDescription, { color: colors.textMuted }]}>{t.heroDescText}</Text>
+                <Text style={[styles.heroBadge, { fontSize: rFontSize(9), paddingHorizontal: rPadding(8), paddingVertical: rPadding(4), borderRadius: rBorderRadius(6) }]}>{t.heroBadgeText}</Text>
+                <Text style={[styles.heroTitle, { color: colors.text, fontSize: rFontSize(18), marginBottom: rMargin(6) }]}>{t.heroTitleText}</Text>
+                <Text style={[styles.heroDescription, { color: colors.textMuted, fontSize: rFontSize(12), lineHeight: rFontSize(18) }]}>{t.heroDescText}</Text>
               </View>
               <View style={styles.heroGlowDot} />
             </View>
 
             {/* AI Search Prompt Trigger */}
             <TouchableOpacity 
-              style={[styles.searchBarTrigger, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+              style={[styles.searchBarTrigger, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(16), paddingHorizontal: rPadding(20), paddingVertical: rPadding(14), marginBottom: rMargin(28), ...getShadow(2) }]}
               onPress={() => navigation.navigate('Search')}
               activeOpacity={0.8}
             >
-              <Ionicons name="sparkles-outline" size={18} color="#6366f1" style={styles.searchIcon} />
+              <Ionicons name="sparkles-outline" size={rIconSize(18)} color="#6366f1" style={{ marginRight: rMargin(10) }} />
               <TextInput
-                style={[styles.searchPlaceholder, { color: colors.text }]}
+                style={[styles.searchPlaceholder, { color: colors.text, fontSize: rFontSize(13), flex: 1 }]}
                 placeholder={t.searchHint}
                 placeholderTextColor="#94a3b8"
                 editable={false}
               />
-              <View style={[styles.arrowIconWrapper, { backgroundColor: '#6366f1' }]}>
-                <Ionicons name="arrow-forward" size={14} color="#ffffff" />
+              <View style={[styles.arrowIconWrapper, { backgroundColor: '#6366f1', width: rSpacing(24), height: rSpacing(24), borderRadius: rBorderRadius(12) }]}>
+                <Ionicons name="arrow-forward" size={rIconSize(14)} color="#ffffff" />
               </View>
             </TouchableOpacity>
 
             {/* Overview Section */}
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.groupTitle, { color: colors.textMuted, marginBottom: 0 }]}>{t.overviewTitle}</Text>
+            <View style={[styles.sectionHeader, { marginBottom: rMargin(12) }]}>
+              <Text style={[styles.groupTitle, { color: colors.textMuted, marginBottom: 0, fontSize: rFontSize(12) }]}>{t.overviewTitle}</Text>
               <TouchableOpacity onPress={() => navigation.navigate('History')}>
-                <Text style={{ color: colors.primary, fontSize: 11, fontWeight: 'bold' }}>{t.viewDetails}</Text>
+                <Text style={{ color: colors.primary, fontSize: rFontSize(11), fontWeight: 'bold' }}>{t.viewDetails}</Text>
               </TouchableOpacity>
             </View>
             
@@ -199,26 +200,26 @@ export default function HomeScreen() {
             </View>
 
             {/* Grid 1: Daily Essentials */}
-            <Text style={[styles.groupTitle, { color: colors.textMuted }]}>{t.groupEssentials}</Text>
-            <View style={styles.categoryGrid}>
+            <Text style={[styles.groupTitle, { color: colors.textMuted, fontSize: rFontSize(12), marginBottom: rMargin(12) }]}>{t.groupEssentials}</Text>
+            <View style={[styles.categoryGrid, { marginBottom: rMargin(16) }]}>
               {DAILY_ESSENTIALS.map((c) => (
                 <TouchableOpacity
                   key={c.id}
-                  style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+                  style={[styles.categoryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, width: COLUMN_WIDTH, borderRadius: rBorderRadius(20), padding: rPadding(18), marginBottom: rMargin(16), ...getShadow(3) }]}
                   onPress={() => handleCategoryPress(c.id)}
                 >
-                  <Animated.View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight, transform: [{ scale: pulseAnim }] }]}>
-                    <Ionicons name={c.icon as any} size={22} color={colors.primary} />
+                  <Animated.View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight, transform: [{ scale: pulseAnim }], width: rSpacing(48), height: rSpacing(48), borderRadius: rBorderRadius(12) }]}>
+                    <Ionicons name={c.icon as any} size={rIconSize(22)} color={colors.primary} />
                   </Animated.View>
-                  <Text style={[styles.categoryName, { color: colors.text }]}>{language === 'en' ? c.name : c.urdu}</Text>
-                  <Text style={[styles.categoryDesc, { color: colors.textMuted }]}>{language === 'en' ? c.description : c.descUrdu}</Text>
+                  <Text style={[styles.categoryName, { color: colors.text, fontSize: rFontSize(14), fontWeight: 'bold', marginTop: rMargin(8) }]}>{language === 'en' ? c.name : c.urdu}</Text>
+                  <Text style={[styles.categoryDesc, { color: colors.textMuted, fontSize: rFontSize(11), marginTop: rMargin(4) }]}>{language === 'en' ? c.description : c.descUrdu}</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             {/* Grid 2: Home Services */}
-            <Text style={[styles.groupTitle, { color: colors.textMuted }]}>{t.groupHomeServices}</Text>
-            <View style={styles.categoryGrid}>
+            <Text style={[styles.groupTitle, { color: colors.textMuted, fontSize: rFontSize(12), marginBottom: rMargin(12) }]}>{t.groupHomeServices}</Text>
+            <View style={[styles.categoryGrid, { marginBottom: rMargin(16) }]}>
               {HOME_SERVICES.map((c) => (
                 <TouchableOpacity
                   key={c.id}
@@ -235,8 +236,8 @@ export default function HomeScreen() {
             </View>
 
             {/* Grid 3: Health Care */}
-            <Text style={[styles.groupTitle, { color: colors.textMuted }]}>{t.groupHealthCare}</Text>
-            <View style={styles.categoryGrid}>
+            <Text style={[styles.groupTitle, { color: colors.textMuted, fontSize: rFontSize(12), marginBottom: rMargin(12) }]}>{t.groupHealthCare}</Text>
+            <View style={[styles.categoryGrid, { marginBottom: rMargin(16) }]}>
               {HEALTH_CARE.map((c) => (
                 <TouchableOpacity
                   key={c.id}
@@ -277,53 +278,53 @@ export default function HomeScreen() {
             </View>
 
             {/* Earnings */}
-            <View style={styles.earningsDashboardRow}>
-              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                <Text style={{ color: colors.textMuted, fontSize: 10 }}>{t.workerWallet}</Text>
-                <Text style={{ color: colors.success, fontSize: 18, fontWeight: 'bold', marginTop: 4 }}>
+            <View style={[styles.earningsDashboardRow, { marginBottom: rMargin(20), flexDirection: 'row', justifyContent: 'space-between' }]}>
+              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(12), padding: rPadding(14), marginHorizontal: rMargin(4), flex: 1 }]}>
+                <Text style={{ color: colors.textMuted, fontSize: rFontSize(10) }}>{t.workerWallet}</Text>
+                <Text style={{ color: colors.success, fontSize: rFontSize(18), fontWeight: 'bold', marginTop: rMargin(4) }}>
                   {escrowBalance.toLocaleString()} PKR
                 </Text>
               </View>
-              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                <Text style={{ color: colors.textMuted, fontSize: 10 }}>{t.workerGigs}</Text>
-                <Text style={{ color: colors.primary, fontSize: 18, fontWeight: 'bold', marginTop: 4 }}>34</Text>
+              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(12), padding: rPadding(14), marginHorizontal: rMargin(4), flex: 1 }]}>
+                <Text style={{ color: colors.textMuted, fontSize: rFontSize(10) }}>{t.workerGigs}</Text>
+                <Text style={{ color: colors.primary, fontSize: rFontSize(18), fontWeight: 'bold', marginTop: rMargin(4) }}>34</Text>
               </View>
             </View>
 
             {/* Active Task & Performance Dashboard */}
-            <Text style={[styles.groupTitle, { color: colors.textMuted }]}>
+            <Text style={[styles.groupTitle, { color: colors.textMuted, fontSize: rFontSize(12), marginBottom: rMargin(12) }]}>
               {language === 'en' ? 'Performance Overview' : 'کارکردگی کا جائزہ'}
             </Text>
             
-            <View style={{ flexDirection: 'row', marginBottom: 20 }}>
-              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                <Text style={{ color: colors.textMuted, fontSize: 10 }}>RATING</Text>
-                <Text style={{ color: colors.warning, fontSize: 18, fontWeight: 'bold', marginTop: 4 }}>⭐ 4.8</Text>
+            <View style={[{ flexDirection: 'row', marginBottom: rMargin(20), justifyContent: 'space-between' }]}>
+              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(12), padding: rPadding(14), marginHorizontal: rMargin(4), flex: 1 }]}>
+                <Text style={{ color: colors.textMuted, fontSize: rFontSize(10) }}>RATING</Text>
+                <Text style={{ color: colors.warning, fontSize: rFontSize(18), fontWeight: 'bold', marginTop: rMargin(4) }}>⭐ 4.8</Text>
               </View>
-              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                <Text style={{ color: colors.textMuted, fontSize: 10 }}>ON-TIME SCORE</Text>
-                <Text style={{ color: colors.success, fontSize: 18, fontWeight: 'bold', marginTop: 4 }}>96%</Text>
+              <View style={[styles.earningMiniCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(12), padding: rPadding(14), marginHorizontal: rMargin(4), flex: 1 }]}>
+                <Text style={{ color: colors.textMuted, fontSize: rFontSize(10) }}>ON-TIME SCORE</Text>
+                <Text style={{ color: colors.success, fontSize: rFontSize(18), fontWeight: 'bold', marginTop: rMargin(4) }}>96%</Text>
               </View>
             </View>
 
-            <Text style={[styles.groupTitle, { color: colors.textMuted }]}>
+            <Text style={[styles.groupTitle, { color: colors.textMuted, fontSize: rFontSize(12), marginBottom: rMargin(12) }]}>
               {language === 'en' ? 'Active Jobs' : 'موجودہ کام'}
             </Text>
             
             {!isOnline ? (
-              <View style={[styles.inDriveCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, alignItems: 'center', paddingVertical: 30 }]}>
-                <Ionicons name="moon-outline" size={36} color={colors.textMuted} />
-                <Text style={{ color: colors.textMuted, marginTop: 10 }}>
+              <View style={[styles.inDriveCard, { backgroundColor: colors.cardBackground, borderColor: colors.border, alignItems: 'center', paddingVertical: rPadding(30), borderRadius: rBorderRadius(16), padding: rPadding(16), marginBottom: rMargin(16) }]}>
+                <Ionicons name="moon-outline" size={rIconSize(36)} color={colors.textMuted} />
+                <Text style={{ color: colors.textMuted, marginTop: rMargin(10), fontSize: rFontSize(13) }}>
                   {language === 'en' ? 'Go online to see AI Dispatch heatmaps.' : 'کام شروع کرنے کے لیے آن لائن ہوں۔'}
                 </Text>
               </View>
             ) : (
-              <View style={[styles.inDriveCard, { backgroundColor: colors.primaryLight, borderColor: colors.primary, alignItems: 'center', paddingVertical: 30 }]}>
-                <Ionicons name="flame-outline" size={36} color={colors.primary} />
-                <Text style={{ color: colors.primary, marginTop: 10, fontWeight: 'bold' }}>
+              <View style={[styles.inDriveCard, { backgroundColor: colors.primaryLight, borderColor: colors.primary, alignItems: 'center', paddingVertical: rPadding(30), borderRadius: rBorderRadius(16), padding: rPadding(16), marginBottom: rMargin(16) }]}>
+                <Ionicons name="flame-outline" size={rIconSize(36)} color={colors.primary} />
+                <Text style={{ color: colors.primary, marginTop: rMargin(10), fontWeight: 'bold', fontSize: rFontSize(14) }}>
                   {language === 'en' ? '🔥 High Demand in F-11 Sector!' : '🔥 سیکٹر F-11 میں زیادہ ڈیمانڈ!'}
                 </Text>
-                <Text style={{ color: colors.textMuted, marginTop: 4, fontSize: 12 }}>
+                <Text style={{ color: colors.textMuted, marginTop: rMargin(4), fontSize: rFontSize(12) }}>
                   {language === 'en' ? 'Check the Leads tab for live incoming jobs.' : 'نئی جابز کے لیے لیڈز ٹیب دیکھیں۔'}
                 </Text>
               </View>

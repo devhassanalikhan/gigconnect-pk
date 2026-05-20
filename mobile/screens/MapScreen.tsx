@@ -17,7 +17,9 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useTheme, ISLAMABAD_SECTORS } from '../ThemeContext';
-import { GOOGLE_MAPS_API_KEY, API_BASE_URL, fetchWithTimeout } from '../config';
+import { GOOGLE_MAPS_API_KEY, API_BASE_URL, fetchWithTimeout, USE_MOCK } from '../config';
+import { getProvidersMock } from '../mock/mockApi';
+import { rPadding, rFontSize, rMargin, rBorderRadius, getShadow, rIconSize, rSpacing } from '../utils/responsive';
 import { isValidCoordinate } from '../utils/validation';
 
 const { width, height } = Dimensions.get('window');
@@ -147,8 +149,16 @@ export default function MapScreen({ navigation }: any) {
 
     try {
       setIsLoading(true);
-      const response = await fetchWithTimeout(`${API_BASE_URL}/api/providers`, {}, 8000);
-      const data = await response.json();
+      let data: any = null;
+
+      if (USE_MOCK) {
+        // Use frontend mock data for deterministic demos
+        const res = await getProvidersMock(centerLat, centerLng);
+        data = res;
+      } else {
+        const response = await fetchWithTimeout(`${API_BASE_URL}/api/providers`, {}, 8000);
+        data = await response.json();
+      }
 
       let providerList = LOCAL_SEED_PROVIDERS;
       if (data && Array.isArray(data.providers) && data.providers.length > 0) {
@@ -167,7 +177,7 @@ export default function MapScreen({ navigation }: any) {
       setRawProviders(providerList);
       filterAndSortProviders(centerLat, centerLng, filterQuery, providerList);
     } catch (error) {
-      console.log('[KaamGraph] Backend offline, using local providers.');
+      console.log('[KaamGraph] Backend offline or mock failure, using local providers.', error);
       setRawProviders(LOCAL_SEED_PROVIDERS);
       filterAndSortProviders(centerLat, centerLng, filterQuery, LOCAL_SEED_PROVIDERS);
     } finally {
@@ -348,11 +358,11 @@ export default function MapScreen({ navigation }: any) {
       <StatusBar barStyle={theme === 'dark' ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
 
       {/* Search Bar */}
-      <View style={[styles.searchBarWrapper, { zIndex: 999, top: insets.top + 8 }]}>
-        <View style={[styles.searchBar, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-          <Ionicons name="location-outline" size={20} color={colors.primary} style={{ marginRight: 10 }} />
+      <View style={[styles.searchBarWrapper, { zIndex: 999, top: insets.top + rPadding(8) }]}>
+        <View style={[styles.searchBar, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(12), paddingHorizontal: rPadding(12), paddingVertical: rPadding(10) }]}>
+          <Ionicons name="location-outline" size={rIconSize(20)} color={colors.primary} style={{ marginRight: rMargin(10) }} />
           <TextInput
-            style={[styles.searchInput, { color: colors.text }]}
+            style={[styles.searchInput, { color: colors.text, fontSize: rFontSize(14) }]}
             placeholder="Search city, area or service..."
             placeholderTextColor={colors.textMuted}
             value={searchQuery}
@@ -361,23 +371,23 @@ export default function MapScreen({ navigation }: any) {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => { setSearchQuery(''); setSuggestions([]); }} style={styles.clearBtn}>
-              <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+              <Ionicons name="close-circle" size={rIconSize(18)} color={colors.textMuted} />
             </TouchableOpacity>
           )}
         </View>
 
         {/* Suggestions */}
         {suggestions.length > 0 && (
-          <View style={[styles.suggestionsDropdown, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-            <ScrollView keyboardShouldPersistTaps="always" style={{ maxHeight: 200 }}>
+          <View style={[styles.suggestionsDropdown, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(8), marginTop: rMargin(4), maxHeight: rSpacing(200) }]}>
+            <ScrollView keyboardShouldPersistTaps="always">
               {suggestions.map((item) => (
                 <TouchableOpacity
                   key={item.place_id}
-                  style={[styles.suggestionRow, { borderBottomColor: colors.border }]}
+                  style={[styles.suggestionRow, { borderBottomColor: colors.border, paddingHorizontal: rPadding(12), paddingVertical: rPadding(10) }]}
                   onPress={() => handleSelectSuggestion(item)}
                 >
-                  <Ionicons name="navigate-outline" size={16} color={colors.primary} style={{ marginRight: 10 }} />
-                  <Text style={[styles.suggestionText, { color: colors.text }]} numberOfLines={1}>
+                  <Ionicons name="navigate-outline" size={rIconSize(16)} color={colors.primary} style={{ marginRight: rMargin(10) }} />
+                  <Text style={[styles.suggestionText, { color: colors.text, fontSize: rFontSize(13) }]} numberOfLines={1}>
                     {item.description}
                   </Text>
                 </TouchableOpacity>

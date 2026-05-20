@@ -27,6 +27,10 @@ export const GOOGLE_MAPS_API_KEY = getGoogleMapsApiKey();
 
 console.log('[KaamGraph] API_BASE_URL configured as:', API_BASE_URL);
 
+// Enable mock/demo mode for offline demos and deterministic recordings.
+export const USE_MOCK = (process.env.EXPO_PUBLIC_USE_MOCK === 'true') || false;
+export const MOCK_DELAY_MS = Number(process.env.EXPO_PUBLIC_MOCK_DELAY_MS) || 700;
+
 /**
  * Robust fetch wrapper with an integrated timeout to prevent infinite loader hangs.
  */
