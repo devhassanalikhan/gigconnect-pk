@@ -82,18 +82,33 @@ SEED_PROVIDERS = [
     {"id":"p10","name":"HomeGlow Painters","service_type":"Painter","rating":4.8, "lat":33.6411,"lng":72.9723,"base_cost":2500,"is_available":True, "on_time_score":0.92,"cancellation_rate":0.03,"experience_years":9, "total_jobs_completed":180,"review_recency_score":0.90, "specializations":["interior","exterior","texture"], "risk_score":0.06,"capacity_available":2},
     {"id":"p11","name":"Islamabad Painters","service_type":"Painter","rating":4.2, "lat":33.6290,"lng":72.9650,"base_cost":2000,"is_available":True, "on_time_score":0.78,"cancellation_rate":0.10,"experience_years":2, "total_jobs_completed":35,"review_recency_score":0.70, "specializations":["interior"], "risk_score":0.18,"capacity_available":5},
     {"id":"p12","name":"ColorPro","service_type":"Painter","rating":4.5, "lat":33.6500,"lng":72.9900,"base_cost":2300,"is_available":True, "on_time_score":0.87,"cancellation_rate":0.05,"experience_years":5, "total_jobs_completed":95,"review_recency_score":0.82, "specializations":["interior","exterior"], "risk_score":0.10,"capacity_available":3},
+    
+    # 🎨 Painter Additions
+    {"id":"p13","name":"Islamabad Master Painters & Decorators","service_type":"Painter","rating":4.7, "lat":33.6702,"lng":73.0722,"base_cost":2500,"is_available":True, "on_time_score":0.94,"cancellation_rate":0.02,"experience_years":7, "total_jobs_completed":132,"review_recency_score":0.92, "specializations":["interior","exterior","texture","paint","polish"], "risk_score":0.05,"capacity_available":3},
+    {"id":"p14","name":"Khan Painting & Polish Services","service_type":"Painter","rating":4.9, "lat":33.5934,"lng":73.0531,"base_cost":2200,"is_available":True, "on_time_score":0.96,"cancellation_rate":0.01,"experience_years":10, "total_jobs_completed":240,"review_recency_score":0.97, "specializations":["polish","interior","wood_paint"], "risk_score":0.03,"capacity_available":2},
+    
+    # 🪚 Carpenter Additions
+    {"id":"p15","name":"Decent Wood Works & Furniture Repair","service_type":"Carpenter","rating":4.6, "lat":33.6826,"lng":73.0289,"base_cost":1800,"is_available":True, "on_time_score":0.90,"cancellation_rate":0.04,"experience_years":6, "total_jobs_completed":110,"review_recency_score":0.89, "specializations":["furniture_repair","door_fixing","wood_work"], "risk_score":0.07,"capacity_available":4},
+    {"id":"p16","name":"Pasha Interiors & Carpenter House","service_type":"Carpenter","rating":4.8, "lat":33.6300,"lng":73.1200,"base_cost":2000,"is_available":True, "on_time_score":0.93,"cancellation_rate":0.02,"experience_years":8, "total_jobs_completed":175,"review_recency_score":0.91, "specializations":["interiors","cabinet_making","wood_work","door_fixing"], "risk_score":0.05,"capacity_available":2},
+    
+    # 🧹 Cleaning Additions
+    {"id":"p17","name":"Express Deep Cleaning & Janitorial Services","service_type":"Cleaning","rating":5.0, "lat":33.7112,"lng":73.0583,"base_cost":3000,"is_available":True, "on_time_score":0.98,"cancellation_rate":0.01,"experience_years":12, "total_jobs_completed":320,"review_recency_score":0.99, "specializations":["deep_cleaning","sofa_cleaning","carpet_cleaning","janitorial"], "risk_score":0.02,"capacity_available":3},
+    {"id":"p18","name":"Clean & Shine Home Services","service_type":"Cleaning","rating":4.5, "lat":33.6655,"lng":72.9922,"base_cost":2500,"is_available":True, "on_time_score":0.88,"cancellation_rate":0.05,"experience_years":5, "total_jobs_completed":95,"review_recency_score":0.86, "specializations":["home_cleaning","kitchen_cleaning","bathroom_cleaning"], "risk_score":0.09,"capacity_available":4},
 ]
 
 
 def init_db():
-    """Create all tables and seed provider data if the table is empty."""
+    """Create all tables and seed provider data if any are missing."""
     Base.metadata.create_all(bind=engine)
     db: Session = SessionLocal()
     try:
-        if db.query(Provider).count() == 0:
-            for p in SEED_PROVIDERS:
+        # Seed missing providers item-by-item so already initialized databases get updated
+        for p in SEED_PROVIDERS:
+            existing = db.query(Provider).filter(Provider.id == p["id"]).first()
+            if not existing:
                 db.add(Provider(**p))
-            db.commit()
+        db.commit()
+
         if db.query(Job).count() == 0:
             # Seed a pre-existing job to trigger double-booking conflict for Ahmed Electric (p4)
             conflict_job = Job(

@@ -101,8 +101,8 @@ async def classify_intent(text: str) -> dict:
         "nalka", "pipe", "paani", "leak", "toti",
         "bijli", "wiring", "current", "board", "short", "button",
         "cooling", "thanda", "fridge", "compressor",
-        "rang", "paint", "deewar", "wallpaper",
-        "barhai", "wood", "furniture", "door",
+        "rang", "paint", "deewar", "wallpaper", "color",
+        "barhai", "wood", "furniture", "door", "lakri", "lakri ka kaam",
         "safai", "jharoo", "pocha",
         "repair", "fix", "install", "service", "kaam", "karo",
         "chahiye", "chahye", "bhejo", "bulao", "book", "mistri",
@@ -316,23 +316,44 @@ def _compute_match_score(provider: dict, budget: float, text_query: str = "") ->
     return round(composite, 4)
 
 
+def normalize_service_type(input_str: str) -> str:
+    """
+    Robust service type normalization function.
+    Safely maps variants of Roman Urdu, English, and synonyms to exact database service_type.
+    """
+    if not input_str:
+        return "General Inquiry"
+    text_lower = input_str.lower().strip()
+    
+    # 1. High-priority exact or multi-word matches
+    if any(k in text_lower for k in ["lakri ka kaam", "lakri", "carpenter", "barhai", "wood", "furniture", "door", "table"]):
+        return "Carpenter"
+    if any(k in text_lower for k in ["deep cleaning", "cleaning", "safai", "clean", "janitor", "jharoo", "pocha"]):
+        return "Cleaning"
+    if any(k in text_lower for k in ["painter", "paint", "rang", "color", "wall", "deewar", "wallpaper"]):
+        return "Painter"
+    if any(k in text_lower for k in ["plumber", "nalka", "pipe", "paani", "leak", "toti"]):
+        return "Plumber"
+    if any(k in text_lower for k in ["electrician", "bijli", "wiring", "current", "board", "short", "button"]):
+        return "Electrician"
+    if any(k in text_lower for k in ["ac technician", "ac tech", "ac", "cooling", "thanda", "technician", "fridge", "gas", "compressor"]):
+        return "AC Technician"
+    if any(k in text_lower for k in ["tutor", "teacher", "padhai", "ustaad", "math", "study"]):
+        return "Tutor"
+        
+    # 2. Substring matching as a fallback
+    for cat in ["Plumber", "Electrician", "AC Technician", "Painter", "Carpenter", "Cleaning"]:
+        if cat.lower() in text_lower or text_lower in cat.lower():
+            return cat
+            
+    return input_str.title()
+
+
 def _local_heuristic_parse(text: str) -> dict:
     import re
     text_lower = text.lower()
 
-    service_type = "Plumber"
-    if any(k in text_lower for k in ["plumber","nalka","pipe","paani","leak","toti"]):
-        service_type = "Plumber"
-    elif any(k in text_lower for k in ["electrician","bijli","wiring","current","board","short","button"]):
-        service_type = "Electrician"
-    elif any(k in text_lower for k in ["ac","cooling","thanda","technician","fridge","gas"]):
-        service_type = "AC Technician"
-    elif any(k in text_lower for k in ["painter","paint","rang","color","wall"]):
-        service_type = "Painter"
-    elif any(k in text_lower for k in ["tutor","teacher","padhai","ustaad","math","study"]):
-        service_type = "Tutor"
-    elif any(k in text_lower for k in ["carpenter","barhai","wood","furniture","door","table"]):
-        service_type = "Carpenter"
+    service_type = normalize_service_type(text_lower)
 
     location = DEFAULT_LOCATION
     for key in LOCAL_GEO_DIRECTORY.keys():
@@ -358,7 +379,16 @@ def _local_heuristic_parse(text: str) -> dict:
     confirmation_needed = False
     confirmation_question = None
 
-    if service_type == "Plumber" and not any(k in text_lower for k in ["plumber","nalka","pipe","paani","leak","toti"]):
+    known_keywords = [
+        "plumber","nalka","pipe","paani","leak","toti",
+        "electrician","bijli","wiring","current","board","short","button",
+        "ac","cooling","thanda","technician","fridge","gas","compressor",
+        "painter","paint","rang","color","wall","deewar","wallpaper",
+        "tutor","teacher","padhai","ustaad","math","study",
+        "carpenter","barhai","wood","furniture","door","table","lakri","lakri ka kaam",
+        "cleaning","safai","clean","deep cleaning","janitor","jharoo","pocha"
+    ]
+    if not any(k in text_lower for k in known_keywords):
         confidence = 0.45
         confirmation_needed = True
         confirmation_question = "Aap kaunsi service chahte hain? (e.g. Plumber, Electrician, AC Technician)"
@@ -604,9 +634,10 @@ User Input: "{text}"
             except ValueError:
                 user_budget = 2000
 
-        service_type = parsed_raw.get("service_type", "General Inquiry")
-        if not service_type or str(service_type).lower() in ("none", "null", ""):
-            service_type = "General Inquiry"
+        service_type_raw = parsed_raw.get("service_type", "General Inquiry")
+        if not service_type_raw or str(service_type_raw).lower() in ("none", "null", ""):
+            service_type_raw = "General Inquiry"
+        service_type = normalize_service_type(service_type_raw)
 
         location_context = parsed_raw.get("location_context", "Islamabad Center")
         if not location_context or str(location_context).lower() in ("none", "null", ""):
@@ -661,6 +692,15 @@ User Input: "{text}"
             message=f"LLM failed. Heuristic fallback applied: {parsed['service_type']} in {parsed['location_context']}.",
         ))
     return state
+# Demo Mock Provider overrides to ensure exact ratings, distances, and addresses during demo
+MOCK_PROVIDER_OVERRIDES = {
+    "Islamabad Master Painters & Decorators": {"distance": 3.2, "address": "I-8 Markaz, Islamabad"},
+    "Khan Painting & Polish Services": {"distance": 5.1, "address": "Saddar, Rawalpindi"},
+    "Decent Wood Works & Furniture Repair": {"distance": 2.8, "address": "G-9 Markaz, Islamabad"},
+    "Pasha Interiors & Carpenter House": {"distance": 6.4, "address": "Khanna Pul, Islamabad"},
+    "Express Deep Cleaning & Janitorial Services": {"distance": 1.5, "address": "Blue Area, Islamabad"},
+    "Clean & Shine Home Services": {"distance": 4.9, "address": "G-11 Markaz, Islamabad"},
+}
 
 
 # 📍 Node 2 — Geo Agent
@@ -840,8 +880,17 @@ def geo_node(state: AgentState) -> AgentState:
             .all()
         )
         for p in candidates:
-            dist = _haversine(user_lat, user_lng, p.lat, p.lng)
-            if dist > radius:
+            # Check if this provider has mock overrides
+            is_mock_override = p.name in MOCK_PROVIDER_OVERRIDES
+            if is_mock_override:
+                dist = MOCK_PROVIDER_OVERRIDES[p.name]["distance"]
+                addr = MOCK_PROVIDER_OVERRIDES[p.name]["address"]
+            else:
+                dist = _haversine(user_lat, user_lng, p.lat, p.lng)
+                addr = _get_fallback_address(p.lat, p.lng)
+
+            # Bypass radius check for our special mock providers to guarantee they show up
+            if dist > radius and not is_mock_override:
                 continue
 
             provider_data = {
@@ -853,7 +902,7 @@ def geo_node(state: AgentState) -> AgentState:
                 "distance":              dist,
                 "base_cost":             p.base_cost,
                 "base_rate":             p.base_cost,
-                "address":               _get_fallback_address(p.lat, p.lng),
+                "address":               addr,
                 "on_time_score":         p.on_time_score,
                 "cancellation_rate":     p.cancellation_rate,
                 "experience_years":      p.experience_years,
