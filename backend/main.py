@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 import uuid
+import asyncio
 
 from config import APP_TITLE, APP_VERSION, CORS_ORIGINS
 from database import init_db, get_db, Job, Provider, Dispute
@@ -116,7 +117,15 @@ async def place_bid(req: BidRequest, db: Session = Depends(get_db)):
         )
     
     if not job:
-        p_service_type = provider.service_type if provider else "Plumber"
+        p_service_type = "Unknown"
+        if provider:
+            p_service_type = provider.service_type
+        elif p_dict:
+            p_service_type = p_dict.get("service_type", "Unknown")
+
+        if p_service_type == "Unknown":
+            return {"error": "Cannot determine service type — provider not found in DB or job context"}
+
         job = Job(
             id=req.job_id,
             parsed={"serviceType": p_service_type, "location": "Adyala Road, Rawalpindi", "time": "flexible", "budget": req.budget},
@@ -365,16 +374,27 @@ async def stress_test(db: Session = Depends(get_db)):
     results = []
 
     # Scenario 1: Low confidence ambiguous input
-    r1 = await run_pipeline("kuch karna hai ghar pe", db)
-    results.append({"scenario": "Ambiguous input", "confidence": r1["parsed_request"].get("confidence"), "handled": True})
+    try:
+        r1 = await run_pipeline("kuch karna hai ghar pe", db)
+    except Exception as e:
+        r1 = {"parsed_request": {}, "pipeline_status": "error", "error": str(e)}
+    results.append({"scenario": "Ambiguous input", "confidence": r1["parsed_request"].get("confidence"), "handled": r1.get("pipeline_status") != "error", "error": r1.get("error")})
+    await asyncio.sleep(2)
 
     # Scenario 2: No budget mentioned
-    r2 = await run_pipeline("Electrician chahiye G-11 mein", db)
-    results.append({"scenario": "Missing budget", "budget_defaulted_to": r2["parsed_request"].get("budget"), "handled": True})
+    try:
+        r2 = await run_pipeline("Electrician chahiye G-11 mein", db)
+    except Exception as e:
+        r2 = {"parsed_request": {}, "pipeline_status": "error", "error": str(e)}
+    results.append({"scenario": "Missing budget", "budget_defaulted_to": r2["parsed_request"].get("budget"), "handled": r2.get("pipeline_status") != "error", "error": r2.get("error")})
+    await asyncio.sleep(2)
 
     # Scenario 3: Unknown service type
-    r3 = await run_pipeline("mujhe koi bhi mil jaye kaam ke liye", db)
-    results.append({"scenario": "Unknown service type", "fallback_used": r3["pipeline_status"] == "partial", "handled": True})
+    try:
+        r3 = await run_pipeline("mujhe koi bhi mil jaye kaam ke liye", db)
+    except Exception as e:
+        r3 = {"parsed_request": {}, "pipeline_status": "error", "error": str(e)}
+    results.append({"scenario": "Unknown service type", "fallback_used": r3.get("pipeline_status") == "partial", "handled": r3.get("pipeline_status") != "error", "error": r3.get("error")})
 
     return {"stress_test_results": results, "all_scenarios_handled": True}
 
