@@ -476,47 +476,34 @@ async def linguistic_node(state: AgentState) -> AgentState:
     ))
     
     text = state["text"]
-    prompt = f"""You are a linguistic agent for a Pakistani gig marketplace called KaamGraph.
-Parse this service request. Support Roman Urdu, Urdu, English, and mixed code-switched language.
+    prompt = f"""You are the elite "LinguisticAgent" inside KaamGraph AI—a zero-barrier localized marketplace platform for blue-collar services in Pakistan. Your job is to parse incoming user text (written in English, Urdu, or Roman Urdu like "Mujhe AC technician chahye") and map it into a strict structured JSON object for down-stream specialized agents.
 
-Input: "{text}"
+### INPUT CHARACTERISTICS:
+Users may be highly informal, use poor grammar, mix languages, or send single-word text. Your primary core directive is to salvage information, never to crash or error out.
 
-Term mapping and UI categories:
-- Plumber / plumber / nalka / pipe / paani / leak / toti → Plumber
-- Electrician / bijli / wiring / current / board / short / button / ups / solar → Electrician
-- AC Technician / AC / cooling / thanda / fridge / gas / compressor → AC Technician
-- Painter / rang / paint / deewar / wallpaper → Painter
-- Tutor / teacher / padhai / ustaad / math / science / study → Tutor
-- Carpenter / barhai / wood / furniture / door / table / bed → Carpenter
-- Cleaning / safai / jharoo / pocha / glass / washing / dust → Cleaning
-- Home Nursing / patient care / nurse / elderly / patient / dawa / blood pressure → Home Nursing
-- Tele-health / virtual / online doctor / consultancy / doctor chat → Tele-health
-- Physiotherapy / physio / exercise / muscle rehab / therapy → Physiotherapy
+### TASK:
+Analyze the input string and extract the following entity keys:
+1. "service_type": (string) e.g., "Plumber", "Electrician", "AC Technician", "Carpenter".
+2. "location_context": (string) Specific area if mentioned (e.g., "Tulsa Road Lalazar", "G-11"). If no area is specified, default to "Islamabad Center".
+3. "user_budget": (integer) Extracted price. If no budget is specified, or input is too brief, ALWAYS default to 2000.
+4. "urgency": (string) "high", "medium", or "low". (e.g., "urgently" -> "high"). Default is "medium".
+5. "confidence_score": (float) Your confidence in parsing from 0.0 to 1.0.
 
-Return ONLY raw JSON, NO markdown, NO explanation:
+### HANDLING SHORT/ZERO INPUT (CRASH PROTECTION):
+- Input: "Plumber" -> Output service_type: "Plumber", user_budget: 2000, location_context: "Islamabad Center", urgency: "medium".
+- Input: "Hi" or Greetings -> Output service_type: "General Inquiry", user_budget: 2000, location_context: "Islamabad Center", urgency: "low".
+
+### STRICT OUTPUT SCHEMA:
+Return ONLY a raw JSON string matching this structure exactly (Do NOT wrap in markdown code blocks like ```json, no trailing conversational text, no raw Python 'None' or null objects):
 {{
-  "serviceType": "Plumber",
-  "location": "G-13",
-  "time": "tomorrow morning",
-  "budget": 1800,
-  "urgency": "high",
-  "job_complexity": "basic",
-  "confidence": 0.95,
-  "confirmation_needed": false,
-  "confirmation_question": null,
-  "detected_language": "roman_urdu"
+  "service_type": "string",
+  "location_context": "string",
+  "user_budget": 2000,
+  "urgency": "string",
+  "confidence_score": 0.95
 }}
 
-Rules:
-- confidence: float 0.0-1.0. Set < 0.70 only if truly ambiguous or missing service category.
-- confirmation_needed: true if confidence < 0.70
-- confirmation_question: write a clarifying question in same language as input if needed
-- urgency: "high" if urgent/jaldi/fori/abbi/now, else "normal"
-- job_complexity: "basic" for simple tasks, "intermediate" for repairs/fixes, "complex" for installations/wiring
-- detected_language: roman_urdu, urdu, english, or mixed
-- serviceType must be one of the 10 UI categories listed above.
-- budget default: {DEFAULT_BUDGET}
-- location default: "{DEFAULT_LOCATION}"
+User Input: "{text}"
 """
     try:
         response = await _model.generate_content_async(prompt)
@@ -526,29 +513,73 @@ Rules:
         if start == -1 or end == 0:
             raise ValueError(f"No JSON object found in LLM response: {raw!r}")
         
-        parsed = json.loads(raw[start:end])
+        parsed_raw = json.loads(raw[start:end])
+        
+        # Ensure fallback protection for critical variables inside raw response
+        user_budget = parsed_raw.get("user_budget")
+        if user_budget is None or str(user_budget).lower() in ("none", "null", ""):
+            user_budget = 2000
+        else:
+            try:
+                user_budget = int(user_budget)
+            except ValueError:
+                user_budget = 2000
+
+        service_type = parsed_raw.get("service_type", "General Inquiry")
+        if not service_type or str(service_type).lower() in ("none", "null", ""):
+            service_type = "General Inquiry"
+
+        location_context = parsed_raw.get("location_context", "Islamabad Center")
+        if not location_context or str(location_context).lower() in ("none", "null", ""):
+            location_context = "Islamabad Center"
+
+        # Construct mapped schema that satisfies downstream nodes perfectly
+        parsed = {
+            "service_type": service_type,
+            "location_context": location_context,
+            "user_budget": user_budget,
+            "urgency": parsed_raw.get("urgency", "medium"),
+            "confidence_score": parsed_raw.get("confidence_score", 1.0),
+            
+            # Downstream compatibility mappings (legacy keys expected by Bidding, Geo, etc.)
+            "serviceType": service_type,
+            "location": location_context,
+            "budget": user_budget,
+            "confidence": parsed_raw.get("confidence_score", 1.0),
+            "time": "urgent" if parsed_raw.get("urgency") == "high" else "flexible",
+            "confirmation_needed": parsed_raw.get("confidence_score", 1.0) < 0.70,
+            "confirmation_question": None,
+            "detected_language": "multilingual"
+        }
+        
         state["parsed"] = parsed
         
         state["agent_trace"].append(_trace_entry(
             agent="LinguisticAgent", status="success", output=parsed,
             message=(
-                f"Parsed [{parsed.get('detected_language','unknown')}] with "
-                f"{parsed.get('confidence',0)*100:.0f}% confidence: "
-                f"{parsed.get('serviceType')} in {parsed.get('location')}, "
-                f"budget {parsed.get('budget')} PKR, urgency: {parsed.get('urgency','normal')}, "
-                f"complexity: {parsed.get('job_complexity','basic')}"
-                + (f" ⚠️ Low confidence — asking: {parsed.get('confirmation_question')}"
-                   if parsed.get('confirmation_needed') else "")
+                f"Parsed text with {parsed['confidence_score']*100:.0f}% confidence: "
+                f"{parsed['service_type']} in {parsed['location_context']}, "
+                f"budget {parsed['user_budget']} PKR, urgency: {parsed['urgency']}"
             )
         ))
     except Exception as exc:
         state["pipeline_status"] = "partial"
-        parsed = _local_heuristic_parse(text)
+        fallback_parsed = _local_heuristic_parse(text)
+        
+        # Inject modern mapped fields into legacy fallback structure
+        parsed = {
+            "service_type": fallback_parsed.get("serviceType"),
+            "location_context": fallback_parsed.get("location"),
+            "user_budget": fallback_parsed.get("budget"),
+            "urgency": "high" if fallback_parsed.get("time") == "urgent" else "medium",
+            "confidence_score": fallback_parsed.get("confidence"),
+            **fallback_parsed
+        }
         state["parsed"] = parsed
         state["agent_trace"].append(_trace_entry(
             agent="LinguisticAgent", status="error",
             error=str(exc), fallback=parsed,
-            message=f"LLM failed. Heuristic fallback: {parsed['serviceType']} in {parsed['location']}, budget {parsed['budget']} PKR.",
+            message=f"LLM failed. Heuristic fallback applied: {parsed['service_type']} in {parsed['location_context']}.",
         ))
     return state
 
@@ -564,11 +595,13 @@ def geo_node(state: AgentState) -> AgentState:
     parsed = state["parsed"]
     service_type = parsed["serviceType"]
     budget = parsed.get("budget", DEFAULT_BUDGET)
-    
+
     user_lat = DEFAULT_USER_LAT
     user_lng = DEFAULT_USER_LNG
     loc_text = parsed.get("location", DEFAULT_LOCATION)
-    matched_loc = None
+
+    # BUG FIX 3: Move radius outside if/else so it's always defined
+    radius = GEO_RADIUS_KM
 
     if state.get("user_lat_override") is not None:
         user_lat = state["user_lat_override"]
@@ -580,7 +613,10 @@ def geo_node(state: AgentState) -> AgentState:
             message=f"Location override used: lat={user_lat}, lng={user_lng}",
         ))
     else:
-        # ─── Option A: Fallback Local GIS Geocoding Dictionary ────────────────────
+        # BUG FIX 2: Initialize matched_loc to None before the inner if block
+        matched_loc = None
+
+        # ─── Option A: Fallback Local GIS Geocoding Dictionary ────────────────
         if loc_text:
             loc_upper = loc_text.upper().strip()
             for key, coords in LOCAL_GEO_DIRECTORY.items():
@@ -598,7 +634,9 @@ def geo_node(state: AgentState) -> AgentState:
                 message=f"📍 Resolved locale '{loc_text}' via local directory to: lat={user_lat}, lng={user_lng}"
             ))
 
-        # ─── Option B: Active Google Geocoding API ────────────────────────────────
+        # ─── Option B: Active Google Geocoding API (only if Option A failed) ──
+        # BUG FIX 1: This elif was duplicated outside the else block — removed the
+        # duplicate and kept only this single correctly-indented elif here.
         elif GOOGLE_MAPS_API_KEY and loc_text:
             try:
                 geocode_url = "https://maps.googleapis.com/maps/api/geocode/json"
@@ -651,70 +689,7 @@ def geo_node(state: AgentState) -> AgentState:
                             ))
             except Exception as e:
                 print(f"[GeoAgent] Geocoding exception: {e}")
-        user_lat = matched_loc["lat"]
-        user_lng = matched_loc["lng"]
-        state["parsed"]["lat"] = user_lat
-        state["parsed"]["lng"] = user_lng
-        state["agent_trace"].append(_trace_entry(
-            agent="GeoAgent", status="success",
-            message=f"📍 Resolved locale '{loc_text}' via local directory to: lat={user_lat}, lng={user_lng}"
-        ))
 
-    # ─── Option B: Active Google Geocoding API ────────────────────────────────
-    elif GOOGLE_MAPS_API_KEY and loc_text:
-        try:
-            geocode_url = "https://maps.googleapis.com/maps/api/geocode/json"
-            params = {
-                "address": f"{loc_text}, Islamabad",
-                "key": GOOGLE_MAPS_API_KEY
-            }
-            res = requests.get(geocode_url, params=params, timeout=5)
-            success = False
-            if res.ok:
-                geo_data = res.json()
-                results = geo_data.get("results", [])
-                if results:
-                    loc = results[0]["geometry"]["location"]
-                    user_lat = loc["lat"]
-                    user_lng = loc["lng"]
-                    state["parsed"]["lat"] = user_lat
-                    state["parsed"]["lng"] = user_lng
-                    state["agent_trace"].append(_trace_entry(
-                        agent="GeoAgent", status="success",
-                        message=f"📍 Geocoded '{loc_text}' to: lat={user_lat:.4f}, lng={user_lng:.4f}"
-                    ))
-                    success = True
-            
-            if not success:
-                # Fallback to Places API (New) search text
-                places_url = "https://places.googleapis.com/v1/places:searchText"
-                headers = {
-                    "Content-Type": "application/json",
-                    "X-Goog-Api-Key": GOOGLE_MAPS_API_KEY,
-                    "X-Goog-FieldMask": "places.location"
-                }
-                payload = {
-                    "textQuery": f"{loc_text}, Pakistan",
-                    "maxResultCount": 1
-                }
-                res_places = requests.post(places_url, json=payload, headers=headers, timeout=5)
-                if res_places.ok:
-                    places_data = res_places.json()
-                    places = places_data.get("places", [])
-                    if places and "location" in places[0]:
-                        loc = places[0]["location"]
-                        user_lat = loc["latitude"]
-                        user_lng = loc["longitude"]
-                        state["parsed"]["lat"] = user_lat
-                        state["parsed"]["lng"] = user_lng
-                        state["agent_trace"].append(_trace_entry(
-                            agent="GeoAgent", status="success",
-                            message=f"📍 Resolved locale '{loc_text}' via Places API (New) to: lat={user_lat:.4f}, lng={user_lng:.4f}"
-                        ))
-        except Exception as e:
-            print(f"[GeoAgent] Geocoding exception: {e}")
-
-    radius = GEO_RADIUS_KM
     providers = []
 
     # ─── Query Google Places API (New) for Live Partners ──────────────────────
@@ -758,7 +733,7 @@ def geo_node(state: AgentState) -> AgentState:
 
                         base_cost = 1100 + int((rating - 3.5) * 400) if rating >= 3.5 else 1200
                         provider_data = {
-                            "id":                place.get("id", f"GPLACE-{uuid.uuid4().hex[:8]}") ,
+                            "id":                place.get("id", f"GPLACE-{uuid.uuid4().hex[:8]}"),
                             "name":              name,
                             "service_type":      service_type,
                             "rating":            rating,
@@ -807,14 +782,17 @@ def geo_node(state: AgentState) -> AgentState:
     except Exception as e:
         print(f"[GeoAgent] Database fallback exception: {e}")
 
-    # ─── GIS Self-Healing Radius Expansion (if no workers found) ───────────────
+    # ─── GIS Self-Healing Radius Expansion (if no workers found) ──────────────
     if not providers:
         state["agent_trace"].append(_trace_entry(
             agent="GeoAgent", status="warning",
             message=f"[Self-Healing] No workers in {radius}km. Expanding search radius to 15.0km..."
         ))
         try:
-            candidates = db.query(Provider).filter(Provider.service_type == service_type, Provider.is_available.is_(True)).all()
+            candidates = db.query(Provider).filter(
+                Provider.service_type == service_type,
+                Provider.is_available.is_(True)
+            ).all()
             for p in candidates:
                 dist = _haversine(user_lat, user_lng, p.lat, p.lng)
                 if dist > 15.0:
@@ -880,7 +858,7 @@ def geo_node(state: AgentState) -> AgentState:
                             "distance_km":       dist,
                             "base_cost":         max(800, min(3000, base_cost)),
                             "on_time_score":     0.88,
-                            "cancellation_rate":  0.03,
+                            "cancellation_rate": 0.03,
                             "experience_years":  4,
                             "review_recency_score": 0.85,
                             "specializations":   ["general_repair"],
@@ -896,7 +874,7 @@ def geo_node(state: AgentState) -> AgentState:
 
     providers.sort(key=lambda x: -x["score"])
     state["providers"] = providers
-    
+
     if providers:
         state["top_provider"] = providers[0]
         state["current_idx"] = 0

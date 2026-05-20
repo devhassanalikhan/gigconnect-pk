@@ -1,20 +1,31 @@
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
 const getApiBaseUrl = (): string => {
-  const webUrl = process.env.EXPO_PUBLIC_API_BASE_URL_WEB;
-  const mobileUrl = process.env.EXPO_PUBLIC_API_BASE_URL_MOBILE;
-
-  const fallback = Platform.select({
-    web: 'http://localhost:8000',
-    android: 'http://192.168.100.5:8000',
-    ios: 'http://192.168.100.5:8000',
-    default: 'http://192.168.100.5:8000',
-  });
-
+  // ─── Web Target ────────────────────────────────────────────────────────
   if (Platform.OS === 'web') {
-    return webUrl || fallback;
+    return process.env.EXPO_PUBLIC_API_BASE_URL_WEB || 'http://localhost:8000';
   }
-  return mobileUrl || fallback;
+
+  // ─── Local Host IP Auto-Resolution ──────────────────────────────────────
+  // Since physical mobile devices running Expo Go connect to your laptop's Wi-Fi,
+  // we can read your computer's IP directly from Expo's dev server packager configuration.
+  const hostUri = Constants.expoConfig?.hostUri || Constants.manifest?.hostUri;
+  if (hostUri) {
+    const ip = hostUri.split(':')[0];
+    if (ip && ip !== 'localhost' && ip !== '127.0.0.1') {
+      return `http://${ip}:8000`;
+    }
+  }
+
+  // ─── Environment Override ───────────────────────────────────────────────
+  const mobileUrl = process.env.EXPO_PUBLIC_API_BASE_URL_MOBILE;
+  if (mobileUrl && !mobileUrl.includes('localhost') && !mobileUrl.includes('127.0.0.1')) {
+    return mobileUrl;
+  }
+
+  // ─── Robust Fallback ───────────────────────────────────────────────────
+  return 'http://localhost:8000';
 };
 
 const getGoogleMapsApiKey = (): string => {
