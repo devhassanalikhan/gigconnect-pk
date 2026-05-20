@@ -95,6 +95,12 @@ export default function HomeScreen() {
       initialMessage = "Electrician ki zaroorat ha";
     } else if (category === 'AC Technician' || category === 'AC Tech') {
       initialMessage = "AC service karwani ha";
+    } else if (category === 'Painter') {
+      initialMessage = "Ghar ka paint karwana ha";
+    } else if (category === 'Carpenter') {
+      initialMessage = "Sofa aur darwaza repair karwana ha";
+    } else if (category === 'Cleaning') {
+      initialMessage = "Ghar ki deep cleaning krni ha";
     }
 
     if (initialMessage) {
