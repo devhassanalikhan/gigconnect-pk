@@ -61,7 +61,7 @@ export type RootStackParamList = {
   Signup: undefined;
   Main: undefined;
   Home: undefined;
-  Search: { category?: string } | undefined;
+  'AI Match': { category?: string; initialMessage?: string } | undefined;
   Map: undefined;
   Book: { provider: any; serviceType: string } | undefined;
   Review: { provider: any; serviceType: string; selectedDate: string; selectedTime: string } | undefined;
@@ -128,7 +128,7 @@ function TabNavigator() {
     tabBarIcon: ({ color, focused }: any) => {
       let iconName = '';
       if (route.name === 'Home') iconName = focused ? 'home' : 'home-outline';
-      else if (route.name === 'Search') iconName = focused ? 'sparkles' : 'sparkles-outline';
+      else if (route.name === 'AI Match') iconName = focused ? 'sparkles' : 'sparkles-outline';
       else if (route.name === 'Leads') iconName = focused ? 'briefcase' : 'briefcase-outline';
       else if (route.name === 'Map') iconName = focused ? 'map' : 'map-outline';
       else if (route.name === 'Zone') iconName = focused ? 'radio' : 'radio-outline';
@@ -153,7 +153,7 @@ function TabNavigator() {
   return (
     <Tab.Navigator screenOptions={screenOptions}>
       <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t.tabHome }} />
-      <Tab.Screen name="Search" component={SearchScreen} options={{ tabBarLabel: t.tabSearch }} />
+      <Tab.Screen name="AI Match" component={SearchScreen} options={{ tabBarLabel: t.tabSearch }} />
       <Tab.Screen name="Map" component={MapScreen} options={{ tabBarLabel: language === 'en' ? 'Map' : 'نقشہ' }} />
       <Tab.Screen name="History" component={HistoryScreen} options={{ tabBarLabel: t.tabHistory }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: t.tabProfile }} />
@@ -187,7 +187,7 @@ function AppContent() {
           
           {/* Fallback routes for direct nested targeting */}
           <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Search" component={SearchScreen} />
+          <Stack.Screen name="AI Match" component={SearchScreen} />
           <Stack.Screen name="Map" component={MapScreen} />
           <Stack.Screen name="Book" component={BookScreen} />
           <Stack.Screen name="Review" component={ReviewBookingScreen} />

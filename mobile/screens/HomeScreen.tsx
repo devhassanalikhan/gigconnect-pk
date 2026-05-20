@@ -88,7 +88,20 @@ export default function HomeScreen() {
   }, [pulseAnim]);
 
   const handleCategoryPress = (category: string) => {
-    navigation.navigate('Search', { category });
+    let initialMessage: string | undefined = undefined;
+    if (category === 'Plumber') {
+      initialMessage = "Mujhe plumber chahye urgent";
+    } else if (category === 'Electrician') {
+      initialMessage = "Electrician ki zaroorat ha";
+    } else if (category === 'AC Technician' || category === 'AC Tech') {
+      initialMessage = "AC service karwani ha";
+    }
+
+    if (initialMessage) {
+      navigation.navigate('AI Match', { initialMessage });
+    } else {
+      navigation.navigate('AI Match', { category });
+    }
   };
 
   return (
@@ -149,7 +162,7 @@ export default function HomeScreen() {
             {/* AI Search Prompt Trigger */}
             <TouchableOpacity 
               style={[styles.searchBarTrigger, { backgroundColor: colors.cardBackground, borderColor: colors.border, borderRadius: rBorderRadius(16), paddingHorizontal: rPadding(20), paddingVertical: rPadding(14), marginBottom: rMargin(28), ...getShadow(2) }]}
-              onPress={() => navigation.navigate('Search')}
+              onPress={() => navigation.navigate('AI Match')}
               activeOpacity={0.8}
             >
               <Ionicons name="sparkles-outline" size={rIconSize(18)} color="#6366f1" style={{ marginRight: rMargin(10) }} />

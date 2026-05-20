@@ -32,8 +32,8 @@ interface ChatBubble {
   time: string;
 }
 
-export default function SearchScreen() {
-  const navigation = useNavigation<any>();
+export default function SearchScreen({ route, navigation: propNavigation }: any) {
+  const navigation = propNavigation || useNavigation<any>();
   const { colors, theme, language, chatHistory, setChatHistory } = useTheme();
   const styles = getStyles(colors, theme);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -71,6 +71,17 @@ export default function SearchScreen() {
     });
     return () => sub.remove();
   }, []);
+
+  // Listen to incoming initial message for auto-send from Home screen cards
+  useEffect(() => {
+    const autoMsg = route?.params?.initialMessage;
+    if (autoMsg) {
+      // Clear the param immediately to avoid loop on re-focus
+      navigation.setParams({ initialMessage: undefined });
+      // Instantly trigger matchmaking API pipeline
+      handleSend(autoMsg);
+    }
+  }, [route?.params?.initialMessage]);
 
   // Trigger matching pipeline
   const handleSend = async (customText?: string) => {
@@ -127,12 +138,23 @@ export default function SearchScreen() {
       }
 
       // ─── Handle Greeting Intent (no pipeline needed) ───────────────
-      if (resultData.pipeline_status === 'greeting' && resultData.greeting_response) {
+      const isGreetingResponse = 
+        resultData.pipeline_status === 'greeting' ||
+        resultData.intent === 'greeting' ||
+        resultData.status === 'greeting' ||
+        resultData.parsed_request?.intent === 'greeting';
+
+      if (isGreetingResponse) {
         setIsProcessing(false);
         setActiveAgentStep(-1);
+        const greetingText = resultData.greeting_response || resultData.response || resultData.text || (
+          language === 'en'
+            ? 'Hello! How can I help you today? Please tell me what service you need.'
+            : 'Assalam-o-Alaikum! Main aapki kya madad kar sakta hoon? Batayein, kaunsi service chahiye?'
+        );
         const greetingMsg: ChatBubble = {
           sender: 'agent',
-          text: resultData.greeting_response,
+          text: greetingText,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         };
         setMessages((prev) => [...prev, greetingMsg]);
@@ -160,14 +182,37 @@ export default function SearchScreen() {
           setMessages((prev) => [...prev, successMsg]);
         } else {
           setMatchedProviders([]);
-          const failMsg: ChatBubble = {
-            sender: 'agent',
-            text: language === 'en'
-              ? 'No providers found near you. Try adjusting budget or location.'
-              : 'Koi provider nahi mila. Budget ya location badal kar try karein.',
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          };
-          setMessages((prev) => [...prev, failMsg]);
+          
+          const isServiceReq = 
+            resultData.pipeline_status === 'success' ||
+            resultData.pipeline_status === 'partial' ||
+            resultData.pipeline_status === 'ok' ||
+            resultData.intent === 'service_request' ||
+            resultData.status === 'service_request' ||
+            resultData.parsed_request?.intent === 'service_request' ||
+            (resultData.parsed_request?.serviceType && resultData.parsed_request?.serviceType !== 'General Inquiry') ||
+            (resultData.parsed_request?.service_type && resultData.parsed_request?.service_type !== 'General Inquiry');
+
+          if (isServiceReq) {
+            const failMsg: ChatBubble = {
+              sender: 'agent',
+              text: language === 'en'
+                ? 'No providers found near you. Try adjusting budget or location.'
+                : 'Koi provider nahi mila. Budget ya location badal kar try karein.',
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            };
+            setMessages((prev) => [...prev, failMsg]);
+          } else {
+            const verbalResponse = resultData.greeting_response || resultData.response || resultData.text || resultData.message;
+            if (verbalResponse) {
+              const infoMsg: ChatBubble = {
+                sender: 'agent',
+                text: verbalResponse,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              };
+              setMessages((prev) => [...prev, infoMsg]);
+            }
+          }
         }
       }, 500);
 
@@ -258,33 +303,43 @@ export default function SearchScreen() {
               <Text style={styles.resultsTitle}>
                 {language === 'en' ? 'MATCHED PROVIDERS' : 'منتخب ورکرز'}
               </Text>
-              {matchedProviders.map((p, pIdx) => (
-                <TouchableOpacity
-                  key={`p-${pIdx}`}
-                  style={styles.providerCard}
-                  onPress={() => navigation.navigate('Book', {
-                    provider: p,
-                    serviceType: parsedRequest?.serviceType || 'Service',
-                  })}
-                >
-                  <View style={styles.providerInfo}>
-                    <View style={styles.providerMain}>
-                      <Text style={styles.providerNameText}>{p.name}</Text>
-                      <View style={styles.ratingRow}>
-                        <Ionicons name="star" size={12} color="#f59e0b" />
-                        <Text style={styles.ratingText}> {p.rating}</Text>
-                        <Text style={styles.distanceText}> • {p.distance_km}km away</Text>
+              {matchedProviders.map((p, pIdx) => {
+                const distanceVal = p.distance !== undefined ? p.distance : p.distance_km;
+                const arrivalTime = distanceVal ? Math.round(distanceVal * 3.5) + 10 : 25;
+                return (
+                  <TouchableOpacity
+                    key={`p-${pIdx}`}
+                    style={styles.providerCard}
+                    onPress={() => navigation.navigate('Book', {
+                      provider: p,
+                      serviceType: parsedRequest?.serviceType || 'Service',
+                    })}
+                  >
+                    <View style={styles.providerInfo}>
+                      <View style={styles.providerMain}>
+                        <Text style={styles.providerNameText}>{p.name}</Text>
+                        <View style={styles.ratingRow}>
+                          <Ionicons name="star" size={12} color="#f59e0b" />
+                          <Text style={styles.ratingText}> {p.rating}</Text>
+                          <Text style={styles.distanceText}> • {distanceVal !== undefined ? `${distanceVal}km away` : 'Nearby'}</Text>
+                        </View>
+                        <Text style={[styles.distanceText, { marginTop: 4 }]} numberOfLines={1} ellipsizeMode="tail">
+                          📍 {p.address || 'Islamabad Center'}
+                        </Text>
+                        <Text style={[styles.distanceText, { marginTop: 2 }]}>
+                          🕒 Estimated Arrival: {arrivalTime} mins
+                        </Text>
+                      </View>
+                      <View style={styles.priceTagSmall}>
+                        <Text style={styles.priceTextSmall}>{p.base_cost} PKR</Text>
                       </View>
                     </View>
-                    <View style={styles.priceTagSmall}>
-                      <Text style={styles.priceTextSmall}>{p.base_cost} PKR</Text>
+                    <View style={styles.selectBtn}>
+                      <Text style={styles.selectBtnText}>{language === 'en' ? 'Select & Bid' : 'منتخب کریں'}</Text>
                     </View>
-                  </View>
-                  <View style={styles.selectBtn}>
-                    <Text style={styles.selectBtnText}>{language === 'en' ? 'Select & Bid' : 'منتخب کریں'}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           )}
         </ScrollView>
