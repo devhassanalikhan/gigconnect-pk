@@ -44,23 +44,7 @@ const STATUS_LABELS: Record<string, string> = {
   completed: 'Done',
 };
 
-// Dynamically shield native react-native-maps imports from web targets
-let MapView: any = null;
-let Marker: any = null;
-let Circle: any = null;
-let Polyline: any = null;
-
-if (Platform.OS !== 'web') {
-  try {
-    const Maps = require('react-native-maps');
-    MapView = Maps.default || Maps.MapView;
-    Marker = Maps.Marker;
-    Circle = Maps.Circle;
-    Polyline = Maps.Polyline;
-  } catch (err) {
-    console.warn('[KaamGraph] Failed to load native react-native-maps in Worker panel:', err);
-  }
-}
+import MapView, { Marker, Circle, Polyline } from '../utils/MapComponents';
 
 export default function WorkerMapScreen() {
   const { language, selectedLocationIndex, activeBooking, colors, theme } = useTheme();

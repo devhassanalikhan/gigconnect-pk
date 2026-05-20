@@ -36,20 +36,7 @@ function getHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: nu
   return R * c;
 }
 
-let MapView: any = null;
-let Marker: any = null;
-let Polyline: any = null;
-
-if (Platform.OS !== 'web') {
-  try {
-    const Maps = require('react-native-maps');
-    MapView = Maps.default || Maps.MapView;
-    Marker = Maps.Marker;
-    Polyline = Maps.Polyline;
-  } catch (err) {
-    console.warn('[KaamGraph] Maps not available:', err);
-  }
-}
+import MapView, { Marker, Polyline } from '../utils/MapComponents';
 
 interface MapProvider {
   id: string;

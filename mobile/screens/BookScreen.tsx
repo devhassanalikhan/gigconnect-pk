@@ -12,7 +12,9 @@ import { useTheme } from '../ThemeContext';
 
 export default function BookScreen({ route, navigation }: any) {
   const { colors, theme } = useTheme();
-  const { provider, serviceType } = route.params || { provider: { name: 'Local Provider', distance_km: 1.2, rating: 4.8 }, serviceType: 'Plumber' };
+  const params = route.params || {};
+  const provider = params.provider || { name: 'Local Provider', distance_km: 1.2, rating: 4.8 };
+  const serviceType = params.serviceType || provider.category || 'Plumber';
   const [selectedDay, setSelectedDay] = useState(19);
 
   // Generate days of May 2026
