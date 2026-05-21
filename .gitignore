@@ -20,6 +20,10 @@ Thumbs.db
 
 .gitignore
 
+# Local database artifacts
+kaamgraph.db
+*.db
+
 .expo
 .next
 .vercel

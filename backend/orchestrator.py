@@ -752,10 +752,6 @@ def geo_node(state: AgentState) -> AgentState:
                 agent="GeoAgent", status="success",
                 message=f"📍 Resolved locale '{loc_text}' via local directory to: lat={user_lat}, lng={user_lng}"
             ))
-
-        # ─── Option B: Active Google Geocoding API (only if Option A failed) ──
-        # BUG FIX 1: This elif was duplicated outside the else block — removed the
-        # duplicate and kept only this single correctly-indented elif here.
         elif GOOGLE_MAPS_API_KEY and loc_text:
             try:
                 geocode_url = "https://maps.googleapis.com/maps/api/geocode/json"

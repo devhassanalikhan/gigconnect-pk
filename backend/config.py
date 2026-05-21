@@ -19,7 +19,9 @@ GOOGLE_MAPS_API_KEY: str = os.getenv("GOOGLE_MAPS_API_KEY", "")
 APIFY_API_TOKEN: str = os.getenv("APIFY_API_TOKEN", "")
 
 # ─── Database Configuration ────────────────────────────────
-DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./kaamgraph.db")
+# On Vercel (serverless), the filesystem is read-only except /tmp/
+_default_db = "sqlite:////tmp/kaamgraph.db" if os.getenv("VERCEL") else "sqlite:///./kaamgraph.db"
+DATABASE_URL: str = os.getenv("DATABASE_URL", _default_db)
 
 # ─── App Configuration ─────────────────────────────────────
 APP_TITLE: str = "KaamGraph API"
