@@ -1,10 +1,17 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
+const PRODUCTION_API_BASE_URL = 'https://gigconnect-pk.vercel.app';
+
 const getApiBaseUrl = (): string => {
+  const isDev = typeof __DEV__ !== 'undefined' ? __DEV__ : false;
+
   // ─── Web Target ────────────────────────────────────────────────────────
   if (Platform.OS === 'web') {
-    return process.env.EXPO_PUBLIC_API_BASE_URL_WEB || 'http://localhost:8000';
+    return (
+      process.env.EXPO_PUBLIC_API_BASE_URL_WEB ||
+      (isDev ? 'http://localhost:8000' : PRODUCTION_API_BASE_URL)
+    );
   }
 
   // ─── Local Host IP Auto-Resolution ──────────────────────────────────────
@@ -25,7 +32,7 @@ const getApiBaseUrl = (): string => {
   }
 
   // ─── Robust Fallback ───────────────────────────────────────────────────
-  return 'http://localhost:8000';
+  return isDev ? 'http://localhost:8000' : PRODUCTION_API_BASE_URL;
 };
 
 const getGoogleMapsApiKey = (): string => {
