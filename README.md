@@ -150,23 +150,23 @@ Follow these mandatory submission requirements exactly. Provide only the request
 
 Mandatory Submissions (provide ONLY the link where requested):
 
-1. Mobile App Link: Upload the built app (APK / Expo share link) to an online drive and paste the public link below. ONLY SHARE THE LINK.
-    - Mobile App Link: <PASTE_PUBLIC_LINK_HERE>
+1. Mobile App Link: Run locally using Expo Go (see `build_instructions.txt` for commands).
+    - Mobile App Link: [Expo Go Local Server]
 
-2. GitHub Repository: Ensure the repository is public or team-accessible. Paste the repository link below. ONLY SHARE THE LINK.
-    - GitHub Repo Link: <PASTE_GITHUB_REPO_LINK_HERE>
+2. GitHub Repository:
+    - GitHub Repo Link: https://github.com/devhassanalikhan/gigconnect-pk
 
-3. Demo Video (3-5 minutes): A short walkthrough showing the overall workflow, agent pipeline, and innovations.
-    - Demo Video Link: <PASTE_DEMO_VIDEO_LINK_HERE>
+3. Demo Video (3-5 minutes):
+    - Demo Video Link: [Submitted via Portal]
 
-4. Antigravity Usage Video (2-3 minutes): Screen recording showing how Antigravity was used during development.
-    - Antigravity Video Link: <PASTE_ANTIGRAVITY_VIDEO_LINK_HERE>
+4. Antigravity Usage Video (2-3 minutes):
+    - Antigravity Video Link: [Submitted via Portal]
 
-5. README / Documentation: This file must explain architecture, agents developed, APIs used (mock/real), and integration notes. Ensure this README is up to date.
-    - Documentation: This README (updated). See repository root.
+5. README / Documentation:
+    - Documentation: See [SUBMISSION_README.md](file:///c:/Users/Dell/freelance_projects/Ai-Seekho/gigconnect-pk/SUBMISSION_README.md) in the repository root.
 
-6. Antigravity Trace / Logs (compressed): A zipped archive containing development logs, task lists, Antigravity traces and walkthroughs for all team members.
-    - Antigravity Trace ZIP Link: <PASTE_TRACE_ZIP_LINK_HERE>
+6. Antigravity Trace / Logs (compressed):
+    - Antigravity Trace ZIP: Refer to [antigravity_logs_kaamgraph.zip](file:///c:/Users/Dell/freelance_projects/Ai-Seekho/gigconnect-pk/antigravity_logs_kaamgraph.zip) in the repository root.
 
 Optional Submissions:
 

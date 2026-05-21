@@ -150,23 +150,23 @@ Add these mandatory submission artifacts to the repo root or supply public links
 
 Mandatory Submissions (place links or paths):
 
-1. Mobile App Link: public share link to the APK / Expo build.
-  - Link: <PASTE_PUBLIC_LINK_HERE>
+1. Mobile App Link:
+  - Link: [Expo Go Local Server]
 
-2. GitHub Repository: public repo URL.
-  - Link: <PASTE_GITHUB_REPO_LINK_HERE>
+2. GitHub Repository:
+  - Link: https://github.com/devhassanalikhan/gigconnect-pk
 
-3. Demo Video (3-5 minutes): walkthrough showing agent pipeline and innovation.
-  - Link: <PASTE_DEMO_VIDEO_LINK_HERE>
+3. Demo Video (3-5 minutes):
+  - Link: [Submitted via Portal]
 
-4. Antigravity Usage Video (2-3 minutes): how Antigravity was used.
-  - Link: <PASTE_ANTIGRAVITY_VIDEO_LINK_HERE>
+4. Antigravity Usage Video (2-3 minutes):
+  - Link: [Submitted via Portal]
 
-5. README / Documentation: comprehensive docs explaining architecture, agents, APIs, and integration notes.
-  - Path: README.md
+5. README / Documentation:
+  - Path: README.md / SUBMISSION_README.md
 
-6. Antigravity Trace / Logs (zip): include `.agent` traces, task lists, and developer walkthroughs.
-  - Link/Path: <PASTE_TRACE_ZIP_LINK_HERE>
+6. Antigravity Trace / Logs (zip):
+  - Path: antigravity_logs_kaamgraph.zip
 
 Optional:
 - Web App Link (if deployed)
