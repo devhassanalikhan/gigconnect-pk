@@ -5,6 +5,9 @@
 
 By orchestrating **5 autonomous sub-agents powered by Google Cloud & Gemini 2.5 Flash**, KaamGraph decodes natural Roman Urdu intents, scans local neighborhoods, negotiates prices, secures milestones in safe escrows, and dispatches police-cleared worker updates via simulated SMS.
 
+## 🌐 Live Web App
+- Access the deployed web app here: https://gigconnect-pk.vercel.app/
+
 ---
 
 ## 🎨 Premium Key Features
