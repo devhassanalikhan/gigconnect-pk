@@ -17,7 +17,9 @@
         "googleMapsApiKey": ""
       },
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "KaamGraph needs your location to find and display nearby workers."
+        "NSLocationWhenInUseUsageDescription": "KaamGraph needs your location to find and display nearby workers.",
+        "NSSpeechRecognitionUsageDescription": "Allow KaamGraph to use speech recognition.",
+        "NSMicrophoneUsageDescription": "Allow KaamGraph to use the microphone for voice search."
       }
     },
     "android": {
@@ -37,8 +39,10 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "RECORD_AUDIO",
-        "MODIFY_AUDIO_SETTINGS"
-      ]
+        "MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.dev.hassanalikhan.kaamgraph"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -50,9 +54,16 @@
         {
           "microphonePermission": "Allow KaamGraph to use the microphone for voice search.",
           "speechRecognitionPermission": "Allow KaamGraph to use speech recognition.",
-          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8bb086eb-af10-4d03-835c-f783ae465917"
+      }
+    }
   }
 }

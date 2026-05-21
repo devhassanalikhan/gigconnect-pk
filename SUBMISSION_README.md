@@ -12,6 +12,10 @@
 - **Localization**: Bilingual translation engine (`اردو` / `EN`) with dynamic localization of lists, categories, status trackers, and checkout screens.
 
 ---
+## 🌐 Web App Link (Optional Submission)
+- Live web app: https://gigconnect-pk.vercel.app/
+
+---
 
 ## 🤖 Multi-Agent Architecture (Antigravity Pipeline)
 KaamGraph coordinates 7 specialized cognitive agents in a sequential execution pipeline to safely fulfill requests:

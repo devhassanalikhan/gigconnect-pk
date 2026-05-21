@@ -168,14 +168,6 @@ Mandatory Submissions (provide ONLY the link where requested):
 6. Antigravity Trace / Logs (compressed):
     - Antigravity Trace ZIP: Refer to [antigravity_logs_kaamgraph.zip](file:///c:/Users/Dell/freelance_projects/Ai-Seekho/gigconnect-pk/antigravity_logs_kaamgraph.zip) in the repository root.
 
-Optional Submissions:
-
-1. Web App Link: If you deployed a web app, provide the public URL and credentials if required. ONLY SHARE THE LINK.
-    - Web App Link: <PASTE_WEB_APP_LINK_HERE>
-    - Credentials (if needed): <USERNAME / PASSWORD or leave empty>
-
-2. Additional Supporting Files: PDF / MD / PPTX you want to include.
-    - Extra Files Link: <PASTE_LINK_TO_SUPPORTING_FILES>
 
 Checklist before final submission:
 - Verify mobile link is accessible without login (or include access instructions).
