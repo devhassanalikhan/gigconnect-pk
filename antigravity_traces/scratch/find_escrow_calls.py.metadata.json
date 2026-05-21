@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "Find files that call 'api/escrow/lock' in the mobile directory.",
+  "updatedAt": "2026-05-20T21:27:18.910302400Z"
+}

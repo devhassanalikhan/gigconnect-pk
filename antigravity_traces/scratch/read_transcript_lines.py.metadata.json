@@ -1,0 +1,5 @@
+{
+  "artifactType": "ARTIFACT_TYPE_OTHER",
+  "summary": "Read specific lines of transcript.jsonl file to identify the exact secret values triggered by GitHub push protection",
+  "updatedAt": "2026-05-21T04:51:47.930207800Z"
+}

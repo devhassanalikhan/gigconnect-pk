@@ -1,0 +1,74 @@
+================================================================================
+          KAAMGRAPH MOBILE APP — EXPO BUILD & RUN INSTRUCTIONS
+================================================================================
+
+This document provides direct copy-paste configuration and compilation commands 
+for running KaamGraph in the Expo Go sandbox or compiling physical builds (APK).
+
+--------------------------------------------------------------------------------
+1. PREREQUISITES
+--------------------------------------------------------------------------------
+- Node.js LTS (v18 or v20 recommended)
+- npm (installed with Node) or yarn
+- Expo Go app installed on your physical mobile device (Android/iOS)
+
+--------------------------------------------------------------------------------
+2. SETUP AND START LOCAL DEV SERVER (Expo Go Sandbox)
+--------------------------------------------------------------------------------
+Run these commands in your terminal to initialize and start the app:
+
+# Navigate to the mobile project directory
+cd mobile
+
+# Clean dependency installation
+npm install
+
+# Create environment configuration file
+cat > .env << 'EOF'
+EXPO_PUBLIC_GOOGLE_MAPS_API_KEY="YOUR_GOOGLE_MAPS_API_KEY"
+DEFAULT_LATITUDE=33.6411
+DEFAULT_LONGITUDE=72.9723
+EOF
+
+# Start the Expo developer server clearing the cache
+npx expo start -c
+
+--------------------------------------------------------------------------------
+3. RUNNING ON DEVICES
+--------------------------------------------------------------------------------
+- **Physical Device (Expo Go)**:
+  * Connect your mobile device and computer to the SAME Wi-Fi network.
+  * Scan the QR Code printed in your terminal using:
+    - Android: Expo Go App's built-in QR scanner.
+    - iOS: Native Camera app (will prompt to open in Expo Go).
+
+- **Android Emulator**:
+  * Ensure your Android Virtual Device (AVD) is running in Android Studio.
+  * Press 'a' in the Expo start terminal to launch automatically.
+
+- **iOS Simulator**:
+  * Open Simulator on macOS.
+  * Press 'i' in the Expo start terminal to launch automatically.
+
+- **Web Browser**:
+  * Press 'w' in the Expo start terminal to run the web compilation.
+
+--------------------------------------------------------------------------------
+4. GENERATING NATIVE APKS (Production/Preview Build via EAS)
+--------------------------------------------------------------------------------
+To compile a standalone APK using Expo Application Services (EAS):
+
+# Install the EAS Command Line Interface globally
+npm install -g eas-cli
+
+# Log in to your Expo account
+eas login
+
+# Configure project configuration
+eas project:init
+
+# Trigger a preview APK cloud build (Android)
+eas build --platform android --profile preview
+
+# Alternatively, trigger a local Android APK build (requires Android SDK locally)
+eas build --platform android --profile preview --local
