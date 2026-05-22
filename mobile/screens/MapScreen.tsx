@@ -96,6 +96,38 @@ const LOCAL_SEED_PROVIDERS = [
   { id: 'p12', name: 'ColorPro Painters', category: 'Painter', rating: 4.5, lat: 33.6500, lng: 72.9900, address: 'E-11 Sector, Islamabad', base_cost: 2300, phone_number: '0346-5553434' },
 ];
 
+const mockMapProviders = [
+  {
+    id: "PROV-MOCK-001",
+    provider_id: "PROV-MOCK-001",
+    name: "Islamabad Master Plumbers & Electricians",
+    address: "G-11 Markaz, Near Al-Mahr Plaza, Islamabad",
+    phone_number: "+923001234567",
+    latitude: 33.6425,
+    longitude: 73.0762,
+    distance_in_meters: 1500
+  },
+  {
+    id: "PROV-MOCK-002",
+    provider_id: "PROV-MOCK-002",
+    name: "Pakistan Electrical & Plumbing Hub",
+    address: "I-10 Markaz, Korang Road, Islamabad",
+    phone_number: "+923219876543",
+    latitude: 33.6281,
+    longitude: 73.0789,
+    distance_in_meters: 3200
+  },
+  {
+    id: "PROV-MOCK-003",
+    provider_id: "PROV-MOCK-003",
+    name: "DHA Phase II Quick-Fix Cleaning Services",
+    address: "Alhaaj Market, Main GT Road, DHA Phase II, Islamabad",
+    phone_number: "+923335551212",
+    latitude: 33.5202,
+    longitude: 73.1611,
+    distance_in_meters: 6400
+  }
+];
 
 export default function MapScreen({ navigation }: any) {
   const { colors, selectedLocationIndex, theme, language } = useTheme();
@@ -185,14 +217,36 @@ export default function MapScreen({ navigation }: any) {
         const res = await getProvidersMock(centerLat, centerLng);
         data = res;
       } else {
-        const response = await fetchWithTimeout(`${API_BASE_URL}/api/providers?lat=${centerLat}&lng=${centerLng}`, {}, 8000);
-        data = await response.json();
+        const fetchProductionMapData = async () => {
+          try {
+             // We use our clean dynamically generated API_BASE_URL (or Vercel HTTPS explicitly)
+             // As instructed, using explicit vercel backend url: https://gigconnect-pk.vercel.app/api/providers
+            const response = await fetchWithTimeout(`https://gigconnect-pk.vercel.app/api/providers?lat=${centerLat}&lng=${centerLng}`, {}, 8000);
+            
+            if (!response.ok) {
+              throw new Error(`Server returned status: ${response.status}`);
+            }
+            
+            const fetchedData = await response.json();
+            if (fetchedData && Array.isArray(fetchedData.providers) && fetchedData.providers.length > 0 && !fetchedData.error) {
+              return fetchedData;
+            } else {
+              console.warn("Backend data empty or restricted. Injecting fallback markers.");
+              return { providers: mockMapProviders };
+            }
+          } catch (error) {
+            console.warn("Production network failure or billing block. Activating offline fallback tier:", error);
+            return { providers: mockMapProviders };
+          }
+        };
+
+        data = await fetchProductionMapData();
       }
 
-      let providerList = LOCAL_SEED_PROVIDERS;
+      let providerList = mockMapProviders;
       if (data && Array.isArray(data.providers) && data.providers.length > 0) {
         providerList = data.providers.map((p: any) => {
-          const id = p.id || String(Math.random());
+          const id = p.id || p.provider_id || String(Math.random());
           const name = p.name || p.displayName?.text || 'Unknown Provider';
           const address = p.address || p.formattedAddress || p.formatted_address || 'Islamabad, Pakistan';
           const phone_number = p.phone_number || p.phoneNumber || p.phone || p.internationalPhoneNumber || p.nationalPhoneNumber || p.formatted_phone_number || '0300-1234567';
@@ -216,9 +270,11 @@ export default function MapScreen({ navigation }: any) {
           const category = p.service_type || p.category || 'Service';
           const rating = Math.min(5, Math.max(0, Number(p.rating) || 0));
           const base_cost = Number(p.base_cost) || Number(p.base_rate) || 0;
+          const distance_in_meters = p.distance_in_meters || null;
 
           return {
             id,
+            provider_id: id,
             name,
             address,
             phone_number,
@@ -229,6 +285,7 @@ export default function MapScreen({ navigation }: any) {
             category,
             rating,
             base_cost,
+            distance_in_meters,
           };
         });
       }
@@ -237,8 +294,8 @@ export default function MapScreen({ navigation }: any) {
       filterAndSortProviders(centerLat, centerLng, filterQuery, providerList);
     } catch (error) {
       console.log('[KaamGraph] Backend offline or mock failure, using local providers.', error);
-      setRawProviders(LOCAL_SEED_PROVIDERS);
-      filterAndSortProviders(centerLat, centerLng, filterQuery, LOCAL_SEED_PROVIDERS);
+      setRawProviders(mockMapProviders);
+      filterAndSortProviders(centerLat, centerLng, filterQuery, mockMapProviders);
     } finally {
       setIsLoading(false);
     }
@@ -546,7 +603,12 @@ export default function MapScreen({ navigation }: any) {
           <MapView
             ref={mapRef}
             style={StyleSheet.absoluteFillObject}
-            initialRegion={mapRegion}
+            initialRegion={{
+              latitude: 33.6844,
+              longitude: 73.0479,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }}
             onRegionChangeComplete={(region: any) => {
               if (isValidCoordinate(region.latitude, region.longitude)) {
                 setMapRegion(region);
@@ -560,14 +622,14 @@ export default function MapScreen({ navigation }: any) {
               <View style={[styles.clientMarker, { backgroundColor: colors.primary }]} />
             </Marker>
 
-            {providers.slice(0, 15).map((p) => (
+            {providers?.slice(0, 15).map((p) => (
               <Marker
-                key={p.id}
-                coordinate={{ latitude: p.latitude, longitude: p.longitude }}
+                key={p.id || String(Math.random())}
+                coordinate={{ latitude: p.latitude || p.lat, longitude: p.longitude || p.lng }}
                 title={p.name}
                 onPress={() => {
                   setSelectedProviderId(p.id);
-                  updateMapViewport(p.latitude, p.longitude);
+                  updateMapViewport(p.latitude || p.lat, p.longitude || p.lng);
                 }}
               >
                 <View style={[styles.markerDot, p.id === selectedProviderId && { backgroundColor: colors.primary, transform: [{ scale: 1.25 }] }]} />
