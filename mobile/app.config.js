@@ -13,27 +13,28 @@ if (!GOOGLE_MAPS_API_KEY) {
   console.warn('[KaamGraph] WARNING: Google Maps API key is not set in .env. Map features may crash on native builds.');
 }
 
-const expoConfig = {
-  ...appJson.expo,
-  ios: {
-    ...appJson.expo.ios,
-    config: {
-      ...appJson.expo.ios?.config,
-      googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-    },
-  },
-  android: {
-    ...appJson.expo.android,
-    config: {
-      ...appJson.expo.android?.config,
-      googleMaps: {
-        ...(appJson.expo.android?.config?.googleMaps || {}),
-        apiKey: GOOGLE_MAPS_API_KEY,
+// Wrapping inside standard Expo dynamic config export function
+module.exports = ({ config }) => {
+  return {
+    ...appJson.expo, // Pulls everything cleanly from app.json static context
+    ...config,       // Merges internal fallback profiles
+    
+    ios: {
+      ...(appJson.expo.ios || {}),
+      config: {
+        ...(appJson.expo.ios?.config || {}),
+        googleMapsApiKey: GOOGLE_MAPS_API_KEY,
       },
     },
-  },
-};
-
-module.exports = {
-  expo: expoConfig,
+    android: {
+      ...(appJson.expo.android || {}),
+      config: {
+        ...(appJson.expo.android?.config || {}),
+        googleMaps: {
+          ...(appJson.expo.android?.config?.googleMaps || {}),
+          apiKey: GOOGLE_MAPS_API_KEY,
+        },
+      },
+    },
+  };
 };
