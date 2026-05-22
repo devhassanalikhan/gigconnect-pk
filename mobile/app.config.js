@@ -5,7 +5,9 @@ const appJson = require('./app.json');
 const envPath = path.resolve(__dirname, '.env');
 dotenv.config({ path: envPath });
 
-const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
+// Ensure we strip any accidental string quotes that can cause native Android crash
+const rawKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY || '';
+const GOOGLE_MAPS_API_KEY = rawKey.replace(/"/g, '').replace(/'/g, '');
 
 if (!GOOGLE_MAPS_API_KEY) {
   console.warn('[KaamGraph] WARNING: Google Maps API key is not set in .env. Map features may crash on native builds.');
